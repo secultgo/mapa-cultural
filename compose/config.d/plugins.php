@@ -1,8 +1,12 @@
 <?php
+
 return [
     'plugins' => [
-        'EvaluationMethodTechnical' => ['namespace' => 'EvaluationMethodTechnical', 'config' => ['step' => 0.1]],
+        'EvaluationMethodTechnical' => ['namespace' => 'EvaluationMethodTechnical'],
         'EvaluationMethodSimple' => ['namespace' => 'EvaluationMethodSimple'],
-        'EvaluationMethodDocumentary' => ['namespace' => 'EvaluationMethodDocumentary']
+        'EvaluationMethodDocumentary' => ['namespace' => 'EvaluationMethodDocumentary'],
+        
+        'MultipleLocalAuth' => [ 'namespace' => 'MultipleLocalAuth' ],
+        'AldirBlanc' => ['namespace' => 'AldirBlanc'],
     ]
 ];
