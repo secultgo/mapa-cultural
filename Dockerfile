@@ -1,5 +1,40 @@
 FROM php:7.2-fpm
 
+# LABEL about the custom image
+LABEL maintainer="secult-go"
+LABEL version="0.1"
+LABEL description="This is custom Docker Image for \
+the PHP-FPM and Nginx Services."
+
+# Disable Prompt During Packages Installation
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Update Ubuntu Software repository
+RUN apt update
+
+RUN apt install -y nginx supervisor && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt clean
+
+# Define the ENV variable
+ENV nginx_vhost /etc/nginx/sites-available/default
+ENV php_conf /etc/php/7.2/fpm/php.ini
+ENV nginx_conf /etc/nginx/nginx.conf
+ENV supervisor_conf /etc/supervisor/supervisord.conf
+
+# Enable PHP-fpm on nginx virtualhost configuration
+COPY compose/production/nginx.conf ${nginx_vhost}
+#RUN sed -i -e 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' ${php_conf} && \
+#    echo "\ndaemon off;" >> ${nginx_conf}
+
+# Copy supervisor configuration
+COPY compose/production/supervisord.conf ${supervisor_conf}
+
+RUN mkdir -p /run/php && \
+    chown -R www-data:www-data /var/www/html && \
+    chown -R www-data:www-data /run/php
+
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl libcurl4-gnutls-dev locales imagemagick libmagickcore-dev libmagickwand-dev zip \
         ruby ruby-dev libpq-dev gnupg nano iputils-ping git \
@@ -67,6 +102,8 @@ COPY compose/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 WORKDIR /var/www/html/
-EXPOSE 9000
 
-CMD ["php-fpm"]
+EXPOSE 80 443
+# Copy start.sh script and define default command for the container
+COPY compose/production/start.sh /start.sh
+CMD ["./start.sh"]
