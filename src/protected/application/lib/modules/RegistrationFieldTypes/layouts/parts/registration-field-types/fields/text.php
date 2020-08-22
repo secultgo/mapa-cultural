@@ -1,0 +1,1 @@
+<input ng-model="entity[fieldName]" maxlength='{{ !field.maxSize ?'': field.maxSize }}'>

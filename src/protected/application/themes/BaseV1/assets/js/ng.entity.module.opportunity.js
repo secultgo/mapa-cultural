@@ -1,6 +1,6 @@
 (function (angular) {
     "use strict";
-    var module = angular.module('entity.module.opportunity', ['ngSanitize', 'checklist-model']);
+    var module = angular.module('entity.module.opportunity', ['ngSanitize', 'checklist-model','infinite-scroll']);
 
     module.config(['$httpProvider', function ($httpProvider) {
         $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
@@ -95,6 +95,27 @@
 
             save: function () {
                 jQuery('a.js-submit-button').click();
+            },
+
+            updateFields: function(entity) {
+                var data = {};
+                Object.keys(entity).forEach(function(key) {
+                    if(key.indexOf('field_') === 0){
+                        data[key] = entity[key];
+
+                        if (data[key] instanceof Date) {
+                            data[key] = moment(data[key]).format('YYYY-MM-D')
+                        }
+                    }
+                })
+                return $http.patch(this.getUrl('single', entity.id), data).
+                    success(function(data, status){
+                        MapasCulturais.Messages.success(labels['changesSaved']);
+                        $rootScope.$emit('registration.update', {message: "Opportunity registration was updated ", data: data, status: status});
+                    }).
+                    error(function(data, status){
+                        $rootScope.$emit('error', {message: "Cannot update opportunity registration", data: data, status: status});
+                    });
             },
 
             getFields: function () {
@@ -438,6 +459,7 @@ module.controller('RegistrationConfigurationsController', ['$scope', '$rootScope
                 title: model.title,
                 fieldType: model.fieldType,
                 fieldOptions: model.fieldOptions,
+                config: model.config,
                 description: model.description,
                 maxSize: model.maxSize,
                 required: model.required,
@@ -761,10 +783,33 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
         item.file = MapasCulturais.entity.registrationFiles[item.groupName];
     });
 
-
     $scope.data.fields = RegistrationService.getFields();
     $scope.data.fieldsRequiredLabel = labels['requiredLabel'];
     $scope.data.fieldsOptionalLabel = labels['optionalLabel'];
+
+    $scope.data.fields.forEach(function(field) {
+        var val = $scope.entity[field.fieldName];
+
+        if (field.fieldType == 'date' && typeof val == 'string' ) {
+            val = moment(val).toDate();
+        } else if(field.fieldType == 'number' && typeof val == 'string' ) {
+            val = parseFloat(val);
+        }
+
+        $scope.entity[field.fieldName] = val;
+    });
+
+
+    $scope.$watch('entity', function(c, o){
+        if(c==o){
+            return;
+        }
+        $timeout.cancel($scope.updateTimeout);
+        $scope.updateTimeout = $timeout(function(){
+            RegistrationService.updateFields($scope.entity)
+        },3000);
+
+    }, true);
 
     var fieldsByName = {};
     $scope.data.fields.forEach(function(e){
@@ -782,7 +827,10 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
         jQuery('.js-editable-field').each(function(){
             var field = fieldsByName[this.id];
             if(field && field.fieldOptions){
-                var cfg = {};
+                var cfg = {
+                    showbuttons: false,
+                    onblur: 'submit'
+                };
                 cfg.source = field.fieldOptions.map(function(e){ return {value: e, text: e}; });
 
                 if(field.fieldType === "date"){
@@ -926,9 +974,9 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
         if (field.fieldType === 'date') {
             return moment(value).format('DD-MM-YYYY');
         } else if (field.fieldType === 'url'){
-            return '<a href="' + value + '" target="_blank">' + value + '</a>';
+            return '<a href="' + value + '" target="_blank" rel="noopener noreferrer">' + value + '</a>';
         } else if (field.fieldType === 'email'){
-            return '<a href="mailto:' + value + '"  target="_blank">' + value + '</a>';
+            return '<a href="mailto:' + value + '"  target="_blank" rel="noopener noreferrer">' + value + '</a>';
         } else if (value instanceof Array) {
             return value.join(', ');
         } else {
@@ -1594,7 +1642,6 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 
 
     if(MapasCulturais.entity.registrationAgents){
         MapasCulturais.entity.registrationAgents.forEach(function(e){
-            console.log(e.agentRelationGroupName);
             $scope.data.relationApiQuery[e.agentRelationGroupName] = {type: 'EQ(' + e.type + ')'};
             if(e.agentRelationGroupName === 'owner'){
                 console.log(e);
@@ -2018,7 +2065,9 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 
         }]);
 
     module.controller('RegistrationListController', ['$scope', '$interval', 'OpportunityApiService', function($scope, $timeout, OpportunityApiService){
-        
+        if (! (MapasCulturais.entity.canUserEvaluate || MapasCulturais.entity.canUserViewUserEvaluations) ) {
+            return;
+        }
         $scope.registrations = [];
         $scope.evaluations = {};
         $scope.data = {
@@ -2032,16 +2081,32 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 
 
         var registrationsApi = new OpportunityApiService($scope, 'registrations', 'findRegistrations', {
             '@opportunity': getOpportunityId(),
-            '@limit': 10000,
+            '@limit': 50,
             '@select': 'id,singleUrl,owner.{id,name}'
         });
 
         var evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', {
             '@opportunity': getOpportunityId(),
-            '@limit': 10000,
+            '@limit': 50,
             '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,'
         });
 
+
+        $scope.canCall = true; // variavel usada para nao dar "loop" na chamda da API, somente faz uma chamada apos a anterior ter terminada
+        $scope.loadMore = () => {
+            if(evaluationsApi.finish()){
+                return null;
+            }
+            if($scope.canCall) {
+                $scope.canCall = false;
+                registrationsApi.find().success(function(){
+                    $scope.canCall = true;  
+                    $scope.registrations = $scope.data.registrations;
+                });
+
+            }
+        };
+     
         registrationsApi.find().success(function(){
             $scope.registrations = $scope.data.registrations;
         });

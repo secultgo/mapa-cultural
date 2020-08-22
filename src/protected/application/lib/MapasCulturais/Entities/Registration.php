@@ -709,21 +709,6 @@ class Registration extends \MapasCulturais\Entity
                         $typeDescription = $app->getRegisteredEntityTypeById($def->agent, $def->type)->name;
                         $errors[] = sprintf(\MapasCulturais\i::__('Este agente deve ser do tipo "%s".'), $typeDescription);
                     }
-
-                    $erroredProperties  = [];
-                    foreach($def->requiredProperties as $requiredProperty){
-                        $app->disableAccessControl();
-                        $value = $def->agent->$requiredProperty;
-                        $app->enableAccessControl();
-                        if(!$value){
-                            $erroredProperties[] = '{{' . $requiredProperty . '}}';
-                        }
-                    }
-                    if(is_array($erroredProperties) && count($erroredProperties) === 1){
-                        $errors[] = sprintf(\MapasCulturais\i::__('O campo "%s" é obrigatório.'), $erroredProperties[0]);
-                    }elseif(is_array($erroredProperties) && count($erroredProperties) > 1){
-                        $errors[] = sprintf(\MapasCulturais\i::__('Os campos "%s" são obrigatórios.'), implode(', ', $erroredProperties));
-                    }
                 }
             }
 
@@ -741,22 +726,19 @@ class Registration extends \MapasCulturais\Entity
         }        
         $spaceDefined = $this->getSpaceRelation();
        
-        if($isSpaceRelationRequired === 'required'){
-            if($spaceDefined === null) {
-                $errorsResult['space'] = \MapasCulturais\i::__('É obrigatório vincular um espaço com a inscrição');
+        if(isset($isSpaceRelationRequired)){
+            if($isSpaceRelationRequired === 'required'){
+                if($spaceDefined === null) {
+                    $errorsResult['space'] = \MapasCulturais\i::__('É obrigatório vincular um espaço com a inscrição');
+                }
+            }
+            if($isSpaceRelationRequired === 'required' || $isSpaceRelationRequired === 'optional'){
+                //Espaço não autorizado
+                if( $spaceDefined && $spaceDefined->status < 0){
+                    $errorsResult['space'] = \MapasCulturais\i::__('O espaço vinculado a esta inscrição aguarda autorização do responsável');
+                }
             }
         }
-        //dump($spaceDefined->status);
-        //dump($isSpaceRelationRequired);
-        //die();
-        //adicionar 
-        if($isSpaceRelationRequired === 'required' || $isSpaceRelationRequired === 'optional'){
-            //Espaço não autorizado
-            if( $spaceDefined && $spaceDefined->status < 0){
-                $errorsResult['space'] = \MapasCulturais\i::__('O espaço vinculado a esta inscrição aguarda autorização do responsável');
-            }
-        }
-        
         //|| $isSpaceRelationRequired === 'optional'
         if(!is_null($spaceDefined)){
             $app = App::i();

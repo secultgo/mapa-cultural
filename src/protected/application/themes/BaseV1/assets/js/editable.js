@@ -59,6 +59,13 @@ jQuery(function(){
         return false;
     });
 
+    //Máscaras dos formulários de oportunidades
+    $('.registration-edit-mode input').each(function() {
+        if($(this).data('mask')){
+            $(this).mask($(this).data('mask'));
+        }
+    });
+
     //Máscaras de telefone, CEP e hora
 
     $('.js-editable').on('shown', function(e, editable) {
@@ -465,7 +472,9 @@ MapasCulturais.Editables = {
                 type: 'text',
                 maxlength : 20,
                 emptytext: entity[field_name].label,
-                placeholder: entity[field_name].label
+                placeholder: entity[field_name].label,
+                showbuttons: false,
+                onblur: 'submit'
             };
 
             var select_value = null;
@@ -689,7 +698,6 @@ MapasCulturais.Editables = {
             $('.editable-empty.editable-unsaved').each(function(){
                 $(this).editable('setValue', '');
             });
-
             var target; //Vazio
             var $button = $(this); // Retorna submitButton
             var controller = MapasCulturais.request.controller; //Retorna controller da entidade atual
@@ -828,14 +836,30 @@ MapasCulturais.Editables = {
                                 parent().
                                 removeClass('danger');
 
-
-                        if(MapasCulturais.request.controller != 'registration' && (action === 'create' || response.status != MapasCulturais.entity.status)){
-                            if(response.status == 1) {
-                                document.location = MapasCulturais.createUrl(controller, 'single', [response.id]);
+                        
+                        //parametro passado pelo backend para controllar o redirecionamento apos salvar a entidade
+                        // exemplo no backend: 
+                        // $json->redirect = "true";
+                        // $json->url = ['controller'=>'aldirblanc', 'action'=>'selecionaragente'];
+                        if(response.redirect == undefined || response.redirect === 'true' ) {
+                            if(response.url) {
+                                
+                                document.location = MapasCulturais.createUrl(response.url.controller, response.url.action, [response.id]);
+                                
                             } else {
-                                document.location = MapasCulturais.createUrl(controller, 'edit', [response.id]);
+
+                                if(MapasCulturais.request.controller != 'registration' && (action === 'create' || response.status != MapasCulturais.entity.status)){
+                                    if(response.status == 1) {
+                                        document.location = MapasCulturais.createUrl(controller, 'single', [response.id]);
+                                    } else {
+                                        document.location = MapasCulturais.createUrl(controller, 'edit', [response.id]);
+                                    }
+                                }
                             }
+                            
                         }
+
+                        
                     }
                     $submitButton.data('clicked',false);
                 },
