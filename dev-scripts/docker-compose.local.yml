@@ -6,7 +6,7 @@ services:
 #      dockerfile: compose/local/Dockerfile
     image: mapacultural-go:latest
     ports:
-      - "8080:80"
+      - "8088:80"
 #    volumes:
 #      - ../src/protected:/var/www/html/protected
 #      - ../scripts:/var/www/scripts
