@@ -1,0 +1,8 @@
+[submodule "src/protected/application/plugins/AldirBlanc"]
+	path = src/protected/application/plugins/AldirBlanc
+	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-aldirblanc-go.git
+	branch = develop
+[submodule "src/protected/application/plugins/MultipleLocalAuth"]
+	path = src/protected/application/plugins/MultipleLocalAuth
+	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/multiplelocalauth-go.git
+	branch = develop

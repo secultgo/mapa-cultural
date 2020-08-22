@@ -4,9 +4,9 @@ services:
 #    build:
 #      context: ../
 #      dockerfile: compose/local/Dockerfile
-    image: mapa-cultural:latest
+    image: mapasculturais:latest
     ports:
-      - "80:80"
+      - "8080:80"
 #    volumes:
 #      - ../src/protected:/var/www/html/protected
 #      - ../scripts:/var/www/scripts
@@ -26,7 +26,6 @@ services:
       # - DB_PASS=mapas
 
       - APP_LCODE=pt_BR,es_ES
-      - ACTIVE_THEME=SpCultura
       - APP_MODE=development
 
     depends_on:

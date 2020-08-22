@@ -18,17 +18,11 @@ RUN apt install -y nginx supervisor && \
 
 # Define the ENV variable
 ENV nginx_vhost /etc/nginx/sites-available/default
-ENV php_conf /etc/php/7.2/fpm/php.ini
-ENV nginx_conf /etc/nginx/nginx.conf
-ENV supervisor_conf /etc/supervisor/supervisord.conf
+ENV nginx_conf /etc/nginx/conf.d/default.conf
 
 # Enable PHP-fpm on nginx virtualhost configuration
 COPY compose/production/nginx.conf ${nginx_vhost}
-#RUN sed -i -e 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' ${php_conf} && \
-#    echo "\ndaemon off;" >> ${nginx_conf}
-
-# Copy supervisor configuration
-COPY compose/production/supervisord.conf ${supervisor_conf}
+COPY compose/production/nginx.conf ${nginx_conf}
 
 RUN mkdir -p /run/php && \
     chown -R www-data:www-data /var/www/html && \
@@ -93,13 +87,6 @@ WORKDIR /var/www/html/protected/application/themes/
 
 RUN find . -maxdepth 1 -mindepth 1 -exec echo "compilando sass do tema " {} \; -exec sass {}/assets/css/sass/main.scss {}/assets/css/main.css -E "UTF-8" \;
 
-RUN mkdir -p /var/www/html/protected/application/plugins/AldirBlanc
-RUN mkdir -p /var/www/html/protected/application/plugins/MultipleLocalAuth
-
-RUN git clone https://github.com/mapasculturais/plugin-AldirBlanc /var/www/html/protected/application/plugins/AldirBlanc
-RUN git clone https://github.com/mapasculturais/plugin-MultipleLocalAuth /var/www/html/protected/application/plugins/MultipleLocalAuth
-RUN curl https://raw.githubusercontent.com/opauth/facebook/master/FacebookStrategy.php > /var/www/html/protected/application/plugins/MultipleLocalAuth/Facebook/FacebookStrategy.php
-
 RUN mkdir /var/www/html/assets
 RUN mkdir /var/www/html/files
 RUN mkdir /var/www/private-files
@@ -116,6 +103,9 @@ COPY version.txt /var/www/version.txt
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
 
+# Copy start.sh script and define default command for the container
+COPY compose/production/start.sh /start.sh
+
 RUN chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
 ENTRYPOINT ["/entrypoint.sh"]
@@ -123,6 +113,5 @@ ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /var/www/html/
 
 EXPOSE 80 443
-# Copy start.sh script and define default command for the container
-COPY compose/production/start.sh /start.sh
-CMD ["./start.sh"]
+
+CMD ["php-fpm"]

@@ -7,7 +7,8 @@ if(substr($host_part,-1) !== '/') $host_part .= '/';
 $_APP_BASE_URL = $prot_part . $host_part;
 
 return [
-    'auth.provider' => '\MultipleLocalAuth\Provider',
+//    'auth.provider' => '\MultipleLocalAuth\Provider',
+    'auth.provider' => 'Fake',
     'auth.config' => array(
         'salt' => env('AUTH_SALT', null),
         'timeout' => '24 hours',

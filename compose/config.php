@@ -10,3 +10,4 @@ foreach($config_files as $config_file) {
 }
 
 return $config;
+
