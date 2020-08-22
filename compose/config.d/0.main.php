@@ -5,6 +5,8 @@ return [
     'app.siteName' => env('SITE_NAME', 'SECULT - Goiás Lei Aldir Blanc'),
     'app.siteDescription' => env('SITE_DESCRIPTION', 'Solução para os cadastros da Lei Aldir Blanc'),
 
+    'base.url' => env('BASE_URL', ''),
+
     'themes.active' => env('ACTIVE_THEME', 'MapasCulturais\Themes\BaseV1'),
 
     'app.lcode' => env('APP_LCODE', 'pt_BR,es_ES'),

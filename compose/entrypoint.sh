@@ -20,7 +20,6 @@ while(true){
     sleep(1);
 }
 '
-chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
 if [ ! -f /.deployed ]; then
     cd /var/www/scripts
@@ -28,7 +27,7 @@ if [ ! -f /.deployed ]; then
    touch /.deployed
 fi
 
-#chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
+chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
 
 nohup /recreate-pending-pcache-cron.sh &
 
