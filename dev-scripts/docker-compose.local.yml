@@ -4,7 +4,7 @@ services:
 #    build:
 #      context: ../
 #      dockerfile: compose/local/Dockerfile
-    image: mapasculturais:latest
+    image: mapacultural-go:latest
     ports:
       - "8080:80"
 #    volumes:

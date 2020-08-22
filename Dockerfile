@@ -1,18 +1,17 @@
 FROM php:7.2-fpm
 
 # LABEL about the custom image
-LABEL maintainer="secult-go"
-LABEL version="0.1"
-LABEL description="This is custom Docker Image for \
-the PHP-FPM and Nginx Services."
+LABEL maintainer="tharles.andrade@goias.gov.br / irtharles@gmail.com"
+LABEL version="5.0"
+LABEL description="Imagem customizada para executar o mapa cultural juntamente com o php-fpm e nginx"
 
 # Disable Prompt During Packages Installation
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Update Ubuntu Software repository
+# Update Software repository
 RUN apt update
 
-RUN apt install -y nginx supervisor && \
+RUN apt install -y nginx && \
     rm -rf /var/lib/apt/lists/* && \
     apt clean
 
@@ -102,9 +101,6 @@ COPY version.txt /var/www/version.txt
 
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
-
-# Copy start.sh script and define default command for the container
-COPY compose/production/start.sh /start.sh
 
 RUN chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
