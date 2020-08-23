@@ -27,6 +27,7 @@ services:
 
       - APP_LCODE=pt_BR,es_ES
       - APP_MODE=development
+      - ACTIVE_THEME=Goias
 
     depends_on:
       - db

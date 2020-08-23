@@ -90,6 +90,8 @@ RUN mkdir /var/www/html/assets
 RUN mkdir /var/www/html/files
 RUN mkdir /var/www/private-files
 
+RUN chmod 775 -R /var/www
+
 COPY scripts /var/www/scripts
 COPY compose/production/php.ini /usr/local/etc/php/php.ini
 COPY compose/config.php /var/www/html/protected/application/conf/config.php
@@ -101,6 +103,8 @@ COPY version.txt /var/www/version.txt
 
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
+
+RUN chmod -R 775 /var/www/
 
 RUN chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
