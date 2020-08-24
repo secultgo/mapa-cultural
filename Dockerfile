@@ -71,8 +71,10 @@ RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer.phar
 
 # Copy source
-COPY src/index.php /var/www/html/index.php
-COPY src/protected /var/www/html/protected
+#COPY src/index.php /var/www/html/index.php
+#COPY src/protected /var/www/html/protected
+
+COPY src /var/www/html
 
 RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
     chown -R www-data:www-data /var/www/html/protected/vendor/ /var/www/.composer/
@@ -96,7 +98,6 @@ COPY compose/config.php /var/www/html/protected/application/conf/config.php
 COPY compose/config.d /var/www/html/protected/application/conf/config.d
 
 COPY version.txt /var/www/version.txt
-COPY /var/www/html /var/www/src
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
 
