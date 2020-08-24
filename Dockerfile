@@ -105,7 +105,7 @@ RUN chmod -R 775 /var/www/
 
 RUN chmod -R 777 /var/log/nginx /var/lib/nginx
 
-RUN sed -i 's/\/run/\/var\/log\/nginx/g' /etc/nginx/nginx,conf
+RUN sed -i 's/\/run/\/var\/log\/nginx/g' /etc/nginx/nginx.conf
 
 RUN chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
