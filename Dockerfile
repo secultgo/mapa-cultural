@@ -103,6 +103,8 @@ COPY compose/entrypoint.sh /entrypoint.sh
 
 RUN chmod -R 775 /var/www/
 
+RUN chmod -R 775 /var/log/nginx
+
 RUN chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
 ENTRYPOINT ["/entrypoint.sh"]
