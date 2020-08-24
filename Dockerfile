@@ -90,17 +90,13 @@ RUN mkdir /var/www/html/assets
 RUN mkdir /var/www/html/files
 RUN mkdir /var/www/private-files
 
-RUN chmod 775 -R /var/www
-
 COPY scripts /var/www/scripts
 COPY compose/production/php.ini /usr/local/etc/php/php.ini
 COPY compose/config.php /var/www/html/protected/application/conf/config.php
 COPY compose/config.d /var/www/html/protected/application/conf/config.d
 
-RUN ln -s /var/www/html /var/www/src
-
 COPY version.txt /var/www/version.txt
-
+COPY /var/www/html /var/www/src
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
 
@@ -113,5 +109,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /var/www/html/
 
 EXPOSE 80 443
+
+RUN ln -s /var/www/html /var/www/src
 
 CMD ["php-fpm"]
