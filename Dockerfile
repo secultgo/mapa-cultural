@@ -1,7 +1,7 @@
 FROM php:7.2-fpm
 
 # LABEL about the custom image
-LABEL maintainer="tharles.andrade@goias.gov.br / irtharles@gmail.com"
+LABEL maintainer="SECULT - tharles.andrade@goias.gov.br / irtharles@gmail.com"
 LABEL version="5.0"
 LABEL description="Imagem customizada para executar o mapa cultural juntamente com o php-fpm e nginx"
 
@@ -71,10 +71,8 @@ RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer.phar
 
 # Copy source
-#COPY src/index.php /var/www/html/index.php
-#COPY src/protected /var/www/html/protected
-
-COPY src /var/www/html
+COPY src/index.php /var/www/html/index.php
+COPY src/protected /var/www/html/protected
 
 RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
     chown -R www-data:www-data /var/www/html/protected/vendor/ /var/www/.composer/
