@@ -9,6 +9,8 @@ return [
     'mailer.port'       => env('MAILER_PORT', '2525'),
     'mailer.from'       => env('MAILER_FROM', 'mapacultural@goias.gov.br'),
     'mailer.alwaysTo'   => env('MAILER_ALWAYSTO', false),
+    'mailer.allow_self_signed'   => env('MAILER_ALLOW_SELF_SIGNED', true),
+    'mailer.verify_peer'   => env('MAILER_VERIFY_PEER', false),
 
     'mailer.templates' => [
         'welcome' => [
