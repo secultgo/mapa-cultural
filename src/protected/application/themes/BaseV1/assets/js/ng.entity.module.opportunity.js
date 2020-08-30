@@ -97,6 +97,16 @@
                 jQuery('a.js-submit-button').click();
             },
 
+            validateEntity: function(registrationId) {
+                return $http.post(this.getUrl('validateEntity', registrationId)).
+                success(function(data, status){
+                    $rootScope.$emit('registration.validate', {message: "Opportunity registration was validated ", data: data, status: status});
+                }).
+                error(function(data, status){
+                    $rootScope.$emit('error', {message: "Cannot validate opportunity registration", data: data, status: status});
+                });
+            }, 
+
             updateFields: function(entity) {
                 var data = {};
                 Object.keys(entity).forEach(function(key) {
@@ -107,7 +117,10 @@
 
                         if (data[key] instanceof Date) {
                             data[key] = moment(data[key]).format('YYYY-MM-D')
+                        } else if (data[key] instanceof Array && data[key].length === 0) {
+                            data[key] = null;
                         }
+
                     }
                 });
 
@@ -797,95 +810,68 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
     $scope.data.fields.forEach(function(field) {
         var val = $scope.entity[field.fieldName];
 
+        field.unchangedField = val;        
+
         if (field.fieldType == 'date' && typeof val == 'string' ) {
             val = moment(val).toDate();
         } else if(field.fieldType == 'number' && typeof val == 'string' ) {
             val = parseFloat(val);
+        } else if (/\d{4}-\d{2}-\d{2}/.test(val)) {
+            val = moment(val).toDate();
         }
 
         $scope.entity[field.fieldName] = val;
     });
 
+    var timeouts = {};
 
-    $scope.$watch('entity', function(current, old){
-        if(current == old){
+    $scope.saveField = function (field, value, delay) {     
+        console.log(field, value, delay);
+        if (field.unchangedField == value) {
             return;
         }
-        $timeout.cancel($scope.updateTimeout);
-        $scope.updateTimeout = $timeout(function(){
-            // console.log($scope.entity);
-            RegistrationService.updateFields($scope.entity)
-        },1000);
+        delete field.error;
+        $timeout.cancel(timeouts['entity_' + field.fieldName]);
+        timeouts['entity_' + field.fieldName] = $timeout(function(){
+            field.unchangedField = value;
 
-    }, true);
+            var data = {
+                id: MapasCulturais.entity.object.id
+            };
+
+            data[field.fieldName] = value;
+            RegistrationService.updateFields(data)
+                .success(function(){
+                    delete field.error;
+                })
+                .error(function(r) {
+                    if (Array.isArray(Object.values(r.data)) && Object.values(r.data).lenght != 0 ){
+                        field.error = [Object.values(r.data).join(', ')]
+                    }
+                });
+        },delay);
+    }
+
+    $scope.remove = function(array, index){
+        array.splice(index, 1);
+    }
+
+
+    $scope.data.fields.forEach(function(field) {
+        $scope.$watch('entity.' + field.fieldName, function(current, old){
+            if(current == old){
+                return;
+            }
+            
+            $scope.saveField(field, current, 10000)
+        }, true);
+    });
 
     var fieldsByName = {};
+
     $scope.data.fields.forEach(function(e){
         fieldsByName[e.fieldName] = e;
     });
-
-    function initEditables(){
-        var isDateSupported = function () {
-            var input = document.createElement('input');
-            var value = 'a';
-            input.setAttribute('type', 'date');
-            input.setAttribute('value', value);
-            return (input.value !== value);
-        };
-        jQuery('.js-editable-field').each(function(){
-            var field = fieldsByName[this.id];
-            if(field && field.fieldOptions){
-                var cfg = {
-                    showbuttons: false,
-                    onblur: 'submit'
-                };
-                cfg.source = field.fieldOptions.map(function(e){ return {value: e, text: e}; });
-
-                if(field.fieldType === "date"){
-                    if (isDateSupported()) {
-                        jQuery(this).removeAttr('data-showbuttons');
-                        jQuery(this).removeAttr('data-viewformat');
-                        cfg.display = function (value) {
-                            if(value){
-                                $(this).html(moment(value).format('DD/MM/YYYY'));
-                            }
-                        };
-                        cfg.tpl = '<input type="date" ></input>';
-                    }else {
-                        cfg.datepicker = {weekStart: 1, yearRange: jQuery(this).data('yearrange') ? jQuery(this).data('yearrange') : "1900:+0"};
-                    }
-                }
-                jQuery(this).editable(cfg);
-            } else {
-                jQuery(this).editable();
-            }
-
-            if(field.fieldType === "date"){
-                if (isDateSupported()) {
-                    //Remove calendar icon
-                    jQuery(this).on('shown', function(){
-                        jQuery('.ui-datepicker-trigger').css('display', 'none');
-                    });
-                }
-            }
-
-            if(!jQuery(this).data('editable-init')){
-                jQuery(this).data('editable-init', true);
-                jQuery(this).on('save', function(){
-                    setTimeout(function(){
-                        RegistrationService.save();
-                    });
-                });
-            }
-        });
-    }
-
-    $rootScope.$on('repeatDone:registration-fields', function(){
-            // só para esperar a renderização
-            $timeout(function(){
-                initEditables();
-            });
-        });
 
     $scope.showField = function (field) {
 
@@ -1318,7 +1304,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
         }
     }]);
 
-module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 'RegistrationService', 'EditBox', 'RelatedAgentsService', '$http', 'UrlService', 'OpportunityApiService', '$window', function ($scope, $rootScope, $timeout, RegistrationService, EditBox, RelatedAgentsService, $http, UrlService, OpportunityApiService, $window) {
+module.controller('OpportunityController', ['$scope', '$rootScope', '$location', '$anchorScroll', '$timeout', 'RegistrationService', 'EditBox', 'RelatedAgentsService', '$http', 'UrlService', 'OpportunityApiService', '$window', function ($scope, $rootScope, $location, $anchorScroll, $timeout, RegistrationService, EditBox, RelatedAgentsService, $http, UrlService, OpportunityApiService, $window) {
     var labels = MapasCulturais.gettext.moduleOpportunity;
 
     var opportunity_main_tab = $("#opportunity-main-info");
@@ -1977,6 +1963,11 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 
                 }
             };
 
+            $scope.scrollTo = function(id, offset) {
+                $anchorScroll.yOffset = offset;
+                $anchorScroll(id);
+            }
+
             var initAjaxUploader = function(id){
                 var $form = $('#' + id + ' form');
 
@@ -2010,7 +2001,29 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 
                 });
             }
 
-            $scope.sendRegistration = function(){
+            $scope.validateRegistration = function(callback='') {
+                RegistrationService.validateEntity($scope.data.entity.id)
+                    .success(function(response) {
+                        if(response.error) {
+                            $scope.entityValidated = false;
+                            $scope.entityErrors = response.data;
+                            let errors = response.data;
+                            for (let field in $scope.data.fields){
+                               if(errors[$scope.data.fields[field].fieldName]){
+                                    $scope.data.fields[field].error = errors[$scope.data.fields[field].fieldName]
+                               }
+                            } 
+                        } else {
+                            $scope.entityErrors = null;
+                            $scope.entityValidated = true;
+                        }
+                    })
+                    .error(function(response) {
+                        console.log('error', response);
+                    });
+            }; 
+            $scope.data.sent = false;
+            $scope.sendRegistration = function(redirectUrl){
                 RegistrationService.send($scope.data.entity.id).success(function(response){
                     $('.js-response-error').remove();
                     if(response.error){
@@ -2041,8 +2054,14 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$timeout', 
                         });
                         MapasCulturais.Messages.error(labels['correctErrors']);
                     }else{
+                        $scope.data.sent = true;
                         MapasCulturais.Messages.success(labels['registrationSent']);
-                        document.location = response.singleUrl;
+                        if (redirect === undefined){
+                            document.location = response.singleUrl;
+                        }
+                        else if(redirect){
+                            document.location = response.redirect;
+                        }
                     }
                 });
             };

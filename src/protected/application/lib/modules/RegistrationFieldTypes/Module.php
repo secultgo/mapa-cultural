@@ -9,6 +9,7 @@ use MapasCulturais\Entities\Space;
 use MapasCulturais\Entities\Registration;
 use MapasCulturais\Definitions\RegistrationFieldType;
 use MapasCulturais\Entities\RegistrationFieldConfiguration;
+use SebastianBergmann\Environment\Console;
 
 class Module extends \MapasCulturais\Module
 {
@@ -39,7 +40,7 @@ class Module extends \MapasCulturais\Module
         $app = App::i();
 
         $agent_fields = Agent::getPropertiesMetadata();
-        $app->hook('controller(registration).registerFieldType(agent-<<owner|collective>>-field)', function (RegistrationFieldConfiguration $field, &$registration_field_config) use ($agent_fields) {
+        $app->hook('controller(registration).registerFieldType(agent-<<owner|collective>>-field)', function (RegistrationFieldConfiguration $field, &$registration_field_config) use ($agent_fields, $app) {
             if(!isset($field->config['entityField'])){
                 return;
             }
@@ -61,6 +62,15 @@ class Module extends \MapasCulturais\Module
             if(isset($agent_field['optionsOrder'])){
                 $registration_field_config['optionsOrder'] = $agent_field['optionsOrder'];
             }
+
+            $definitions = $app->getRegisteredMetadata('MapasCulturais\Entities\Agent');
+
+            if (isset($definitions[$agent_field_name])) {
+                $metadata_definition = $definitions[$agent_field_name];
+                if(isset($metadata_definition->config['validations'])){
+                    $registration_field_config['validations'] = $metadata_definition->config['validations'];
+                };
+            }
         });
         $this->_config['availableAgentFields'] = $this->getAgentFields();
     }
@@ -69,7 +79,7 @@ class Module extends \MapasCulturais\Module
         $app = App::i();
 
         $space_fields = Agent::getPropertiesMetadata();
-        $app->hook('controller(registration).registerFieldType(space-field)', function (RegistrationFieldConfiguration $field, &$registration_field_config) use ($space_fields) {
+        $app->hook('controller(registration).registerFieldType(space-field)', function (RegistrationFieldConfiguration $field, &$registration_field_config) use ($space_fields, $app) {
             if(!isset($field->config['entityField'])){
                 return;
             }
@@ -90,6 +100,15 @@ class Module extends \MapasCulturais\Module
             }
             if(isset($space_field['optionsOrder'])){
                 $registration_field_config['optionsOrder'] = $space_field['optionsOrder'];
+            }
+
+            $definitions = $app->getRegisteredMetadata('MapasCulturais\Entities\Space');
+
+            if (isset($definitions[$space_field_name])) {
+                $metadata_definition = $definitions[$space_field_name];
+                if(isset($metadata_definition->config['validations'])){
+                    $registration_field_config['validations'] = $metadata_definition->config['validations'];
+                };
             }
         });
         $this->_config['availableSpaceFields'] = $this->getSpaceFields();
@@ -169,6 +188,15 @@ class Module extends \MapasCulturais\Module
                 ]
             ],
             [
+                'slug' => 'brPhone',
+                'name' => \MapasCulturais\i::__('Campo de telefone do Brasil'),
+                'viewTemplate' => 'registration-field-types/brPhone',
+                'configTemplate' => 'registration-field-types/brPhone-config',
+                'validations' => [
+                    'v::brPhone()' => \MapasCulturais\i::__('O valor não é um telefone válido')
+                ]
+            ],
+            [
                 'slug' => 'select',
                 'name' => \MapasCulturais\i::__('Seleção única (select)'),
                 'viewTemplate' => 'registration-field-types/select',
@@ -235,6 +263,42 @@ class Module extends \MapasCulturais\Module
                 }
             ],
             [
+                'slug' => 'persons',
+                'name' => \MapasCulturais\i::__('Campo de listagem de pessoas'),
+                'viewTemplate' => 'registration-field-types/persons',
+                'configTemplate' => 'registration-field-types/persons-config',
+                'serialize' => function($value) {
+                    if(is_array($value)){
+                        foreach($value as &$person){
+                            foreach($person as $key => $v){
+                                if(substr($key, 0, 2) == '$$'){
+                                    unset($person->$key);
+                                }
+                            }
+                        }
+                    }
+
+                    return json_encode($value);
+                },
+                'unserialize' => function($value) {
+                    $persons = json_decode($value);
+
+                    if(!is_array($persons)){
+                        $persons = [];
+                    }
+
+                    foreach($persons as &$person){
+                        foreach($person as $key => $value){
+                            if(substr($key, 0, 2) == '$$'){
+                                unset($person->$key);
+                            }
+                        }
+                    }
+
+                    return $persons;
+                }
+            ],
+            [
                 'slug' => 'agent-owner-field',
                 // o espaço antes da palavra Campo é para que este tipo de campo seja o primeiro da lista
                 'name' => \MapasCulturais\i::__('@ Campo do Agente Responsável'),
@@ -264,6 +328,7 @@ class Module extends \MapasCulturais\Module
                     return json_encode($value);
                 },
                 'unserialize' => function($value, Registration $registration = null, $metadata_definition = null) use ($module) {
+                    
                     $agent = $registration->getRelatedAgents('coletivo');
                     if($agent){
                         return $module->fetchFromEntity($agent[0], $value, $registration, $metadata_definition);
@@ -304,7 +369,8 @@ class Module extends \MapasCulturais\Module
     function saveToEntity ($entity, $value, $registration = null, $metadata_definition = null) {
         if (isset($metadata_definition->config['registrationFieldConfiguration']->config['entityField'])) {
             $entity_field = $metadata_definition->config['registrationFieldConfiguration']->config['entityField'];
-            
+            $field_id = $metadata_definition->config['registrationFieldConfiguration']->id;
+
             if($entity_field == '@location'){
                 if(isset($value['location'])){
                     $entity->location = $value['location'];
@@ -323,7 +389,11 @@ class Module extends \MapasCulturais\Module
             } else {
                 $entity->$entity_field = $value;
             }
-            $entity->save(true);
+            // só salva na entidade se salvou na inscrição
+            App::i()->hook("entity(RegistrationMeta).save:after", function() use($entity) {
+                $entity->save();
+            });
+            
         }
 
         return json_encode($value);
