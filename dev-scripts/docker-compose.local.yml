@@ -28,7 +28,7 @@ services:
       - APP_LCODE=pt_BR,es_ES
       - APP_MODE=development
       - ACTIVE_THEME=Goias
-      - AUTH_PROVIDER=Fake
+#      - AUTH_PROVIDER=Fake
 
     depends_on:
       - db
