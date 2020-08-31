@@ -1,7 +1,7 @@
 <?php
     // CONFIGURAÇÃO DE IMAGEM BACKGROUND
     $bgUrl="style='
-        background-image: url(".$this->asset('img/Edgard_Soares_FERROVIARIO.jpg').");
+        background-image: url(".$this->asset('img/bgSearch.jpg').");
         background-size: cover;
         background-blend-mode: multiply;
     '"
