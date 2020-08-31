@@ -1,7 +1,7 @@
 <?php
 // CONFIGURAÇÃO DE IMAGEM BACKGROUND
 $bgUrl="style='
-    background-image: url(".$this->asset('img/Paulo_Ricardo_Coelho_ZOROASTRO.jpg').");
+    background-image: url(".$this->asset('img/bgDevelopers.jpg').");
     background-size: cover;
     background-blend-mode: multiply;
 '"
