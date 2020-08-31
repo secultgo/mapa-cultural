@@ -23,7 +23,7 @@ $url_search_agents = $this->searchAgentsUrl;
 
 // CONFIGURAÇÃO DE IMAGEM BACKGROUND
 $bgUrl="style='
-    background-image: url(".$this->asset('img/Edgard_Soares_ZOROASTRO.JPG').");
+    background-image: url(".$this->asset('img/Edgard_Soares_ZOROASTRO.jpg').");
     background-size: cover;
     background-blend-mode: multiply;
 '"
