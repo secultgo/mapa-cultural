@@ -31,7 +31,7 @@ fi
 
 nohup /recreate-pending-pcache-cron.sh &
 
-touch /mapas-ready
+#touch /mapas-ready
 
 nginx
 
