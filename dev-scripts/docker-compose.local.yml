@@ -26,8 +26,14 @@ services:
       # - DB_PASS=mapas
 
       - APP_LCODE=pt_BR,es_ES
-      - APP_MODE=development
+      - APP_MODE=production
       - ACTIVE_THEME=Goias
+      - MAILER_USER=1a311822536263
+      - MAILER_PASS=a1f73804f5f5d3
+      - MAILER_SERVER=smtp.mailtrap.io
+      - MAILER_FROM=mapacultural@goias.gov.br
+      - MAILER_PORT=2525
+      - MAILER_PROTOCOL=tls
 #      - AUTH_PROVIDER=Fake
 
     depends_on:

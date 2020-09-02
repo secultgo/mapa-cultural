@@ -1,4 +1,4 @@
-FROM sistemas-php-cultura/base-mapagoiano:latest
+FROM base-mapagoiano:latest
 
 # Define the ENV variable
 ENV nginx_vhost /etc/nginx/sites-available/default
