@@ -2,12 +2,13 @@
 use \MapasCulturais\i;
 
 return [
-    'mailer.user'       => env('MAILER_USER', "1a311822536263"),
-    'mailer.psw'        => env('MAILER_PASS', "a1f73804f5f5d3"),
+    'mailer.user'       => env('MAILER_USER', ""),
+    'mailer.psw'        => env('MAILER_PASS', ""),
+    'mailer.transport'  => env('MAILER_TRANSPORT', "smtp"),
     'mailer.protocol'   => env('MAILER_PROTOCOL', 'tls'),
-    'mailer.server'     => env('MAILER_SERVER', 'smtp.mailtrap.io'),
-    'mailer.port'       => env('MAILER_PORT', '2525'),
-    'mailer.from'       => env('MAILER_FROM', 'mapacultural@goias.gov.br'),
+    'mailer.server'     => env('MAILER_SERVER', ''),
+    'mailer.port'       => env('MAILER_PORT', ''),
+    'mailer.from'       => env('MAILER_FROM', ''),
     'mailer.alwaysTo'   => env('MAILER_ALWAYSTO', false),
     'mailer.allow_self_signed'   => env('MAILER_ALLOW_SELF_SIGNED', true),
     'mailer.verify_peer'   => env('MAILER_VERIFY_PEER', false),
