@@ -15,10 +15,11 @@ foreach (Entities\Space::getPropertiesMetadata() as $key => $def) {
     }
 }
 ?>
-<div ng-if="::field.fieldType === 'space-field'" id="field_{{::field.id}}">
+<div ng-class="field.error ? 'invalidField': '' " ng-if="::field.fieldType === 'space-field'" id="field_{{::field.id}}">
     <span class="label">
         <i class="icon icon-space"></i> 
-        {{::field.title}} {{::field.required ? '*' : ''}}
+        {{::field.title}} 
+        <span ng-if="::field.required ">obrigatório</span>   
     </span>
     
     <em class="relation-field-info">(<?php i::_e('Este campo será salvo no espaço relacionado') ?>)</em>
@@ -27,6 +28,12 @@ foreach (Entities\Space::getPropertiesMetadata() as $key => $def) {
 
     <div ng-if="::field.config.entityField == '@location'">
         <?php $this->part('registration-field-types/fields/_location') ?>
+    </div>
+    <div ng-if="::field.config.entityField == '@terms:area'">
+        <?php $this->part('registration-field-types/fields/checkboxes') ?>
+    </div>
+    <div ng-if="::field.config.entityField == '@links'">
+        <?php $this->part('registration-field-types/fields/links') ?>
     </div>
     <?php
     foreach ($definitions as $key => $def) :
