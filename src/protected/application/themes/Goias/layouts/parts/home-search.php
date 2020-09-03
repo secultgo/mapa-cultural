@@ -1,7 +1,7 @@
 <?php
     // CONFIGURAÇÃO DE IMAGEM BACKGROUND
     $bgUrl="style='
-        background-image: url(".$this->asset('img/bgSearch.jpg').");
+        background-image: url(".$this->asset('img/bgSearch.jpg', false).");
         background-size: cover;
         background-blend-mode: multiply;
     '"

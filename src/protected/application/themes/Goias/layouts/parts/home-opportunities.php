@@ -22,7 +22,7 @@ $opportunity_img_attributes = 'class="random-feature no-image"';
 
 // CONFIGURAÇÃO DE IMAGEM BACKGROUND
 $bgUrl="style='
-    background-image: url(".$this->asset('img/bgOpportunities.jpg').");
+    background-image: url(".$this->asset('img/bgOpportunities.jpg', false).");
     background-size: cover;
     background-blend-mode: multiply;
 '"

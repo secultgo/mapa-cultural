@@ -20,7 +20,7 @@ $url_search_events = $this->searchEventsUrl;
 
 // CONFIGURAÇÃO DE IMAGEM BACKGROUND
 $bgUrl="style='
-    background-image: url(".$this->asset('img/bgEvents.jpg').");
+    background-image: url(".$this->asset('img/bgEvents.jpg', false).");
     background-size: cover;
     background-blend-mode: multiply;
 '"
