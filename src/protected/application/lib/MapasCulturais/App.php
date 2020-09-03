@@ -2626,7 +2626,7 @@ class App extends \Slim\Slim{
             if($protocol == 'ssl'){
                 $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
             }else{
-                $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name))));
+                $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
             }
 
         } elseif ($transport_type == 'mail') {
