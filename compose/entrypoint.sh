@@ -27,6 +27,8 @@ then
     cp /var/www/version.txt /var/www/private-files/deployment-version
 fi
 
+cd /var/www/scripts && ./deploy.sh
+
 #chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
 
 nohup /recreate-pending-pcache-cron.sh &
