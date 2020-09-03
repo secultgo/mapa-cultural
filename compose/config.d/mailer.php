@@ -12,6 +12,7 @@ return [
     'mailer.alwaysTo'   => env('MAILER_ALWAYSTO', false),
     'mailer.allow_self_signed'   => env('MAILER_ALLOW_SELF_SIGNED', true),
     'mailer.verify_peer'   => env('MAILER_VERIFY_PEER', false),
+    'mailer.verify_peer_name'   => env('MAILER_VERIFY_PEER_NAME', false),
 
     'mailer.templates' => [
         'welcome' => [
