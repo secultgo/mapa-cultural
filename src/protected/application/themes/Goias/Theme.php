@@ -52,6 +52,9 @@ class Theme extends BaseV1\Theme{
         $app->hook('template(site.index.home-search):end', function () {
             $this->part('aldirblanc.php');
         });        
+        $app->hook('template(site.index.home-developers):end', function () {
+            $this->part('parceiros.php');
+        });
     }
 
     protected function _publishAssets() {
