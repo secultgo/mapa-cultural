@@ -34,7 +34,7 @@ services:
       - MAILER_FROM=mapacultural@goias.gov.br
       - MAILER_PORT=2525
       - MAILER_PROTOCOL=tls
-#      - AUTH_PROVIDER=Fake
+      - AUTH_PROVIDER=Fake
 
     depends_on:
       - db
