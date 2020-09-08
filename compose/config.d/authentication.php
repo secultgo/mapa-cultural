@@ -14,7 +14,7 @@ return [
         'enableLoginByCPF' => env('ENABLE_LOGIN_BY_CPF', true) ,
         'urlImageToUseInEmails' => env('URL_IMAGE_EMAIL', 'https://mapagoianohom.cultura.go.gov.br/assets/img/logo-site.png'),
         'metadataFieldCPF' => env('METADATA_FIELD_CPF', 'documento'),
-        'userMustConfirmEmailToUseTheSystem' =>  env('USER_MUST_CONFIRM_EMAIL', false),
+        'userMustConfirmEmailToUseTheSystem' =>  env('USER_MUST_CONFIRM_EMAIL', true),
         'passwordMustHaveCapitalLetters' => env('PASSWORD_MUST_HAVE_CAPITAL_LETTERS', true),
         'passwordMustHaveLowercaseLetters' => env('PASSWORD_MUST_HAVE_LOWER_CASE_LETTERS', true),
         'passwordMustHaveSpecialCharacters' => env('PASSWORD_MUST_HAVE_SPACIAL_CHARACTERS', true),

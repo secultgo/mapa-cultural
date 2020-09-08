@@ -2597,7 +2597,7 @@ class App extends \Slim\Slim{
         $port = isset($this->_config['mailer.port']) &&  !empty($this->_config['mailer.port']) ? $this->_config['mailer.port'] : 25;
 
         // default encryption protocol to ssl
-        $protocol = isset($this->_config['mailer.protocol']) &&  !empty($this->_config['mailer.protocol']) ? $this->_config['mailer.protocol'] : 'ssl';
+        $protocol = isset($this->_config['mailer.protocol']) &&  !empty($this->_config['mailer.protocol']) ? $this->_config['mailer.protocol'] : null;
 
         $allow_self_signed = isset($this->_config['mailer.allow_self_signed']) &&  !empty($this->_config['mailer.allow_self_signed']) ? $this->_config['mailer.allow_self_signed'] : true;
         $verify_peer = isset($this->_config['mailer.verify_peer']) &&  !empty($this->_config['mailer.verify_peer']) ? $this->_config['mailer.verify_peer'] : false;
