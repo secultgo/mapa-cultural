@@ -2605,7 +2605,7 @@ class App extends \Slim\Slim{
 
         if ($transport_type == 'smtp' && false !== $server) {
 
-            $transport = \Swift_SmtpTransport::newInstance($server, $port, $protocol);
+            $transport = \Swift_SmtpTransport::newInstance($server, $port, null);
 
             // Maybe add username and password
             if (isset($this->_config['mailer.user']) && !empty($this->_config['mailer.user']) &&
@@ -2613,30 +2613,30 @@ class App extends \Slim\Slim{
 
                 $transport->setUsername($this->_config['mailer.user'])->setPassword($this->_config['mailer.psw']);
 
-                if($protocol == 'ssl'){
-                    $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
-                }else{
-                    $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
-                }
+//                if($protocol == 'ssl'){
+//                    $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
+//                }else{
+//                    $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
+//                }
             }
 
         } elseif ($transport_type == 'sendmail' && false !== $server) {
             $transport = \Swift_SendmailTransport::newInstance($server);
 
-            if($protocol == 'ssl'){
-                $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
-            }else{
-                $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
-            }
+//            if($protocol == 'ssl'){
+//                $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
+//            }else{
+//                $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
+//            }
 
         } elseif ($transport_type == 'mail') {
             $transport = \Swift_MailTransport::newInstance();
 
-            if($protocol == 'ssl'){
-                $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
-            }else{
-                $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
-            }
+//            if($protocol == 'ssl'){
+//                $transport->setStreamOptions(array('ssl' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
+//            }else{
+//                $transport->setStreamOptions(array('tls' => array('allow_self_signed' => $allow_self_signed, 'verify_peer' => $verify_peer, 'verify_peer_name' => $verify_peer_name)));
+//            }
         } else {
             return false;
         }
