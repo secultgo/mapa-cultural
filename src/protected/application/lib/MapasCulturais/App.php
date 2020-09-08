@@ -6,9 +6,8 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use SwiftMailer\SwiftMailer;
-use Mustache\Mustache;
-use WideImage\Exception\Exception;
+
+use Acelaya\Doctrine\Type\PhpEnumType;
 
 /**
  * MapasCulturais Application class.
@@ -331,7 +330,6 @@ class App extends \Slim\Slim{
 
         $doctrine_config->setProxyDir($proxy_dir);
         $doctrine_config->setProxyNamespace($proxy_namespace);
-        \Doctrine\ORM\Proxy\Autoloader::register($proxy_dir, $proxy_namespace);
 
         /** DOCTRINE2 SPATIAL */
 
@@ -377,8 +375,22 @@ class App extends \Slim\Slim{
         \MapasCulturais\DoctrineMappings\Types\Geometry::register();
 
 
+        PhpEnumType::registerEnumTypes([
+            'object_type' => DoctrineEnumTypes\ObjectType::class,
+            'permission_action' => DoctrineEnumTypes\PermissionAction::class
+        ]);
 
+        $platform = $this->_em->getConnection()->getDatabasePlatform();
 
+        $platform->registerDoctrineTypeMapping('_text', 'text');
+        $platform->registerDoctrineTypeMapping('point', 'point');
+        $platform->registerDoctrineTypeMapping('geography', 'geography');
+        $platform->registerDoctrineTypeMapping('geometry', 'geometry');
+        $platform->registerDoctrineTypeMapping('object_type', 'object_type');
+        $platform->registerDoctrineTypeMapping('permission_action', 'permission_action');
+        
+
+        // QUERY LOGGER
         if(@$config['app.log.query']){
             if (isset($config['app.queryLogger']) && is_object($config['app.queryLogger'])) {
                 $query_logger = $config['app.queryLogger'];
@@ -390,11 +402,6 @@ class App extends \Slim\Slim{
             }
             $doctrine_config->setSQLLogger($query_logger);
         }
-
-        $this->_em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'point');
-        $this->_em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('geography', 'geography');
-        $this->_em->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'geometry');
-
 
         // ===================================== //
 
@@ -525,7 +532,7 @@ class App extends \Slim\Slim{
         $this->view->init();
 
         // ===================================== //
-
+        
         // run plugins
         if(isset($config['plugins.enabled']) && is_array($config['plugins.enabled'])){
             foreach($config['plugins.enabled'] as $plugin){
@@ -1562,7 +1569,7 @@ class App extends \Slim\Slim{
                 }
                 $this->em->flush();
                 $conn->commit();
-            } catch (Exception $e ){
+            } catch (\Exception $e ){
                 $this->em->close();
                 $conn->rollBack();
                 if(php_sapi_name()==="cli"){

@@ -13,7 +13,7 @@
     }]);
 
     function getOpportunityId(){
-        if(MapasCulturais.request.controller == 'registration'){
+        if(MapasCulturais.entity.object.opportunity){
             return MapasCulturais.entity.object.opportunity.id;
         } else {
             return MapasCulturais.entity.id;
@@ -887,10 +887,6 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
         fieldsByName[e.fieldName] = e;
     });
 
-    $scope.showField = function (field) {
-
-    };
-
     $scope.sendFile = function(attrs){
         $('.carregando-arquivo').show();
         $('.submit-attach-opportunity').hide();
@@ -964,7 +960,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
 
     }
 
-    $scope.showFieldForCategory = function(field){
+    $scope.showField = function(field){
         var result;
         if (!$scope.useCategories){
             result = true;
@@ -972,10 +968,33 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             result = field.categories.length === 0 || field.categories.indexOf($scope.selectedCategory) >= 0;
         }
 
+        if (field.config && field.config.require && field.config.require.condition && field.config.require.hide) {
+            var requiredFieldName = field.config.require.field;
+            var requeredFieldValue = field.config.require.value;
+
+            result = result && $scope.entity[requiredFieldName] == requeredFieldValue;
+        }
+
         return result;
     };
 
+    
+    $scope.requiredField = function(field) {
+        if(field.required) {
+            return 1;
+        }
+        
+        if(field.config && field.config.require){
+            var requiredFieldName = field.config.require.field;
+            var requeredFieldValue = field.config.require.value;
+    
+            if(field.config.require && field.config.require.condition && $scope.entity[requiredFieldName] == requeredFieldValue){
+                return 2;
+            }
+        }
 
+        return false;
+    }
 
     $scope.printField = function(field, value){
 
@@ -1294,7 +1313,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
                 page++;
                 
                 return $http.get(url, {params: params, cache:true}).success(function(response, status, headers){
-                    
+
                     for (var i in response){
                         response[i]['files'] = {};
                         for(var prop in response[i]){
@@ -1378,56 +1397,68 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         return;
     };
 
-    $scope.findRegistrations = function(){
-        if(registrationsApi.finish()){
-            return null;
+    if(jQuery('.js-registration-list').length) {
+        $scope.findRegistrations = function(){
+            if(registrationsApi.finish()){
+                return null;
+            }
+            $scope.data.findingRegistrations = true;
+            return registrationsApi.find().success(function(){
+                $scope.data.findingRegistrations = false;
+            });
         }
-        $scope.data.findingRegistrations = true;
-        return registrationsApi.find().success(function(){
-            $scope.data.findingRegistrations = false;
+    
+        $scope.findEvaluations = function(){
+             if(evaluationsApi.finish()){
+                return null;
+            }
+            $scope.data.findingEvaluations = true;
+            return evaluationsApi.find().success(function(){
+                $scope.data.findingEvaluations = false;
+            });
+        }
+    
+        $scope.$watch('registrationsFilters', function(){
+            var qdata = {
+                'status': 'GT(-1)',
+                '@files': '(zipArchive):url',
+                '@opportunity': getOpportunityId(),
+                '@select': 'id,singleUrl,category,status,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,' + select_fields.join(',')
+            };
+            for(var prop in $scope.registrationsFilters){
+                if($scope.registrationsFilters[prop] || $scope.registrationsFilters[prop] === 0){
+                    qdata[prop] = 'EQ(' + $scope.registrationsFilters[prop] + ')'
+                }
+            }
+            registrationsApi = new OpportunityApiService($scope, 'registrations', 'findRegistrations', qdata);
+            $scope.findRegistrations();
+        }, true);
+    
+        $scope.$watch('evaluationsFilters', function(){
+            var qdata = {
+                '@opportunity': getOpportunityId(),
+                '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
+                '@order': 'evaluation desc'
+            };
+            for(var prop in $scope.evaluationsFilters){
+                if($scope.evaluationsFilters[prop]){
+                    qdata[prop] = 'EQ(' + $scope.evaluationsFilters[prop] + ')'
+                }
+            }
+            evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', qdata);
+            
+            $scope.findEvaluations();
+        }, true);
+
+        committeeApi.find().success(function(result){
+            $scope.data.evaluationCommittee = result.map(function(e){
+                return {
+                    value: e.agent.id,
+                    label: e.agent.name
+                };
+            });
         });
     }
-
-    $scope.findEvaluations = function(){
-         if(evaluationsApi.finish()){
-            return null;
-        }
-        $scope.data.findingEvaluations = true;
-        return evaluationsApi.find().success(function(){
-            $scope.data.findingEvaluations = false;
-        });
-    }
-
-    $scope.$watch('registrationsFilters', function(){
-        var qdata = {
-            'status': 'GT(-1)',
-            '@files': '(zipArchive):url',
-            '@opportunity': getOpportunityId(),
-            '@select': 'id,singleUrl,category,status,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,' + select_fields.join(',')
-        };
-        for(var prop in $scope.registrationsFilters){
-            if($scope.registrationsFilters[prop] || $scope.registrationsFilters[prop] === 0){
-                qdata[prop] = 'EQ(' + $scope.registrationsFilters[prop] + ')'
-            }
-        }
-        registrationsApi = new OpportunityApiService($scope, 'registrations', 'findRegistrations', qdata);
-        $scope.findRegistrations();
-    }, true);
-
-    $scope.$watch('evaluationsFilters', function(){
-        var qdata = {
-            '@opportunity': getOpportunityId(),
-            '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
-            '@order': 'evaluation desc'
-        };
-        for(var prop in $scope.evaluationsFilters){
-            if($scope.evaluationsFilters[prop]){
-                qdata[prop] = 'EQ(' + $scope.evaluationsFilters[prop] + ')'
-            }
-        }
-        evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', qdata);
-        $scope.findEvaluations();
-    }, true);
 
     angular.element($window).bind("scroll", function(){
         // @TODO: refatorar este if
@@ -1569,15 +1600,6 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         fullscreenTable: false,
 
     }, MapasCulturais);
-
-    committeeApi.find().success(function(result){
-        $scope.data.evaluationCommittee = result.map(function(e){
-            return {
-                value: e.agent.id,
-                label: e.agent.name
-            };
-        });
-    })
 
     $scope.usingRegistrationsFilters = function(){
         var using = false;
@@ -2022,11 +2044,17 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
                             $scope.entityValidated = false;
                             $scope.entityErrors = response.data;
                             let errors = response.data;
-                            for (let field in $scope.data.fields){
-                               if(errors[$scope.data.fields[field].fieldName]){
-                                    $scope.data.fields[field].error = errors[$scope.data.fields[field].fieldName]
-                               }
-                            } 
+                            for (let index in $scope.data.fields){
+                                let field = $scope.data.fields[index];
+
+                                if(field.fieldType == 'file') {
+                                    field.fieldName = 'file_' + field.id;
+                                } 
+                                
+                                if(errors[field.fieldName]) {
+                                    field.error = errors[field.fieldName]
+                                }
+                            }
                         } else {
                             $scope.entityErrors = null;
                             $scope.entityValidated = true;
@@ -2070,12 +2098,13 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
                     }else{
                         $scope.data.sent = true;
                         MapasCulturais.Messages.success(labels['registrationSent']);
-                        if (redirect === undefined){
-                            document.location = response.singleUrl;
-                        }
-                        else if(redirect){
-                            document.location = response.redirect;
-                        }
+
+                        if (redirectUrl) {
+                            document.location = redirectUrl;
+                        } 
+                        else if(redirectUrl === undefined) {
+                            document.location = response.redirect || response.singleUrl;
+                        } 
                     }
                 });
             };

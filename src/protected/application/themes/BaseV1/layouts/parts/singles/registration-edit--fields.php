@@ -4,7 +4,7 @@
     <p class="registration-help"><?php \MapasCulturais\i::_e("Para efetuar sua inscrição, informe os campos abaixo.");?></p>
     -->
     <ul class="attachment-list" ng-controller="RegistrationFieldsController">
-        <li id="wrapper-{{field.fieldName}}" ng-repeat="field in ::data.fields" ng-if="showFieldForCategory(field)" on-repeat-done="registration-fields" class="attachment-list-item registration-edit-mode attachment-list-item-type-{{field.fieldType}}">
+        <li id="wrapper-{{field.fieldName}}" ng-repeat="field in ::data.fields" ng-if="showField(field)" on-repeat-done="registration-fields" class="attachment-list-item registration-edit-mode attachment-list-item-type-{{field.fieldType}}">
             {{ (fieldName = field.fieldName) && false ? '' : ''}}
             
             <?php 
@@ -14,12 +14,11 @@
                 $this->part($def->viewTemplate);
             }
             ?>
-            <div ng-repeat="error in field.error" class="alert danger">{{error}}</div>
-
+            
             <div ng-class="field.error ? 'invalidField': '' " ng-if="::field.fieldType === 'file'" id="file_{{::field.id}}" >
                 <span class="label"> 
                     {{::field.title}}
-                    <span ng-if="::field.required ">obrigatorio</span>
+                    <span ng-if="::field.required "><?php \MapasCulturais\i::_e('obrigatório'); ?></span>
                 </span>
 
                 <div class="attachment-description">
@@ -36,7 +35,7 @@
                     <a class="btn btn-default hltip" ng-class="{'send':!field.file,'edit':field.file}" ng-click="openFileEditBox(field.id, $index, $event)" title="{{!field.file ? 'enviar' : 'editar'}} <?php \MapasCulturais\i::_e("anexo");?>">{{!field.file ? 'Enviar' : 'Editar'}}</a>
                     <a class="btn btn-default delete hltip" ng-if="!field.required && field.file" ng-click="removeFile(field.id, $index)" title="<?php \MapasCulturais\i::esc_attr_e("excluir anexo");?>"><?php \MapasCulturais\i::_e("Excluir");?></a>
                 </div>
-
+                <div ng-repeat="error in field.error" class="alert danger">{{error}}</div>
                 <edit-box id="editbox-file-{{::field.id}}" position="bottom" title="{{::field.title}} {{::field.required ? '*' : ''}}"
                           cancel-label ="<?php \MapasCulturais\i::esc_attr_e("Cancelar");?>"
                           submit-label ="<?php \MapasCulturais\i::esc_attr_e("Enviar anexo");?>"

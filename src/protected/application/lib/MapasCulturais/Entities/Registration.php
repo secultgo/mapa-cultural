@@ -71,7 +71,7 @@ class Registration extends \MapasCulturais\Entity
      *
      * @ORM\ManyToOne(targetEntity="MapasCulturais\Entities\Opportunity", fetch="LAZY")
      * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="opportunity_id", referencedColumnName="id")
+     *   @ORM\JoinColumn(name="opportunity_id", referencedColumnName="id", onDelete="CASCADE")
      * })
      */
     protected $opportunity;
@@ -82,7 +82,7 @@ class Registration extends \MapasCulturais\Entity
      *
      * @ORM\ManyToOne(targetEntity="MapasCulturais\Entities\Agent", fetch="LAZY")
      * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="agent_id", referencedColumnName="id")
+     *   @ORM\JoinColumn(name="agent_id", referencedColumnName="id", onDelete="CASCADE")
      * })
      */
     protected $owner;
@@ -150,7 +150,7 @@ class Registration extends \MapasCulturais\Entity
      * @var \MapasCulturais\Entities\RegistrationFile[] Files
      *
      * @ORM\OneToMany(targetEntity="MapasCulturais\Entities\RegistrationFile", fetch="EXTRA_LAZY", mappedBy="owner", cascade="remove", orphanRemoval=true)
-     * @ORM\JoinColumn(name="id", referencedColumnName="object_id")
+     * @ORM\JoinColumn(name="id", referencedColumnName="object_id", onDelete="CASCADE")
     */
     protected $__files;
 
@@ -164,7 +164,7 @@ class Registration extends \MapasCulturais\Entity
      * @var \MapasCulturais\Entities\RegistrationAgentRelation[] Agent Relations
      *
      * @ORM\OneToMany(targetEntity="MapasCulturais\Entities\RegistrationAgentRelation", mappedBy="owner", cascade="remove", orphanRemoval=true)
-     * @ORM\JoinColumn(name="id", referencedColumnName="object_id")
+     * @ORM\JoinColumn(name="id", referencedColumnName="object_id", onDelete="CASCADE")
     */
     protected $__agentRelations;
 
@@ -172,7 +172,7 @@ class Registration extends \MapasCulturais\Entity
      * @var \MapasCulturais\Entities\RegistrationSpaceRelation[] Space Relations
      *
      * @ORM\OneToMany(targetEntity="MapasCulturais\Entities\RegistrationSpaceRelation", mappedBy="owner", cascade="remove", orphanRemoval=true)
-     * @ORM\JoinColumn(name="id", referencedColumnName="object_id")
+     * @ORM\JoinColumn(name="id", referencedColumnName="object_id", onDelete="CASCADE")
     */
     protected $__spaceRelation;
 
@@ -188,7 +188,7 @@ class Registration extends \MapasCulturais\Entity
      *
      * @ORM\ManyToOne(targetEntity="MapasCulturais\Entities\Subsite")
      * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="subsite_id", referencedColumnName="id", nullable=true)
+     *   @ORM\JoinColumn(name="subsite_id", referencedColumnName="id", nullable=true, onDelete="SET NULL")
      * })
      */
     protected $subsite;
@@ -638,9 +638,6 @@ class Registration extends \MapasCulturais\Entity
         $this->sentTimestamp = new \DateTime;
         $this->_agentsData = $this->_getAgentsData();
         $this->_spaceData = $this->_getSpaceData();
-        // var_dump($this->_agentsData);
-        // dump($this->_spaceData);
-        // die();
         $this->save(true);
 
         if($_access_control_enabled){
@@ -677,7 +674,11 @@ class Registration extends \MapasCulturais\Entity
     }
 
     function getValidationErrors() {
-        return $this->getSendValidationErrors();
+        if($this->isNew()) {
+            return parent::getValidationErrors();
+        } else {
+            return $this->getSendValidationErrors();
+        }
     }
 
     function getSendValidationErrors(string $field_prefix = 'field_', $file_prefix = 'file_', $agent_prefix = 'agent_'){
@@ -696,7 +697,7 @@ class Registration extends \MapasCulturais\Entity
         }
 
         $definitionsWithAgents = $this->_getDefinitionsWithAgents();
-
+        
         // validate agents
         foreach($definitionsWithAgents as $def){
             $errors = [];
@@ -726,10 +727,9 @@ class Registration extends \MapasCulturais\Entity
         }
 
         // validate space
-        $conn = $app->em->getConnection();
-        $selValue = $conn->fetchAll("SELECT * FROM opportunity_meta WHERE object_id = $opportunity->id and key = 'useSpaceRelationIntituicao'");
-        if(!empty($selValue) ){
-            $isSpaceRelationRequired = $selValue[0]['value'];
+        $opMeta = $app->repo('OpportunityMeta')->findOneBy(['owner' =>  $opportunity->id, 'key' => 'useSpaceRelationIntituicao']);
+        if(!empty($opMeta) ){
+            $isSpaceRelationRequired = $opMeta->value;
         }        
         $spaceDefined = $this->getSpaceRelation();
        
@@ -775,6 +775,18 @@ class Registration extends \MapasCulturais\Entity
             $metadata_definition = isset($metadata_definitions[$field->fieldName]) ? 
                 $metadata_definitions[$field->fieldName] : null;
 
+
+            $field_name = $field_prefix . $field->id;
+
+            if(isset($metadata_definition->config['registrationFieldConfiguration']->config['require'])){
+                if ($cond_require = $metadata_definition->config['registrationFieldConfiguration']->config['require']) {
+                    $_fied_name = isset($cond_require['field']) ? $cond_require['field'] : null;
+                    $_fied_value = isset($cond_require['value']) ? $cond_require['value'] : null;
+        
+                    $field->required = $_fied_name && $this->$_fied_name == $_fied_value;
+                }
+            }
+
             $errors = [];
 
             $prop_name = $field->getFieldName();
@@ -808,7 +820,7 @@ class Registration extends \MapasCulturais\Entity
             }
 
             if ($errors) {
-                $errorsResult[$field_prefix . $field->id] = $errors;
+                $errorsResult[$field_name] = $errors;
             }
         }
         // @TODO: validar o campo projectName

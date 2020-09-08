@@ -17,9 +17,12 @@ foreach (Entities\Space::getPropertiesMetadata() as $key => $def) {
 ?>
 <div ng-class="field.error ? 'invalidField': '' " ng-if="::field.fieldType === 'space-field'" id="field_{{::field.id}}">
     <span class="label">
-        <i class="icon icon-space"></i> 
-        {{::field.title}} 
-        <span ng-if="::field.required ">obrigatório</span>   
+        <div>
+            <i class="icon icon-space"></i> 
+            {{::field.title}} 
+        </div>
+        
+        <span ng-if="requiredField(field) ">obrigatório</span>   
     </span>
     
     <em class="relation-field-info">(<?php i::_e('Este campo será salvo no espaço relacionado') ?>)</em>

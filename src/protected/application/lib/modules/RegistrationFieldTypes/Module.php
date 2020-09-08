@@ -19,10 +19,20 @@ class Module extends \MapasCulturais\Module
         $app = App::i();
 
         $app->view->enqueueStyle('app', 'rfc', 'css/rfc/registration-field-types.css');
+        $app->view->enqueueStyle('app', 'rfc-datepicker', 'vendor/flatpickr.css');
+
+        $app->view->enqueueScript('app', 'rfc-form', 'js/rfc/form.js');
 
         $app->view->enqueueScript('app', 'rfc-cep', 'js/rfc/location.js');
+        $app->view->enqueueScript('app', 'rfc-datepicker', 'js/rfc/datepicker.js', ['flatpickr']);
         $app->view->includeIbgeJS();
         $app->view->enqueueScript('app', 'customizeble', 'js/customizable.js');
+        $app->view->enqueueScript('app', 'flatpickr', 'vendor/flatpickr.js');
+        $app->view->enqueueScript('app', 'flatpickr-pt', 'vendor/flatpickr-pt.js', ['flatpickr']);
+
+        $app->view->jsObject['flatpickr'] = [
+            'altFormat' => env('DATEPICKER_VIEW_FORMAT', i::__("d/m/Y"))
+        ];
     }
 
     public function register()
@@ -117,7 +127,7 @@ class Module extends \MapasCulturais\Module
 
     function getAgentFields()
     {
-        $agent_fields = ['name', 'shortDescription', '@location', '@terms:area', '@links'];
+        $agent_fields = ['name', 'shortDescription', 'longDescription', '@location', '@terms:area', '@links'];
         
         $definitions = Agent::getPropertiesMetadata();
         
@@ -133,7 +143,7 @@ class Module extends \MapasCulturais\Module
 
     function getSpaceFields()
     {
-        $space_fields = ['name', 'shortDescription', '@location', '@terms:area', '@links'];
+        $space_fields = ['name', 'shortDescription', 'longDescription', '@location', '@terms:area', '@links'];
         
         $definitions = Space::getPropertiesMetadata();
         
@@ -459,10 +469,10 @@ class Module extends \MapasCulturais\Module
                         $metaList = new metaList;
                         $metaList->owner = $entity;
                         $url = $itemArray['value'];
-                        $group = (strpos($url, 'youtube') > 0 || strpos($url, 'vimeo') > 0) ? 'videos' : 'links';
+                        $group = (strpos($url, 'youtube') > 0 || strpos($url, 'youtu.be') > 0 || strpos($url, 'vimeo') > 0) ? 'videos' : 'links';
                         $metaList->group = $group;
-                        $metaList->title = $itemArray['title'];
-                        $metaList->value = $itemArray['value'];
+                        $metaList->title = $itemArray['title'] ?? '' ;
+                        $metaList->value = $itemArray['value'] ?? '' ;
                         $metaList->save(true);
                     }
                 }
@@ -484,18 +494,23 @@ class Module extends \MapasCulturais\Module
             $entity_field = $metadata_definition->config['registrationFieldConfiguration']->config['entityField'];
             
             if($entity_field == '@location'){
-                $result = [
-                    'endereco' => $entity->endereco,
-                    'En_CEP' => $entity->En_CEP,
-                    'En_Nome_Logradouro' => $entity->En_Nome_Logradouro,
-                    'En_Num' => $entity->En_Num,
-                    'En_Complemento' => $entity->En_Complemento,
-                    'En_Bairro' => $entity->En_Bairro,
-                    'En_Municipio' => $entity->En_Municipio,
-                    'En_Estado' => $entity->En_Estado,
-                    'location' => $entity->location,
-                    'publicLocation' => $entity->publicLocation
-                ];
+
+                if($entity->En_Nome_Logradouro && $entity->En_Num && $entity->En_Municipio && $entity->En_Estado) {
+                    $result = [
+                        'endereco' => $entity->endereco,
+                        'En_CEP' => $entity->En_CEP,
+                        'En_Nome_Logradouro' => $entity->En_Nome_Logradouro,
+                        'En_Num' => $entity->En_Num,
+                        'En_Complemento' => $entity->En_Complemento,
+                        'En_Bairro' => $entity->En_Bairro,
+                        'En_Municipio' => $entity->En_Municipio,
+                        'En_Estado' => $entity->En_Estado,
+                        'location' => $entity->location,
+                        'publicLocation' => $entity->publicLocation
+                    ];
+                } else {
+                    $result = null;
+                }
 
                 return $result;
 
