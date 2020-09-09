@@ -17,8 +17,8 @@ return [
                 'msg_inciso2_disabled' => 'Em breve!',
                 'msg_inciso1_disabled' => 'Em breve!',
                 'privacidade_termos_condicoes' => 'https://drive.google.com/file/d/1qDrpfH3Rl7dQg3cW3G6lMNopIjDq7ZS6/view',
-                'logotipo_instituicao'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/img/logo-instituicao.png',
-                'logotipo_central'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/img/logoAldirBlanc.png',
+                'logotipo_instituicao'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/aldirblanc/img/logo-instituicao.png',
+                'logotipo_central'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/aldirblanc/img/logoAldirBlanc.png',
                 'inciso1_opportunity_id' => env('INCISO1_OPPORTUNITY_ID', 2),
                 'inciso2_opportunity_ids' => [
                     "Jussara" => 3,
