@@ -111,7 +111,7 @@
                 var data = {};
                 Object.keys(entity).forEach(function(key) {
                     
-                    if(key.indexOf('field_') === 0){
+                    if(key.indexOf('field_') === 0 || key == 'projectName' || key == 'category'){
                         
                         data[key] = entity[key];
 
@@ -441,6 +441,23 @@ module.controller('RegistrationConfigurationsController', ['$scope', '$rootScope
 
         // Fields
         $scope.fieldConfigurationBackups = [];
+
+        $scope.data.filterFieldConfigurationByCategory = null;
+        $scope.showFieldConfiguration = function (field) {
+            if(field.categories.length === 0) {
+                return true;
+            }
+
+            if(!$scope.data.filterFieldConfigurationByCategory) {
+                return true;
+            }
+
+            if($scope.data.categories.length === 1) {
+                return true;
+            }
+
+            return field.categories.includes($scope.data.filterFieldConfigurationByCategory);
+        };
 
         $scope.createFieldConfiguration = function(){
             $scope.data.fieldSpinner = true;
@@ -795,6 +812,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
 
     $scope.entity = MapasCulturais.entity.object;
 
+
     $scope.data = {
         fileConfigurations: MapasCulturais.entity.registrationFileConfigurations
     };
@@ -941,6 +959,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
 
 
     if($scope.useCategories){
+        $scope.registrationCategories = MapasCulturais.entity.registrationCategories;
 
         RegistrationService.getSelectedCategory().then(function(value){
             $scope.selectedCategory = value;
@@ -952,13 +971,26 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             });
         });
 
-        $scope.$watch('selectedCategory', function(){
-            $timeout(function(){
-                initEditables();
-            });
-        });
-
     }
+
+    $scope.showFieldConfiguration = function (field) {
+        if(field.categories.length === 0) {
+            return true;
+        }
+
+        if(!$scope.data.filterFieldConfigurationByCategory) {
+            return true;
+        }
+
+        if($scope.data.categories.length === 1) {
+            return true;
+        }
+
+        if(!field.categories.includes($scope.data.filterFieldConfigurationByCategory)){
+            console.log($scope.data.filterFieldConfigurationByCategory, field.categories);
+        }
+        return field.categories.includes($scope.data.filterFieldConfigurationByCategory);
+    };
 
     $scope.showField = function(field){
         var result;
@@ -968,7 +1000,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             result = field.categories.length === 0 || field.categories.indexOf($scope.selectedCategory) >= 0;
         }
 
-        if (field.config && field.config.require && field.config.require.condition && field.config.require.hide) {
+        if (field.required && field.config && field.config.require && field.config.require.condition && field.config.require.hide) {
             var requiredFieldName = field.config.require.field;
             var requeredFieldValue = field.config.require.value;
 

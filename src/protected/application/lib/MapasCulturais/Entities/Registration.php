@@ -269,6 +269,7 @@ class Registration extends \MapasCulturais\Entity
         $json = [
             'id' => $this->id,
             'opportunity' => $this->opportunity->simplify('id,name,singleUrl'),
+            'projectName' => $this->projectName,
             'number' => $this->number,
             'category' => $this->category,
             'owner' => $this->owner->simplify('id,name,singleUrl'),
@@ -778,8 +779,11 @@ class Registration extends \MapasCulturais\Entity
 
             $field_name = $field_prefix . $field->id;
 
-            if(isset($metadata_definition->config['registrationFieldConfiguration']->config['require'])){
+            if($field->required && isset($metadata_definition->config['registrationFieldConfiguration']->config['require'])){
                 if ($cond_require = $metadata_definition->config['registrationFieldConfiguration']->config['require']) {
+                    if(is_object($cond_require)){
+                        $cond_require = (array) $cond_require;
+                    }
                     $_fied_name = isset($cond_require['field']) ? $cond_require['field'] : null;
                     $_fied_value = isset($cond_require['value']) ? $cond_require['value'] : null;
         
