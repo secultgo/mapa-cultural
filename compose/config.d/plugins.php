@@ -16,14 +16,14 @@ return [
                 'msg_inciso2_disabled' => 'Em breve!',
                 'msg_inciso1_disabled' => 'Em breve!',
                 'privacidade_termos_condicoes' => 'https://mapas.com.br',
-                'inciso1_opportunity_id' => 52,
-                'project_id' => 1,
+                'inciso1_opportunity_id' => 1,
+                'project_id' => 2,
                 'inciso1' => [
                     'registrationFrom' => '2020-08-19',
                     'registrationTo' => '2020-12-31',
                     'shortDescription' => 'Descrição pequena localizada nas configs',
                     'name'   => 'Lei Aldir Blanc | Inciso I',
-                    'owner'  => 2,
+                    'owner'  => 3,
                     'avatar' => 'avatar-aldirblanc.jpg',
                     'seal'   => 2,
                     'status' => 0
