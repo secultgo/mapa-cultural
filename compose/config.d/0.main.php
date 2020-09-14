@@ -4,7 +4,7 @@ use MapasCulturais\i;
 date_default_timezone_set('America/Sao_Paulo');
 
 return [
-    'app.siteName' => env('SITE_NAME', 'SECULT - Goiás Lei Aldir Blanc'),
+    'app.siteName' => env('SITE_NAME', 'Mapa Goiano'),
     'app.siteDescription' => env('SITE_DESCRIPTION', 'Solução para os cadastros da Lei Aldir Blanc'),
 
     'base.url' => env('BASE_URL', ''),

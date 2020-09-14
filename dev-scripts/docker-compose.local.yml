@@ -34,6 +34,8 @@ services:
       - MAILER_FROM=mapacultural@goias.gov.br
       - MAILER_PORT=2525
       - MAILER_PROTOCOL=tls
+      - GOOGLE_RECAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+      - GOOGLE_RECAPTCHA_SITEKEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
 #      - AUTH_PROVIDER=Fake
 
     depends_on:
