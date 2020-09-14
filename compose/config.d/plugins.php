@@ -16,7 +16,7 @@ return [
                 'msg_inciso2_disabled' => 'Em breve!',
                 'msg_inciso1_disabled' => 'Em breve!',
                 'privacidade_termos_condicoes' => 'https://mapas.com.br',
-                // 'inciso1_opportunity_id' => 52,
+                'inciso1_opportunity_id' => 52,
                 'project_id' => 1,
                 'inciso1' => [
                     'registrationFrom' => '2020-08-19',
