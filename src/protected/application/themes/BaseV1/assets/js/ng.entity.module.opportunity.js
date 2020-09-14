@@ -376,8 +376,11 @@ module.controller('RegistrationConfigurationsController', ['$scope', '$rootScope
 
                 var ii = 1;
 
+                var _fields = [];
+
                 $.each(fields, function(i,f) {
-                    f.displayOrder=ii;
+                    f.displayOrder = ii;
+                    _fields.push({id: f.id, displayOrder: ii, fieldType: f.fieldType});
                     ii++;
                 });
 
@@ -385,7 +388,9 @@ module.controller('RegistrationConfigurationsController', ['$scope', '$rootScope
                 var saveOrderUrl = url.create('saveFieldsOrder', MapasCulturais.entity.id);
 
                 // requisição para salvar ordem
-                $http.post(saveOrderUrl, {fields: fields});
+                $http.post(saveOrderUrl, {fields: _fields}).success(function(){
+                    MapasCulturais.Messages.success(labels['changesSaved']);
+                });
             }
         };
 
@@ -866,14 +871,26 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             
             RegistrationService.updateFields(data)
                 .success(function(){
+                    $scope.removeFieldErrors(field.fieldName);
                     delete field.error;
                 })
                 .error(function(r) {
+                    
                     if (Array.isArray(Object.values(r.data)) && Object.values(r.data).lenght != 0 ){
                         field.error = [Object.values(r.data).join(', ')]
+                        $scope.entityErrors[field.fieldName] = field.error
                     }
                 });
         },delay);
+    }
+
+    $scope.removeFieldErrors = function(fieldName) {
+        delete $scope.entityErrors[fieldName];
+        $scope.$apply();
+    }
+
+    $scope.numFieldErrors = function() {
+        return Object.keys($scope.entityErrors).length;
     }
 
     $scope.remove = function(array, index){
@@ -887,17 +904,24 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
                 return;
             }
 
-            jQuery("#wrapper-field_" + field.id + ' input').each(function(){
+            $scope.saveField(field, current, 10000)
+        }, true);
+    });
+
+    $rootScope.$on('repeatDone:registration-fields', function() {
+        setTimeout(function() {
+            $('[js-mask]').each(function() {
                 var $this = jQuery(this);
-                if (!$this.data('js-mask-init') && $this.attr('js-mask')) {
+    
+                if (!$this.data('js-mask-init')) {
+                    
                     $this.mask($this.attr('js-mask'));
                     $this.data('js-mask-init', true);
                 }
             });
-
-            $scope.saveField(field, current, 10000)
-        }, true);
+        }, 200)
     });
+    
 
     var fieldsByName = {};
 
@@ -915,6 +939,10 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             $form.data('onSuccess', true);
             $form.on('ajaxForm.success', function(){
                 MapasCulturais.Messages.success(labels['changesSaved']);
+                var fieldName = $form.parents('.attachment-list-item').data('fieldName');
+                if(fieldName){
+                    $scope.removeFieldErrors(fieldName);
+                } 
             });
         }
     };
@@ -1000,7 +1028,7 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             result = field.categories.length === 0 || field.categories.indexOf($scope.selectedCategory) >= 0;
         }
 
-        if (field.required && field.config && field.config.require && field.config.require.condition && field.config.require.hide) {
+        if (field.config && field.config.require && field.config.require.condition && field.config.require.hide) {
             var requiredFieldName = field.config.require.field;
             var requeredFieldValue = field.config.require.value;
 
@@ -2088,7 +2116,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
                                 }
                             }
                         } else {
-                            $scope.entityErrors = null;
+                            $scope.entityErrors = {};
                             $scope.entityValidated = true;
                         }
                     })

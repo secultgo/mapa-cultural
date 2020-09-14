@@ -9,7 +9,11 @@ foreach (Entities\Agent::getPropertiesMetadata() as $key => $def) {
     if (in_array($key, $agent_fields)) {
         $def = (object) $def;
         if (empty($def->field_type)) {
-            $def->field_type = 'text';
+            if (in_array($key, ['shortDescription', 'longDescription'])) {
+                $def->field_type = 'textarea';
+            } else {
+                $def->field_type = 'text';
+            }
         }
         $definitions[$key] = $def;
     }
@@ -29,11 +33,11 @@ foreach (Entities\Agent::getPropertiesMetadata() as $key => $def) {
     <div ng-if="::field.config.entityField == '@location'">
         <?php $this->part('registration-field-types/fields/_location') ?>
     </div>
-    <div ng-if="::field.config.entityField == '@term:area'">
-        <?php $this->part('registration-field-types/fields/checkboxes') ?>
-    </div>
     <div ng-if="::field.config.entityField == '@links'">
         <?php $this->part('registration-field-types/fields/links') ?>
+    </div>
+    <div ng-if="::field.config.entityField == '@terms:area'">
+        <?php $this->part('registration-field-types/fields/checkboxes') ?>
     </div>
     <?php
     foreach ($definitions as $key => $def) :

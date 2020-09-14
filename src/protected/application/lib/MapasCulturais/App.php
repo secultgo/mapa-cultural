@@ -2209,17 +2209,25 @@ class App extends \Slim\Slim{
      * @return \MapasCulturais\Definitions\EntityType
      */
     function getRegisteredEntityType(Entity $object){
-        return @$this->_register['entity_types'][$object->getClassName()][$object->type];
+        return $this->_register['entity_types'][$object->getClassName()][(string)$object->type] ?? null;
     }
 
+    function getRegisteredEntityTypeByTypeName($entity, string $type_name) {
+        foreach($this->getRegisteredEntityTypes($entity) as $type) {
+            if (strtolower($type->name) == trim(strtolower($type_name))) {
+                return $type;
+            }
+        }
 
+        return null;
+    }
 
     /**
-     * Returns the Entity Type of the given entity class or object.
+     * Returns the registered entity types for the given entity class or object.
      *
      * @param \MapasCulturais\Entity|string $entity The entity.
      *
-     * @return \MapasCulturais\Definitions\EntityType
+     * @return \MapasCulturais\Definitions\EntityType[]
      */
     function getRegisteredEntityTypes($entity){
         if(is_object($entity))
@@ -2609,6 +2617,7 @@ class App extends \Slim\Slim{
         $allow_self_signed = isset($this->_config['mailer.allow_self_signed']) &&  !empty($this->_config['mailer.allow_self_signed']) ? $this->_config['mailer.allow_self_signed'] : true;
         $verify_peer = isset($this->_config['mailer.verify_peer']) &&  !empty($this->_config['mailer.verify_peer']) ? $this->_config['mailer.verify_peer'] : false;
         $verify_peer_name = isset($this->_config['mailer.verify_peer_name']) &&  !empty($this->_config['mailer.verify_peer_name']) ? $this->_config['mailer.verify_peer_name'] : false;
+        $protocol = isset($this->_config['mailer.protocol']) ? $this->_config['mailer.protocol'] : null;
 
         if ($transport_type == 'smtp' && false !== $server) {
 
