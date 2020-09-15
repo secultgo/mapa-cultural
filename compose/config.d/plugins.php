@@ -10,6 +10,8 @@ return [
         'AldirBlanc' => [
             'namespace' => 'AldirBlanc',
             'config' => [
+                'logotipo_instituicao'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/aldirblanc/img/logo-instituicao.png',
+                'logotipo_central'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/aldirblanc/img/logoAldirBlanc.png',
                 'link_suporte' => "https://mapas.com.br",
                 'inciso1_enabled' => true,
                 'inciso2_enabled' => true,
