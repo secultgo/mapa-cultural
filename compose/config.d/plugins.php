@@ -1,5 +1,5 @@
 <?php
-$mapasUrl = $_SERVER['HTTP_HOST']=='localhost:8088'?'https://mapagoianohomolog.cultura.go.gov.br':'https://'.$_SERVER['HTTP_HOST'];
+$mapasUrl = $_SERVER['HTTP_HOST']=='localhost:8088'?'http://'.$_SERVER['HTTP_HOST']:'https://'.$_SERVER['HTTP_HOST'];
 return [
     'plugins' => [
         'EvaluationMethodTechnical' => ['namespace' => 'EvaluationMethodTechnical'],
