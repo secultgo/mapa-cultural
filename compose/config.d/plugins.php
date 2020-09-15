@@ -1,5 +1,5 @@
 <?php
-
+$mapasUrl = $_SERVER['HTTP_HOST']=='localhost:8088'?'https://mapagoianohomolog.cultura.go.gov.br':'https://'.$_SERVER['HTTP_HOST'];
 return [
     'plugins' => [
         'EvaluationMethodTechnical' => ['namespace' => 'EvaluationMethodTechnical'],
@@ -10,8 +10,8 @@ return [
         'AldirBlanc' => [
             'namespace' => 'AldirBlanc',
             'config' => [
-                'logotipo_instituicao'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/aldirblanc/img/logo-instituicao.png',
-                'logotipo_central'=>'https://mapagoianohomolog.cultura.go.gov.br/assets/aldirblanc/img/logoAldirBlanc.png',
+                'logotipo_instituicao'=>$mapasUrl.'/assets/aldirblanc/img/logo-instituicao.png',
+                'logotipo_central'=>$mapasUrl.'/assets/aldirblanc/img/logoAldirBlanc.png',
                 'link_suporte' => "https://mapas.com.br",
                 'inciso1_enabled' => true,
                 'inciso2_enabled' => true,
