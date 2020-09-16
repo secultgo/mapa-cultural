@@ -22,6 +22,7 @@ RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
 RUN ln -s /var/www/html/protected/application/lib/postgis-restful-web-service-framework /var/www/html/geojson
 
 WORKDIR /var/www/html/protected
+
 RUN composer.phar install
 
 WORKDIR /var/www/html/protected/application/themes/
@@ -41,6 +42,10 @@ COPY version.txt /var/www/version.txt
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
 
+WORKDIR /var/www/scripts/
+
+RUN ./generate-proxies.sh
+
 RUN chmod -R 775 /var/www/
 
 RUN chmod -R 777 /var/log/nginx /var/lib/nginx
@@ -49,9 +54,10 @@ RUN sed -i 's/\/run/\/var\/log\/nginx/g' /etc/nginx/nginx.conf
 
 RUN chown -R www-data. /var/www/* && chmod -R ugo+w /var/www/*
 
-ENTRYPOINT ["/entrypoint.sh"]
-
 WORKDIR /var/www/html/
+
+ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 9000
 
 EXPOSE 80 443
 
