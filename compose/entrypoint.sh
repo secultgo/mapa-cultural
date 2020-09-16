@@ -28,7 +28,6 @@ then
 fi
 
 cd /var/www/scripts && ./deploy.sh
-./generate-proxies.sh
 
 #chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
 
