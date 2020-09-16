@@ -18,14 +18,14 @@ return [
                 'msg_inciso2_disabled' => 'Em breve!',
                 'msg_inciso1_disabled' => 'Em breve!',
                 'privacidade_termos_condicoes' => 'https://mapagoianohomolog.cultura.go.gov.br/autenticacao/termos-e-condicoes/',
-                'inciso1_opportunity_id' => 1,
-                'project_id' => 2,
+                'inciso1_opportunity_id' => 9,
+                'project_id' => 11,
                 'inciso1' => [
                     'registrationFrom' => '2020-08-19',
                     'registrationTo' => '2020-12-31',
                     'shortDescription' => 'Descrição pequena localizada nas configs',
                     'name'   => 'Lei Aldir Blanc | Inciso I',
-                    'owner'  => 3,
+                    'owner'  => 6,
                     'avatar' => 'avatar-aldirblanc.jpg',
                     'seal'   => 2,
                     'status' => 0
@@ -283,7 +283,7 @@ return [
                      'registrationTo' => '2030-08-20',
                      'shortDescription' => 'descrição aqui DEFAULT',
 //                   'name' => 'Oportunidade DEFAULT',
-                     'owner' => 1,
+                     'owner' => 6,
                      'avatar' => 'avatar-aldirblanc.jpg',
                      'seal' => 1,
                      'status' => 0
