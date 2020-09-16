@@ -12,12 +12,12 @@ return [
             'config' => [
                 'logotipo_instituicao'=>$mapasUrl.'/assets/aldirblanc/img/logo-instituicao.png',
                 'logotipo_central'=>$mapasUrl.'/assets/aldirblanc/img/logoAldirBlanc.png',
-                'link_suporte' => "https://mapas.com.br",
+                'link_suporte' => "https://tawk.to/chat/5f60d5374704467e89ef29ca/default",
                 'inciso1_enabled' => true,
                 'inciso2_enabled' => true,
                 'msg_inciso2_disabled' => 'Em breve!',
                 'msg_inciso1_disabled' => 'Em breve!',
-                'privacidade_termos_condicoes' => 'https://mapas.com.br',
+                'privacidade_termos_condicoes' => 'https://mapagoianohomolog.cultura.go.gov.br/autenticacao/termos-e-condicoes/',
                 'inciso1_opportunity_id' => 1,
                 'project_id' => 2,
                 'inciso1' => [

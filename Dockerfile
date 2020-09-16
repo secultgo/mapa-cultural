@@ -44,7 +44,7 @@ COPY compose/entrypoint.sh /entrypoint.sh
 
 WORKDIR /var/www/scripts/
 
-RUN ./generate-proxies.sh
+#RUN ./generate-proxies.sh
 
 RUN chmod -R 775 /var/www/
 
@@ -62,5 +62,3 @@ EXPOSE 9000
 EXPOSE 80 443
 
 RUN ln -s /var/www/html /var/www/src
-
-CMD ["php-fpm"]
