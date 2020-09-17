@@ -34,6 +34,7 @@ RUN mkdir /var/www/private-files
 
 COPY scripts /var/www/scripts
 COPY compose/production/php.ini /usr/local/etc/php/php.ini
+COPY compose/production/php-fpm.conf /usr/local/etc/php-fpm.conf
 COPY compose/config.php /var/www/html/protected/application/conf/config.php
 COPY compose/config.d /var/www/html/protected/application/conf/config.d
 
