@@ -1,4 +1,4 @@
-<?php
+r<?php
 // url do ambiente mapas
 $mapasUrl = $_SERVER['HTTP_HOST']=='localhost:8088'?'http://'.$_SERVER['HTTP_HOST']:'https://'.$_SERVER['HTTP_HOST'];
 return [
@@ -20,6 +20,11 @@ return [
                 'msg_inciso1_disabled' => 'Em breve!',
                 'privacidade_termos_condicoes' => 'https://mapagoianohomolog.cultura.go.gov.br/autenticacao/termos-e-condicoes/',
                 'inciso1_opportunity_id' => 9,
+                'inciso2_opportunity_ids' => [
+                    'ANÁPOLIS'                      => 133,
+                    'APARECIDA DE GOIÂNIA'          => 136,
+                    'GOIÂNIA'                       => 212,
+                ],
                 'project_id' => 11,
                 'inciso1' => [
                     'registrationFrom' => '2020-08-19',
