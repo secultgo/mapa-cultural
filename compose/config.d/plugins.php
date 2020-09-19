@@ -1,5 +1,5 @@
 <?php
-// url
+// url do mapas
 $mapasUrl = $_SERVER['HTTP_HOST']=='localhost:8088'?'http://'.$_SERVER['HTTP_HOST']:'https://'.$_SERVER['HTTP_HOST'];
 return [
     'plugins' => [
