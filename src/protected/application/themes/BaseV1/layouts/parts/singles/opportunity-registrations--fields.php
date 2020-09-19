@@ -7,6 +7,7 @@ $editable_class = $can_edit ? 'js-editable' : '';
 
 $definitions = \MapasCulturais\App::i()->getRegisteredRegistrationFieldTypes();
 
+$app->view->jsObject['blockedOpportunityFields'] = [];
 $app->applyHookBoundTo($this, 'opportunity.blockedFields', [$entity]);
 
 ?>
@@ -32,15 +33,15 @@ $app->applyHookBoundTo($this, 'opportunity.blockedFields', [$entity]);
             
             <edit-box  ng-if="data.entity.canUserModifyRegistrationFields" id="editbox-registration-fields" position="right" title="<?php i::esc_attr_e("Adicionar campo");?>" cancel-label="<?php i::esc_attr_e("Cancelar");?>" submit-label="<?php i::esc_attr_e("Criar");?>" close-on-cancel='true' on-cancel="closeNewFieldConfigurationEditBox" on-submit="createFieldConfiguration" spinner-condition="data.fieldSpinner">
             <label>
-                Nome do campo<br>
+                <?php i::_e('Nome do campo') ?><br>
                 <input type="text" ng-model="data.newFieldConfiguration.title" placeholder="<?php i::esc_attr_e("Nome do campo");?>"/>
             </label>
             <label>
-                Descrição do campo<br>  
+                <?php i::_e('Descrição do campo') ?><br>
                 <textarea ng-model="data.newFieldConfiguration.description" placeholder="<?php i::esc_attr_e("Descrição do campo");?>"/></textarea>
             </label>
             <label>
-                Tipo do campo<br>
+                <?php i::_e('Tipo do campo') ?><br>
                 <select ng-model="data.newFieldConfiguration.fieldType" ng-options="value.slug as value.name disable when value.disabled for value in data.fieldTypes" ></select>
             </label>
             {{ (field = data.newFieldConfiguration) && false ? '' : ''}}
@@ -81,7 +82,10 @@ $app->applyHookBoundTo($this, 'opportunity.blockedFields', [$entity]);
                     <li ng-repeat="field in data.fields" ng-show="showFieldConfiguration(field)" on-repeat-done="init-ajax-uploaders" id="field-{{field.type}}-{{field.id}}" class="attachment-list-item project-edit-mode attachment-list-item-type-{{field.fieldType}}">
                         <div ng-if="field.fieldType !== 'file'">
                             <div class="js-open-editbox">
-                                <div class="label">{{field.title}} <em  ng-if="field.fieldType !== 'section'"><small>({{field.required.toString() === 'true' ? data.fieldsRequiredLabel : data.fieldsOptionalLabel }})</small></em></div>
+                                <div class="label">
+                                <code onclick="copyToClipboard(this)" class="hltip field-id" title="<?php i::esc_attr_e('Clique para copiar')?>">{{field.id}}</code>
+                                    {{field.title}} <em  ng-if="field.fieldType !== 'section'"><small>({{field.required.toString() === 'true' ? data.fieldsRequiredLabel : data.fieldsOptionalLabel }})</small></em>
+                                </div>
                                 <span ng-if="field.categories.length" class="attachment-description">
                                     <?php i::_e("Somente para");?> <strong>{{field.categories.join(', ')}}</strong>
                                     <br>
@@ -97,15 +101,15 @@ $app->applyHookBoundTo($this, 'opportunity.blockedFields', [$entity]);
                             <!-- edit-box to edit attachment -->
                             <edit-box ng-if="data.entity.canUserModifyRegistrationFields" id="editbox-registration-field-{{field.id}}" position="left" title="<?php i::esc_attr_e("Editar Campo");?>" cancel-label="<?php i::esc_attr_e("Cancelar");?>" submit-label="<?php i::esc_attr_e("Salvar");?>" close-on-cancel='true' on-cancel="cancelFieldConfigurationEditBox" on-submit="editFieldConfiguration" index="{{$index}}" spinner-condition="data.fieldSpinner">
                                 <label>
-                                    Nome do campo<br>
+                                    <?php i::_e('Nome do campo') ?><br>
                                     <input type="text" ng-model="field.title" placeholder="<?php i::esc_attr_e("Nome do campo");?>"/>
                                 </label>
                                 <label>
-                                    Descrição do campo<br>
+                                <?php i::_e('Descrição do campo') ?><br>
                                     <textarea ng-model="field.description" placeholder="<?php i::esc_attr_e("Descrição do campo");?>"/></textarea>
                                 </label>
                                 <label>
-                                    Tipo do campo<br>
+                                <?php i::_e('Tipo do campo') ?><br>
                                     <select ng-model="field.fieldType" ng-options="value.slug as value.name disable when value.disabled for value in data.fieldTypes" ></select>
                                 </label>
                                 <?php 
@@ -130,7 +134,7 @@ $app->applyHookBoundTo($this, 'opportunity.blockedFields', [$entity]);
                                 <a ng-click="removeFieldConfiguration(field.id, $index)" data-href="{{field.deleteUrl}}" class="btn btn-default delete hltip" title="<?php i::esc_attr_e("excluir campo");?>"></a>
                             </div>
                             <div style="color: red;">
-                                <strong><em><small>({{ isBlockedFields(field.id) ? 'Campo Bloqueado para edição ou deleção' : ''}})</small></em></strong>
+                                <strong><em><small>{{ isBlockedFields(field.id) ? '(Campo Bloqueado para edição ou deleção)' : ''}}</small></em></strong>
                             </div>
                             
                             

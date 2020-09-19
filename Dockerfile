@@ -14,10 +14,11 @@ RUN mkdir -p /run/php && \
 
 # Copy source
 COPY src/index.php /var/www/html/index.php
-COPY src/protected /var/www/html/protected
+COPY --chown=www-data:www-data src/protected /var/www/html/protected
 
-RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
-    chown -R www-data:www-data /var/www/html/protected/vendor/ /var/www/.composer/
+
+RUN mkdir -p /var/www/html/protected/vendor /var/www/html/protected/DoctrineProxies /var/www/.composer && \
+    chown -R www-data:www-data /var/www/html/protected/vendor /var/www/html/protected/DoctrineProxies /var/www/.composer
 
 RUN ln -s /var/www/html/protected/application/lib/postgis-restful-web-service-framework /var/www/html/geojson
 
@@ -39,6 +40,7 @@ COPY compose/config.php /var/www/html/protected/application/conf/config.php
 COPY compose/config.d /var/www/html/protected/application/conf/config.d
 
 COPY version.txt /var/www/version.txt
+
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
 
