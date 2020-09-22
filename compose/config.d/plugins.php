@@ -18,7 +18,7 @@ return [
                 'inciso2_enabled' => true,
                 'msg_inciso2_disabled' => 'Em breve!',
                 'msg_inciso1_disabled' => 'Em breve!',
-                'privacidade_termos_condicoes' => 'https://mapagoianohomolog.cultura.go.gov.br/autenticacao/termos-e-condicoes/',
+                'privacidade_termos_condicoes' => $mapasUrl.'/autenticacao/termos-e-condicoes/',
                 'inciso1_opportunity_id' => 9,
                 'inciso2_opportunity_ids' => [
                     'ANÁPOLIS'                      => 133,

@@ -12,7 +12,7 @@ return [
         'salt' => env('AUTH_SALT', null),
         'timeout' => env('TIMEOUT', '24 hours'),
         'enableLoginByCPF' => env('ENABLE_LOGIN_BY_CPF', true) ,
-        'urlImageToUseInEmails' => env('URL_IMAGE_EMAIL', 'https://mapagoianohom.cultura.go.gov.br/assets/img/logo-site.png'),
+        'urlImageToUseInEmails' => env('URL_IMAGE_EMAIL', $_APP_BASE_URL . 'assets/img/logo-site.png'),
         'metadataFieldCPF' => env('METADATA_FIELD_CPF', 'documento'),
         'userMustConfirmEmailToUseTheSystem' =>  env('USER_MUST_CONFIRM_EMAIL', true),
         'passwordMustHaveCapitalLetters' => env('PASSWORD_MUST_HAVE_CAPITAL_LETTERS', true),
