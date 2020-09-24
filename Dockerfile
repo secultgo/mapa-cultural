@@ -14,7 +14,7 @@ RUN mkdir -p /run/php && \
 
 # Copy source
 COPY src/index.php /var/www/html/index.php
-COPY src/protected /var/www/html/protected
+COPY --chown=www-data:www-data src/protected /var/www/html/protected
 
 RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
     chown -R www-data:www-data /var/www/html/protected/vendor/ /var/www/.composer/
