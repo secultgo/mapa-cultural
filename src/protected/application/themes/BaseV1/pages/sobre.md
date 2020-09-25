@@ -12,3 +12,4 @@ Você encontra mais informações sobre a ferramenta Mapas Culturais no site do 
 <h2>Realização</h2>
 <img class="alignleft" src="/assets/img/instituto-tim-white.png" alt="Insituto TIM" />
 
+Versão 5.0.0
