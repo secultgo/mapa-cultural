@@ -8,6 +8,9 @@ $title = isset($entity) ? $this->getTitle($entity) : $this->getTitle()
         <meta charset="UTF-8" />
         <title><?php echo $title == $site_name ? $title : "{$site_name} - {$title}"; ?></title>
         <link rel="profile" href="http://gmpg.org/xfn/11" />
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
         <link rel="shortcut icon" href="<?php $this->asset('img/favicon.ico') ?>" />
         <?php $this->head(isset($entity) ? $entity : null); ?>
         <!--[if lt IE 9]>
