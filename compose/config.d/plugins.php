@@ -27,7 +27,7 @@ return [
                 'project_id' => env('AB_PROJECT_ID', '11'),
                 'inciso1' => [
                     'registrationFrom' => env('INC1_REG_FROM', '2020-08-19'),
-                    'registrationTo' => env('INC1_REG_FROM', '2020-12-31'),
+                    'registrationTo' => env('INC1_REG_TO', '2020-12-31'),
                     'shortDescription' => env('INC1_DESCRIPTION', 'Descrição pequena localizada nas configs'),
                     'name'   => env('INC1_NAME', 'Lei Aldir Blanc | Inciso I'),
                     'owner'  => env('INC1_OWNER_ID' ,6),
