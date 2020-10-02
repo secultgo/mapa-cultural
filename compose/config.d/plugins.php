@@ -63,7 +63,7 @@ return [
                         "Trindade" : "71",
                         "Uruana" : "72",
                         "Urua\u00e7u" : "73",
-                        "Vian\u00f3polis" : "74",
+                        "Vian\u00f3polis" : "74"
                     }')),
                 'project_id' => env('AB_PROJECT_ID', '11'),
                 'inciso1' => [
