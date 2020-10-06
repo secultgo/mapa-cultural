@@ -90,6 +90,20 @@ class Theme extends BaseV1\Theme{
         $app->hook('template(site.index.home-developers):end', function () {
             $this->part('parceiros.php');
         });
+        $app->hook('mapasculturais.body:before', function() use($app) {
+            if ($env = env('GLOBAL_GTM_TAG', '')): ?>
+                <!-- Global site tag (gtag.js) - Google Analytics -->
+                <script async src="https://www.googletagmanager.com/gtag/js?id=<?= $env?>"></script>
+                <script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+
+                    gtag('config', '<?= $env?>');
+                </script>
+                <?php
+            endif;
+        });
     }
 
     protected function _publishAssets() {
