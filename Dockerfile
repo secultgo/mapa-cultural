@@ -14,7 +14,7 @@ RUN mkdir -p /run/php && \
 
 # Copy source
 COPY src/index.php /var/www/html/index.php
-COPY src/protected /var/www/html/protected
+COPY --chown=www-data:www-data src/protected /var/www/html/protected
 
 RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
     chown -R www-data:www-data /var/www/html/protected/vendor/ /var/www/.composer/
@@ -31,6 +31,7 @@ RUN find . -maxdepth 1 -mindepth 1 -exec echo "compilando sass do tema " {} \; -
 RUN mkdir /var/www/html/assets
 RUN mkdir /var/www/html/files
 RUN mkdir /var/www/private-files
+RUN mkdir /var/log/php-fpm
 
 COPY scripts /var/www/scripts
 COPY compose/production/php.ini /usr/local/etc/php/php.ini
@@ -45,6 +46,8 @@ COPY compose/entrypoint.sh /entrypoint.sh
 RUN chmod -R 775 /var/www/
 
 RUN chmod -R 777 /var/log/nginx /var/lib/nginx
+
+RUN chmod -R 777 /var/log/php-fpm
 
 RUN sed -i 's/\/run/\/var\/log\/nginx/g' /etc/nginx/nginx.conf
 

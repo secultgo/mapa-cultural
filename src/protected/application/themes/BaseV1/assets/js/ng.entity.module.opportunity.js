@@ -884,14 +884,12 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
             };
 
             data[field.fieldName] = value;
-            
             RegistrationService.updateFields(data)
                 .success(function(){
                     $scope.removeFieldErrors(field.fieldName);
                     delete field.error;
                 })
                 .error(function(r) {
-                    
                     if (Array.isArray(Object.values(r.data)) && Object.values(r.data).lenght != 0 ){
                         field.error = [Object.values(r.data).join(', ')]
                         $scope.entityErrors[field.fieldName] = field.error
@@ -901,8 +899,10 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
     }
 
     $scope.removeFieldErrors = function(fieldName) {
-        delete $scope.entityErrors[fieldName];
-        $scope.$apply();
+        if($scope.entityErrors) {
+            delete $scope.entityErrors[fieldName];
+            $scope.$apply();
+        }
     }
 
     $scope.numFieldErrors = function() {
@@ -1037,6 +1037,11 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
     };
 
     $scope.showField = function(field){
+
+        RegistrationService.getSelectedCategory().then(function(value){
+            $scope.selectedCategory = value;
+        });
+
         var result;
         if (!$scope.useCategories){
             result = true;

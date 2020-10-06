@@ -26,7 +26,7 @@ services:
       # - DB_PASS=mapas
 
       - APP_LCODE=pt_BR,es_ES
-      - APP_MODE=production
+      - APP_MODE=development
       - ACTIVE_THEME=Goias
       - MAILER_USER=1a311822536263
       - MAILER_PASS=a1f73804f5f5d3
