@@ -14,7 +14,7 @@ return [
                 'logotipo_central'=>env('AB_LOGO_CENTRAL', getenv('BASE_URL').'/assets/aldirblanc/img/logoAldirBlanc.png'),
                 'link_suporte' => env('AB_LINK_SUPORTE', 'mailto:mapagoiano.cultura@goias.gov.br'),
                 'inciso1_enabled' => env('INCISO1_ENABLE',true),
-                'inciso2_enabled' => env('INCISO1_ENABLE',true),
+                'inciso2_enabled' => env('INCISO2_ENABLE',true),
                 'msg_inciso2_disabled' => env('INC2_DISABLE_MSG','Em breve!'),
                 'msg_inciso1_disabled' => env('INC1_DISABLE_MSG', 'Em breve!'),
                 'privacidade_termos_condicoes' => env('AB_LINK_TERMOS', getenv('BASE_URL').'/autenticacao/termos-e-condicoes/'),
