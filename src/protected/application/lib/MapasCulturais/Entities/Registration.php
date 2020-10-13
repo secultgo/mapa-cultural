@@ -506,7 +506,9 @@ class Registration extends \MapasCulturais\Entity
     
 
     function setStatus($status){
-        // do nothing
+        if(App::i()->user->is('admin')) {
+            $this->status = $status;
+        }
     }
 
     function _setStatusTo($status){
@@ -778,6 +780,7 @@ class Registration extends \MapasCulturais\Entity
 
 
             $field_name = $field_prefix . $field->id;
+            $field_required = $field->required;
 
             if(isset($metadata_definition->config['registrationFieldConfiguration']->config['require'])){
                 if ($cond_require = $metadata_definition->config['registrationFieldConfiguration']->config['require']) {
@@ -787,7 +790,7 @@ class Registration extends \MapasCulturais\Entity
                     $_fied_name = isset($cond_require['field']) ? $cond_require['field'] : null;
                     $_fied_value = isset($cond_require['value']) ? $cond_require['value'] : null;
         
-                    $field->required = $_fied_name && $this->$_fied_name == $_fied_value;
+                    $field_required = $_fied_name && $this->$_fied_name == $_fied_value;
                 }
             }
 
@@ -798,7 +801,7 @@ class Registration extends \MapasCulturais\Entity
 
             $empty = (is_string($val) && !trim($val)) || !$val;
 
-            if ($field->required) {
+            if ($field_required) {
                 if ($empty) {
                     $errors[] = \MapasCulturais\i::__('O campo é obrigatório.');
                 }

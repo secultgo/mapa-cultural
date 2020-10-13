@@ -1,6 +1,7 @@
 <?php
 namespace MapasCulturais\Controllers;
 
+use Exception;
 use MapasCulturais\i;
 use MapasCulturais\App;
 use MapasCulturais\Traits;
@@ -71,6 +72,82 @@ class Opportunity extends EntityController {
         }
     }
 
+    function GET_applyEvaluationsSimple() {
+        set_time_limit(0);
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '-1');
+
+        $app = App::i();
+
+        $entity = $this->requestedEntity;
+
+        $app->disableAccessControl();
+        $opp = $app->repo('Opportunity')->find($entity->id);
+        $type = $opp->evaluationMethodConfiguration->getDefinition()->slug;
+
+        if($type != 'simple') {
+            throw new Exception('Ação somente disponivel para avaliações do tipo simples');
+        }
+
+        //@todo
+        //TRANSFORMAR EM SQL
+        // pesquise todas as registrations da opportunity que esta vindo na request
+        $query = App::i()->getEm()->createQuery("
+        SELECT 
+            r
+        FROM
+            MapasCulturais\Entities\Registration r
+        WHERE 
+            r.opportunity = :opportunity_id
+                AND
+            r.status > 0
+        ");
+    
+        $params = [
+            'opportunity_id' => $opp,
+        ];
+
+        $query->setParameters($params);
+
+        $registrations = $query->getResult();
+
+        // faça um foreach em cada registration e pegue as suas avaliações
+        foreach ($registrations as $registration) {
+            $evaluations = $app->repo('RegistrationEvaluation')->findBy(['registration'=>$registration->id]);
+
+            $allEvaluationsAreStatus10 = true;
+            //verifique se TODAS as avaliações estão selecionadas, se sim, registration foi aprovada
+            //se não, verifique se a registration tem SOMENTE UMA avaliação, se tiver uma, então o status da registration é o mesmo da avaliação, se tiver mais de uma, o status é "nao selecionado"
+            foreach ($evaluations as $evaluation) {
+                $evaluationStatus = $evaluation->getResult();
+                if($evaluationStatus != 10) {
+                    $allEvaluationsAreStatus10 = false;
+                }
+            }
+            if($allEvaluationsAreStatus10 == true) {
+                $registration->setStatus(10); //selecionada
+                $registration->consolidatedResult = 10; //selecionada
+            } 
+            if($allEvaluationsAreStatus10 == false) {
+                if(count($evaluations) > 1) {
+                    $registration->setStatus(3); // não selecionada
+                    $registration->consolidatedResult = 3; // não selecionada
+                }
+                if(count($evaluations) == 1) {
+                    $registration->setStatus( (int)$evaluations[0]->getResult() );
+                    $registration->consolidatedResult = (int)$evaluations[0]->getResult();
+                }
+            } 
+
+            $registration->save(true);
+        }
+
+        
+        $app->enableAccessControl();
+
+        echo "Processo finalizado";
+
+    }
 
     function GET_report(){
         $this->requireAuthentication();
@@ -160,6 +237,9 @@ class Opportunity extends EntityController {
 
 
     function API_findByUserApprovedRegistration(){
+        set_time_limit(0);
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '-1');
         $this->requireAuthentication();
         $app = App::i();
 
@@ -556,6 +636,94 @@ class Opportunity extends EntityController {
 
             return $evaluations;
         }
+    }
+
+    function API_findRegistrationsAndEvaluations() {
+        $app = App::i();
+                
+        $opportunity = $this->_getOpportunity();
+        $data = $this->data;
+
+        $conn = $app->getEm()->getConnection();
+
+        $resultLength = "
+        SELECT
+            count(r.id)
+        FROM
+            registration r
+        INNER JOIN pcache pc
+            ON pc.object_id = r.id
+                AND pc.object_type = 'MapasCulturais\Entities\Registration'
+                AND pc.action = 'evaluate'
+                AND pc.user_id = :user_id
+        WHERE r.status > 0
+                AND r.opportunity_id = :opportunity_id
+        ";
+
+        $length = $conn->fetchAll($resultLength, [
+            'user_id' => $app->user->id, 
+            'opportunity_id' => $opportunity->id,
+            ]);
+        
+        $sql = "
+        SELECT
+            r.id as registrationId,
+            r.status as registrationStatus,
+            r.consolidated_result as registrationConsolidated_result,
+            r.number as registrationNumber,
+            re.*, 
+            a.id as agentId,
+            a.name as agentName
+        FROM
+            registration r
+        INNER JOIN pcache pc
+            ON pc.object_id = r.id
+                AND pc.object_type = 'MapasCulturais\Entities\Registration'
+                AND pc.action = 'evaluate'
+                AND pc.user_id = :user_id
+        LEFT JOIN registration_evaluation re
+            ON r.id = re.registration_id
+            AND pc.user_id = :user_id
+        INNER JOIN agent a
+            ON a.id = r.agent_id
+                WHERE r.status > 0
+                AND r.opportunity_id = :opportunity_id 
+                ORDER BY r.id
+            LIMIT :limit
+            OFFSET :offset
+        ";
+
+        $limit = isset($data['@limit']) ? $data['@limit'] : 50;
+        $page = isset($data['@page'] ) ? $data['@page'] : 1;
+        $offset = ($page -1) * $limit;
+
+        $registrations = $conn->fetchAll($sql, [
+            'user_id' => $app->user->id, 
+            'opportunity_id' => $opportunity->id,
+            'limit' => $limit,
+            'offset' => $offset
+            ]);
+
+        $registrationWithResultString = array_map(function($registration) use ($opportunity) {
+            return [
+                "registrationid" => $registration['registrationid'],
+                "registrationstatus" => $registration['registrationstatus'],
+                "registrationconsolidated_result" => $registration['registrationconsolidated_result'],
+                "registrationnumber" => $registration['registrationnumber'],
+                "id" => $registration['id'],
+                "registration_id" => $registration['registration_id'],
+                "user_id" => $registration['user_id'],
+                "result" => $registration['result'],
+                "evaluation_data" => $registration['evaluation_data'],
+                "status" => $registration['status'],
+                "agentid" => $registration['agentid'],
+                "agentname" => $registration['agentname'],
+                "resultString" => $opportunity->getEvaluationMethod()->valueToString($registration['result'])
+            ];
+        },$registrations);
+        
+        $this->apiAddHeaderMetadata($this->data, $registrationWithResultString, $length[0]['count']);
+        $this->apiResponse($registrationWithResultString);
     }
     
     function API_findEvaluations($opportunity_id = null) {
