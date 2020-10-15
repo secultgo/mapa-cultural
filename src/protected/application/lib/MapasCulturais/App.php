@@ -9,6 +9,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 
 use Acelaya\Doctrine\Type\PhpEnumType;
 use Exception;
+use MapasCulturais\Entities\PermissionCachePending;
 use MapasCulturais\Entities\User;
 
 /**
@@ -202,10 +203,11 @@ class App extends \Slim\Slim{
 
         if($config['app.offline']){
             $bypass_callable = $config['app.offlineBypassFunction'];
-
-            if(!is_callable($bypass_callable) || !$bypass_callable()){
+            
+            if (php_sapi_name()!=="cli" && (!is_callable($bypass_callable) || !$bypass_callable())) {
                 http_response_code(307);
                 header('Location: ' . $config['app.offlineUrl']);
+                die;
             }
         }
 
@@ -1617,24 +1619,35 @@ class App extends \Slim\Slim{
     }
 
     public function recreatePermissionsCache(){
-        $queue = $this->repo('PermissionCachePending')->findBy([], ['id' => 'ASC']);
-        if (is_array($queue) && count($queue) > 0) {
+        $item = $this->repo('PermissionCachePending')->findOneBy(['status' => 0], ['id' => 'ASC']);
+        if ($item) {
+            $this->disableAccessControl();
+            $item->status = 1;
+            $item->save(true);
+            $this->enableAccessControl();
+
             $conn = $this->em->getConnection();
             $conn->beginTransaction();
 
             try {
-                foreach($queue as $pendingCache) {
-                    $entity = $this->repo($pendingCache->objectType)->find($pendingCache->objectId);
-                    if ($entity) {
-                        $entity->recreatePermissionCache();
-                    }
-                    $this->em->remove($pendingCache);
+                $entity = $this->repo($item->objectType)->find($item->objectId);
+                if ($entity) {
+                    $entity->recreatePermissionCache();
                 }
+                
+                $this->em->remove($item);
+
                 $this->em->flush();
                 $conn->commit();
             } catch (\Exception $e ){
                 $this->em->close();
                 $conn->rollBack();
+
+                $this->disableAccessControl();
+                $item->status = 0;
+                $item->save(true);
+                $this->enableAccessControl();
+            
                 if(php_sapi_name()==="cli"){
                     echo "\n\t - ERROR - {$e->getMessage()}";
                 }
