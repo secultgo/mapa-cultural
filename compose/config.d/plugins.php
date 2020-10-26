@@ -94,6 +94,7 @@ return [
                      'seal' => env('INC2_SEAL_ID', 1),
                      'status' => env('INC2_STATUS', 0)
                 ],
+                'inciso3_opportunity_ids' => [],
             ],
         ],
         'AldirBlancDataprev' => [
