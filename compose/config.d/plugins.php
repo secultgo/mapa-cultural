@@ -96,5 +96,12 @@ return [
                 ],
             ],
         ],
+        'AldirBlancDataprev' => [
+            'namespace' => 'AldirBlancDataprev',
+            'config' => [
+                // indica que só deve exportar as inscrições já homologadas
+                'exportador_requer_homologacao' => false,
+            ],
+        ],
     ]
 ];
