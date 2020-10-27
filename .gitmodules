@@ -6,9 +6,9 @@
 	path = src/protected/application/plugins/MultipleLocalAuth
 	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/multiplelocalauth-go.git
 	branch = develop
-[submodule "src/protected/application/plugins/AldirBlancValidador"]
-	path = src/protected/application/plugins/AldirBlancValidador
-	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-validador-go.git
 [submodule "src/protected/application/plugins/AldirBlancDataprev"]
 	path = src/protected/application/plugins/AldirBlancDataprev
 	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-dataprev-go.git
+[submodule "src/protected/application/plugins/AldirBlancValidador"]
+	path = src/protected/application/plugins/AldirBlancValidador
+	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-validador-go.git

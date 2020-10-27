@@ -94,6 +94,14 @@ return [
                      'seal' => env('INC2_SEAL_ID', 1),
                      'status' => env('INC2_STATUS', 0)
                 ],
+                'inciso3_opportunity_ids' => [],
+            ],
+        ],
+        'AldirBlancDataprev' => [
+            'namespace' => 'AldirBlancDataprev',
+            'config' => [
+                // indica que só deve exportar as inscrições já homologadas
+                'exportador_requer_homologacao' => false,
             ],
         ],
     ]
