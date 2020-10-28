@@ -28,8 +28,12 @@ services:
       - APP_LCODE=pt_BR,es_ES
       - APP_MODE=development
       - ACTIVE_THEME=Goias
-      - MAILER_USER=1a311822536263
-      - MAILER_PASS=a1f73804f5f5d3
+      - MAILER_USER=1a8e3ebbc6723e
+      - MAILER_PASS=e6d71da85cb323
+      - AB_PROJECT_ID=1
+      - INC1_OPPORTUNITY_ID=1
+      - INC1_OWNER_ID=3
+      - INC1_SEAL_ID=1
       - MAILER_SERVER=smtp.mailtrap.io
       - MAILER_FROM=mapacultural@goias.gov.br
       - MAILER_PORT=2525
