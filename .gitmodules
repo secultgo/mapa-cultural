@@ -12,3 +12,12 @@
 [submodule "src/protected/application/plugins/AldirBlancValidador"]
 	path = src/protected/application/plugins/AldirBlancValidador
 	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-validador-go.git
+[submodule "src/protected/application/plugins/RegistrationPayments"]
+	path = src/protected/application/plugins/RegistrationPayments
+	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-registration-payments-go
+[submodule "src/protected/application/plugins/AldirBlancValidadorFinanceiro"]
+	path = src/protected/application/plugins/AldirBlancValidadorFinanceiro
+	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-validador-financeiro-go
+[submodule "src/protected/application/plugins/AldirBlancValidadorRecurso"]
+	path = src/protected/application/plugins/AldirBlancValidadorRecurso
+	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-validador-recurso-go
