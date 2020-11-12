@@ -105,5 +105,8 @@ return [
                 'consolidacao_requer_validacao' => ['dataprev']
             ],
         ],
+        'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
+        'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
+        'AldirBlancValidadorFinanceiro' => [ 'namespace' => 'AldirBlancValidadorFinanceiro' ],
     ]
 ];
