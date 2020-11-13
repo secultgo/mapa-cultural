@@ -105,8 +105,15 @@ return [
                 'consolidacao_requer_validacao' => ['dataprev']
             ],
         ],
+        'AldirBlancValidadorFinanceiro' => [
+            'namespace' => 'AldirBlancValidadorFinanceiro',
+            'config' => [
+                // indica que só deve exportar as inscrições já homologadas
+                'exportador_requer_homologacao' => false,
+                'consolidacao_requer_validacao' => ['dataprev']
+            ],
+        ],
         'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
-        'AldirBlancValidadorFinanceiro' => [ 'namespace' => 'AldirBlancValidadorFinanceiro' ],
     ]
 ];
