@@ -1,18 +1,18 @@
 <?php 
 use MapasCulturais\i;
 
-$url = $this->controller->createUrl('applyEvaluationsSimple', [$entity->id]);
+$url = $this->controller->createUrl('applyEvaluationsDocumentary', [$entity->id]);
 
 $em = $entity->getEvaluationMethod();
 
 ?>
-<div ng-controller="ApplySimpleEvaluationResults">
+<div ng-controller="ApplyDocumentaryEvaluationResults">
 <a class="btn btn-primary hltip"  ng-click="editbox.open('apply-consolidated-results-editbox', $event)"> 
     <?php i::_e('Aplicar avaliações'); ?> 
 </a>
   
 <edit-box id="apply-consolidated-results-editbox" position="bottom" 
-            title="<?php i::esc_attr_e('Aplicar resultado das avaliações simples') ?>" 
+            title="<?php i::esc_attr_e('Aplicar resultado das avaliações documentais') ?>" 
             spinner-condition="data.applying"
             cancel-label="Cancelar" 
             submit-label="<?php i::_e('Aplicar') ?>"
