@@ -10,5 +10,5 @@ O Mapa goiano é direcionado a todos os públicos, especialmente aos artistas, p
 O Mapa goiano alcança as diversas áreas culturais: Circo, Dança, Teatro, Música, Audiovisual, Artes da Cultura Hip-Hop, Literatura, Artes Visuais, Patrimônio Artístico e Cultural (material e imaterial), Artesanato, Cultura Popular e Atividades Artísticas em geral, além de Espaços Culturais com ou sem fins lucrativos, Festas Populares, Manifestações da Cultura Popular e Cultura de Inovação e Criatividade.
 
 <!-- Alterar o número abaixo, e este comentário, para forçar nova build via pipeline -->
-<!-- 5.0.1: nao barrar monoparentais config cnab -->
-Versão 5.0.1
+<!-- 5.0.0: Update 18/11 14:30 -->
+Versão 5.0.0
