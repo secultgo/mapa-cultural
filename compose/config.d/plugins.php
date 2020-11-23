@@ -110,7 +110,8 @@ return [
             'config' => [
                 // indica que só deve exportar as inscrições já homologadas
                 'consolidacao_requer_homologacao' => false,
-                'exportador_requer_validacao' => ['dataprev']
+                'exportador_requer_validacao' => ['dataprev'],
+                'exportador_requer_homologacao' => true,
             ],
         ],
         'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
