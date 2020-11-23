@@ -4,11 +4,11 @@ Esse canal consiste em levantar dados e definir metodologia, critérios, pergunt
 
 ## A QUEM SE DESTINA?
 O Mapa goiano é direcionado a todos os públicos, especialmente aos artistas, produtores culturais, micro e pequenas empresas culturais, cooperativas e instituições culturais da sociedade civil,organizações culturais comunitárias e espaços culturais da sociedade civil.
-
+ 
 
 ## SEGMENTOS CULTURAIS QUE ABRANGEM O MAPA GOIANO
 O Mapa goiano alcança as diversas áreas culturais: Circo, Dança, Teatro, Música, Audiovisual, Artes da Cultura Hip-Hop, Literatura, Artes Visuais, Patrimônio Artístico e Cultural (material e imaterial), Artesanato, Cultura Popular e Atividades Artísticas em geral, além de Espaços Culturais com ou sem fins lucrativos, Festas Populares, Manifestações da Cultura Popular e Cultura de Inovação e Criatividade.
 
 <!-- Alterar o número abaixo, e este comentário, para forçar nova build via pipeline -->
-<!-- 5.0.0T: atualizacoes 23/11 c/ prints -->
-Versão 5.0.0T
+<!-- 5.0.1: Alinhando homolog com master -->
+Versão 5.0.1
