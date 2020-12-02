@@ -1,7 +1,7 @@
 <?php 
 use MapasCulturais\i;
 
-date_default_timezone_set('America/Sao_Paulo');
+date_default_timezone_set('America/Bahia');
 
 return [
     'app.siteName' => env('SITE_NAME', 'Mapa Goiano'),
