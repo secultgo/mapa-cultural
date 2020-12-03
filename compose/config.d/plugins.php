@@ -94,7 +94,13 @@ return [
                      'seal' => env('INC2_SEAL_ID', 1),
                      'status' => env('INC2_STATUS', 0)
                 ],
-                'inciso3_opportunity_ids' => [],
+                'inciso3_opportunity_ids' => (array) json_decode( env('INC2_OPPORTUNITY_IDS',
+                '{
+                    "An\u00e1polis" : "80",
+                    "Edital I":"90",
+                    "Edital II":"91",
+                    "Edital III":"92",
+                }')),
             ],
         ],
         'AldirBlancDataprev' => [
