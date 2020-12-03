@@ -95,12 +95,7 @@ return [
                      'status' => env('INC2_STATUS', 0)
                 ],
                 'inciso3_opportunity_ids' => (array) json_decode( env('INC3_OPPORTUNITY_IDS',
-                '{
-                    "An\u00e1polis" : "80",
-                    "Edital I":"90",
-                    "Edital II":"91",
-                    "Edital III":"92",
-                }')),
+                '[80, 90, 91, 92]')),
             ],
         ],
         'AldirBlancDataprev' => [
