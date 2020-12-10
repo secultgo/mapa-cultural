@@ -4,6 +4,7 @@ namespace EvaluationMethodDocumentary;
 use MapasCulturais\i;
 use MapasCulturais\App;
 use MapasCulturais\Entities;
+use MapasCulturais\Entities\Registration;
 
 const STATUS_INVALID = 'invalid';
 const STATUS_VALID = 'valid';
@@ -167,6 +168,13 @@ class Plugin extends \MapasCulturais\EvaluationMethod {
                 die;
             }
             $new_status = intval($this->data['to']);
+            
+            $apply_status = $this->data['status'] ?? false;
+            if ($apply_status == 'all') {
+                $status = 'r.status > 0';
+            } else {
+                $status = 'r.status = 1';
+            }
     
             $opp->checkPermission('@control');
 
@@ -179,7 +187,7 @@ class Plugin extends \MapasCulturais\EvaluationMethod {
             WHERE 
                 r.opportunity = :opportunity_id AND
                 r.consolidatedResult = :consolidated_result AND
-                r.status > 0
+                $status
             ");
         
             $params = [
@@ -194,14 +202,33 @@ class Plugin extends \MapasCulturais\EvaluationMethod {
             // faça um foreach em cada registration e pegue as suas avaliações
             foreach ($registrations as $registration) {
                 $app->log->debug("Alterando status da inscrição {$registration->number} para {$new_status}");
+                switch ($new_status) {
+                    case Registration::STATUS_DRAFT:
+                        $registration->setStatusToDraft();
+                    break;
+                    case Registration::STATUS_INVALID:
+                        $registration->setStatusToInvalid();
+                    break;
+                    case Registration::STATUS_NOTAPPROVED:
+                        $registration->setStatusToNotApproved();
+                    break;
+                    case Registration::STATUS_WAITLIST:
+                        $registration->setStatusToWaitlist();
+                    break;
+                    case Registration::STATUS_APPROVED:
+                        $registration->setStatusToApproved();
+                    break;
+                    default:
+                        $registration->_setStatusTo($new_status);
+                    
+                }
                 $app->disableAccessControl();
-                $registration->setStatus($new_status);
                 $registration->save(true);
                 $app->enableAccessControl();
             }
 
     
-            $this->finish("Processo finalizado", 200);
+            $this->finish(sprintf(i::__("Avaliações aplicadas à %s inscrições"), count($registrations)), 200);
     
         });
 
