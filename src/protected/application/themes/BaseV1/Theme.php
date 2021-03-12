@@ -871,6 +871,8 @@ class Theme extends MapasCulturais\Theme {
               );
             };
 
+            $this->jsObject['mapsTileServer'] = $app->config['maps.tileServer'];
+
             $this->jsObject['mapMaxClusterRadius']          = $app->config['maps.maxClusterRadius'];
             $this->jsObject['mapSpiderfyDistanceMultiplier']= $app->config['maps.spiderfyDistanceMultiplier'];
             $this->jsObject['mapMaxClusterElements']        = $app->config['maps.maxClusterElements'];
@@ -1437,8 +1439,9 @@ class Theme extends MapasCulturais\Theme {
         $this->enqueueStyle('vendor', 'leaflet-draw', 'vendor/leaflet/lib/leaflet-plugins-updated-2014-07-25/Leaflet.draw-master/dist/leaflet.draw.css', array('leaflet'));
         $this->enqueueScript('vendor', 'leaflet-draw', 'vendor/leaflet/lib/leaflet-plugins-updated-2014-07-25/Leaflet.draw-master/dist/leaflet.draw-src.js', array('leaflet'));
 
-        // Google Maps API only needed in site/search and space, agent and event singles
-        if(preg_match('#site|space|agent|event|subsite#',    $this->controller->id) && preg_match('#search|single|edit|create#', $this->controller->action)){
+        // Google Maps API only needed in site/search and space, agent and event singles, or if the location patch is active
+        if(preg_match('#site|space|agent|event|subsite#',    $this->controller->id) && preg_match('#search|single|edit|create#', $this->controller->action) ||
+           App::i()->config['app.enableLocationPatch']) {
             $this->enqueueScript('vendor', 'google-maps-api', 'https://maps.googleapis.com/maps/api/js?key=' . App::i()->config['app.googleApiKey']);
         }
 

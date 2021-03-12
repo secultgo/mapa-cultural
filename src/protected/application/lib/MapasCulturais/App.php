@@ -93,7 +93,7 @@ class App extends \Slim\Slim{
 
     /**
      * The Route Manager.
-     * @var \MapasCulturais\RouteManager
+     * @var \MapasCulturais\RoutesManager
      */
     protected $_routesManager = null;
 
@@ -382,8 +382,8 @@ class App extends \Slim\Slim{
 
 
         PhpEnumType::registerEnumTypes([
-            'object_type' => DoctrineEnumTypes\ObjectType::class,
-            'permission_action' => DoctrineEnumTypes\PermissionAction::class
+            DoctrineEnumTypes\ObjectType::getTypeName() => DoctrineEnumTypes\ObjectType::class,
+            DoctrineEnumTypes\PermissionAction::getTypeName() => DoctrineEnumTypes\PermissionAction::class
         ]);
 
         $platform = $this->_em->getConnection()->getDatabasePlatform();
@@ -1568,7 +1568,9 @@ class App extends \Slim\Slim{
     private $permissionCachePendingQueue = [];
 
     public function enqueueEntityToPCacheRecreation(Entity $entity){
-        $this->permissionCachePendingQueue["$entity"] = $entity;
+        if (!$entity->__skipQueuingPCacheRecreation) {
+            $this->permissionCachePendingQueue["$entity"] = $entity;
+        }
     }
 
     public function isEntityEnqueuedToPCacheRecreation(Entity $entity){

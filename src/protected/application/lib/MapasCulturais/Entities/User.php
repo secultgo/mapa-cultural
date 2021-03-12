@@ -28,6 +28,7 @@ class User extends \MapasCulturais\Entity implements \MapasCulturais\UserInterfa
 
     use \MapasCulturais\Traits\EntityMetadata;
 
+    protected $__enableMagicGetterHook = true;
 
     /**
      * @var integer
@@ -138,7 +139,7 @@ class User extends \MapasCulturais\Entity implements \MapasCulturais\UserInterfa
         return $this->_isDeleting;
     }
     
-    public function getEntityTypeLabel($plural = false) {
+    public static function getEntityTypeLabel($plural = false) {
         if ($plural)
             return \MapasCulturais\i::__('Usuários');
         else

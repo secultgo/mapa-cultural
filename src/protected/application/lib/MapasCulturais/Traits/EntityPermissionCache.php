@@ -4,6 +4,10 @@ namespace MapasCulturais\Traits;
 use MapasCulturais\App;
 use MapasCulturais\Entity;
 
+/**
+ * @property-read string $permissionCacheClassName
+ * @property-read string[] $permissionsList
+ */
 trait EntityPermissionCache {
     public $__skipQueuingPCacheRecreation = false;
 
@@ -170,7 +174,7 @@ trait EntityPermissionCache {
        
     function enqueueToPCacheRecreation($skip_extra = false){
         $app = App::i();
-        if($app->isEntityEnqueuedToPCacheRecreation($this)){
+        if($app->isEntityEnqueuedToPCacheRecreation($this) || $this->__skipQueuingPCacheRecreation){
             return false;
         }
         
