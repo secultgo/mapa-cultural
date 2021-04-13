@@ -289,6 +289,7 @@ abstract class Entity implements \JsonSerializable{
     }
 
     protected function genericPermissionVerification($user){
+        
         if($user->is('guest'))
             return false;
 
@@ -736,12 +737,6 @@ abstract class Entity implements \JsonSerializable{
                 }
             }
 
-            // delete the entity cache
-            $repo = $this->repo();
-            if($repo->usesCache()){
-                $repo->deleteEntityCache($this->id);
-            }
-
         }catch(Exceptions\PermissionDenied $e){
             if(!$requests)
                 throw $e;
@@ -789,8 +784,9 @@ abstract class Entity implements \JsonSerializable{
     }
 
     /**
-     *
-     * @return type
+     * Retorna um array com a estrutura que será serializada pela função json_encode
+     * 
+     * @return array
      */
     public function jsonSerialize() {
         $result = [];
@@ -830,16 +826,23 @@ abstract class Entity implements \JsonSerializable{
             }
         }
 
+        if ($this->usesTypes()) {
+            $result['type'] = $this->type->id ?? null;
+        }
+
+        if ($this->usesTaxonomies()) {
+            $result['terms'] = $this->terms;
+        }
+
         if($controller_id = $this->getControllerId()){
             $result['controllerId'] = $controller_id;
-
             $result['deleteUrl'] = $this->getDeleteUrl();
-
             $result['editUrl'] = $this->getEditUrl();
-
             $result['singleUrl'] = $this->getSingleUrl();
         }
+        
         unset(Entity::$_jsonSerializeNestedObjects[$_uid]);
+
         return $result;
     }
 
@@ -1176,7 +1179,7 @@ abstract class Entity implements \JsonSerializable{
      */
     public function postUpdate($args = null){
         $app = App::i();
-        $hook_prefix = $this->getHookClassPath();
+        $hook_prefix = $this->getHookPrefix();
 
         $app->applyHookBoundTo($this, "{$hook_prefix}.update:after", $args);
         $app->applyHookBoundTo($this, "{$hook_prefix}.save:after", $args);

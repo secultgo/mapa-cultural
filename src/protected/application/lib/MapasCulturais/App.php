@@ -8,7 +8,9 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 
 use Acelaya\Doctrine\Type\PhpEnumType;
+use DateTime;
 use Exception;
+use MapasCulturais\Entities\Job;
 use MapasCulturais\Entities\PermissionCachePending;
 use MapasCulturais\Entities\User;
 
@@ -140,7 +142,9 @@ class App extends \Slim\Slim{
             'registration_agent_relations' => [],
             'registration_fields' => [],
             'evaluation_method' => [],
-            'roles' => []
+            'roles' => [],
+            'chat_thread_types' => [],
+            'job_types' => [],
         ];
 
     protected $_registerLocked = true;
@@ -254,7 +258,7 @@ class App extends \Slim\Slim{
             }
         }
 
-        spl_autoload_register(function($class) use ($config, $available_modules){
+        spl_autoload_register(function($class) use ($config){
             $cache_id = "AUTOLOAD_CLASS:$class";
             if($config['app.useRegisteredAutoloadCache'] && $this->_mscache->contains($cache_id)){
                 $path = $this->_mscache->fetch($cache_id);
@@ -266,10 +270,23 @@ class App extends \Slim\Slim{
 
             $namespaces['MapasCulturais\\DoctrineProxies'] = DOCTRINE_PROXIES_PATH;
 
+            $subfolders = [
+                'Controllers',
+                'Entities',
+                'Repositories'
+            ];
+
             foreach($config['plugins'] as $plugin){
-                $dir = isset($plugin['path']) ? $plugin['path'] : PLUGINS_PATH . $plugin['namespace'];
-                if(!isset($namespaces[$plugin['namespace']])){
-                    $namespaces[$plugin['namespace']] = $dir;
+                $namespace = $plugin['namespace'];
+                $dir = isset($plugin['path']) ? $plugin['path'] : PLUGINS_PATH . $namespace;
+                if(!isset($namespaces[$namespace])){
+                    $namespaces[$namespace] = $dir;
+                }
+
+                foreach($subfolders as $subfolder) {
+                    if(!isset($namespaces[$namespace . '\\' . $subfolder])){
+                        $namespaces[$namespace . '\\' . $subfolder] = $dir . '/' . $subfolder;
+                    }   
                 }
             }
 
@@ -577,7 +594,7 @@ class App extends \Slim\Slim{
     }
 
     private function getVersionFile() {
-        $version = \MapasCulturais\i::_e("versão indefinida");
+        $version = \MapasCulturais\i::__("versão indefinida");
         $path = getcwd() . "/../version.txt";
         if (file_exists($path) && $versionFile = fopen($path, "r")) {
             $version = fgets($versionFile);
@@ -806,6 +823,10 @@ class App extends \Slim\Slim{
         // history controller
         $this->registerController('entityRevision',    'MapasCulturais\Controllers\EntityRevision');
         $this->registerController('permissionCache',   'MapasCulturais\Controllers\PermissionCache');
+
+        // chat controllers
+        $this->registerController('chatThread', 'MapasCulturais\Controllers\ChatThread');
+        $this->registerController('chatMessage', 'MapasCulturais\Controllers\ChatMessage');
 
         $this->registerApiOutput('MapasCulturais\ApiOutputs\Json');
         $this->registerApiOutput('MapasCulturais\ApiOutputs\Html');
@@ -1438,9 +1459,11 @@ class App extends \Slim\Slim{
         $lines = file($filename);
         $line = trim($lines[$fileline - 1]);
 
-        $this->log->debug("hook >> $name (\033[33m$filename:$fileline\033[0m)");
+        $this->log->debug("hook >> \033[37m$name \033[0m(\033[33m$filename:$fileline\033[0m)");
         $this->log->debug("     >> \033[32m$line\033[0m\n");
     }
+
+    protected $hookStack = [];
 
     /**
      * Invoke hook
@@ -1461,10 +1484,18 @@ class App extends \Slim\Slim{
             }
         }
 
+        $this->hookStack[] = (object) [
+            'name' => $name,
+            'args' => $hookArg,
+            'bound' => false,
+        ];
+
         $callables = $this->_getHookCallables($name);
         foreach ($callables as $callable) {
             call_user_func_array($callable, $hookArg);
         }
+
+        array_pop($this->hookStack);
     }
 
     /**
@@ -1487,11 +1518,19 @@ class App extends \Slim\Slim{
             }
         }
 
+        $this->hookStack[] = (object) [
+            'name' => $name,
+            'args' => $hookArg,
+            'bound' => false,
+        ];
+
         $callables = $this->_getHookCallables($name);
         foreach ($callables as $callable) {
             $callable = \Closure::bind($callable, $target_object);
             call_user_func_array($callable, $hookArg);
         }
+
+        array_pop($this->hookStack);
     }
 
 
@@ -1560,6 +1599,74 @@ class App extends \Slim\Slim{
         }
 
         return $hook;
+    }
+
+    /**********************************************
+     * Background Jobs
+     **********************************************/
+
+    /**
+     * 
+     * @param string $type_slug 
+     * @param array $data 
+     * @param string $start_string 
+     * @param string $interval_string 
+     * @param int $iterations 
+     * @return Job 
+     * @throws Exception 
+     */
+    public function enqueueJob(string $type_slug, array $data, string $start_string = 'now', string $interval_string = '', int $iterations = 1) {
+        $type = $this->getRegisteredJobType($type_slug);
+        
+        if (!$type) {
+            throw new \Exception("invaid job type: {$type_slug}");
+        }
+
+        $id = $type->generateId($data, $start_string, $interval_string, $iterations);
+
+        if ($job = $this->repo('Job')->find($id)) {
+            return $job;
+        }
+
+        $job = new Job($type);
+
+        $job->id = $id;
+
+        $job->iterations = $iterations;
+
+        $job->nextExecutionTimestamp = new DateTime($start_string);
+        $job->intervalString = $interval_string;
+
+        foreach ($data as $key => $value) {
+            $job->$key = $value;
+        }
+
+        $job->save(true);
+
+        return $job;
+    }
+
+    public function executeJob() {
+        $conn = $this->em->getConnection();
+
+        $job_id = $conn->fetchColumn("
+            SELECT id 
+            FROM job 
+            WHERE 
+                next_execution_timestamp <= now() AND 
+                iterations_count < iterations AND 
+                status = 0
+            ORDER BY next_execution_timestamp ASC
+            LIMIT 1");
+
+        if ($job_id) {
+            $conn->executeQuery("UPDATE job SET status = 1 WHERE id = '{$job_id}'");
+            $job = $this->repo('Job')->find($job_id);
+            
+            $this->disableAccessControl();
+            $job->execute();
+            $this->enableAccessControl();
+        }
     }
 
     /**********************************************
@@ -1868,6 +1975,29 @@ class App extends \Slim\Slim{
      * Register functions
      **********************************************/
 
+    public function registerJobType(Definitions\JobType $definition) {
+        if(key_exists($definition->slug, $this->_register['job_types'])){
+            throw new \Exception("Job type {$definition->slug} already registered");
+        }
+        $this->_register['job_types'][$definition->slug] = $definition;
+    }
+
+    /**
+     * 
+     * @return Definitions\JobType[]
+     */
+    public function getRegisteredJobTypes() {
+        return $this->_register['job_types'];
+    }
+
+    /**
+     * 
+     * @return Definitions\JobType
+     */
+    public function getRegisteredJobType(string $slug) {
+        return $this->_register['job_types'][$slug] ?? null;
+    }
+
     /**
      * Register a new role
      *
@@ -1947,6 +2077,25 @@ class App extends \Slim\Slim{
         }
     }
 
+    function registerChatThreadType(Definitions\ChatThreadType $definition)
+    {
+        if (isset($this->_register['chat_thread_types'][$definition->slug])) {
+            throw new \Exception("Attempting to re-register " .
+                                 "{$definition->slug}.");
+        }
+        $this->_register['chat_thread_types'][$definition->slug] = $definition;
+        return;
+    }
+
+    function getRegisteredChatThreadTypes(): array
+    {
+        return $this->_register['chat_thread_types'];
+    }
+
+    function getRegisteredChatThreadType($slug)
+    {
+        return ($this->_register['chat_thread_types'][$slug] ?? null);
+    }
 
     /**
      * Register a API Output Class
@@ -2638,8 +2787,20 @@ class App extends \Slim\Slim{
      * Returns the evaluation methods definitions
      * @return \MapasCulturais\Definitions\EvaluationMethod[];
      */
-    function getRegisteredEvaluationMethods(){
-        return $this->_register['evaluation_method'];
+    function getRegisteredEvaluationMethods($return_internal = false){
+        return array_filter($this->_register['evaluation_method'], function(Definitions\EvaluationMethod $em) use ($return_internal) {
+            if($return_internal || !$em->internal) {
+                return $em;
+            }
+        });
+    }
+
+    /**
+     * Unregister an Evaluation Method
+     * @param \MapasCulturais\Definitions\EvaluationMethod $def
+     */
+    function unregisterEvaluationMethod($slug){
+        unset($this->_register['evaluation_method'][$slug]);
     }
 
     /**
