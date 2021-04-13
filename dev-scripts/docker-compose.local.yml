@@ -1,17 +1,17 @@
 version: '2'
 services:
   mapas:
-#    build:
-#      context: ../
-#      dockerfile: compose/local/Dockerfile
-    image: mapagoiano:latest
+    build:
+      context: ../
+      dockerfile: compose/local/Dockerfile
     ports:
-      - "8088:80"
+      - "80:80"
     volumes:
       - ../src/protected:/var/www/html/protected
       - ../scripts:/var/www/scripts
       - ../compose/config.php:/var/www/html/protected/application/conf/config.php
       - ../compose/config.d:/var/www/html/protected/application/conf/config.d
+      - ../compose/local/config.local.php:/var/www/html/protected/application/conf/config.d/z.config.local.php
       - ../docker-data/assets:/var/www/html/assets
       - ../docker-data/public-files:/var/www/html/files
       - ../docker-data/private-files:/var/www/private-files
@@ -38,8 +38,8 @@ services:
       - MAILER_FROM=mapacultural@goias.gov.br
       - MAILER_PORT=2525
       - MAILER_PROTOCOL=tls
-      - GOOGLE_RECAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
-      - GOOGLE_RECAPTCHA_SITEKEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
+      - GOOGLE_RECAPTCHA_SECRET=""
+      - GOOGLE_RECAPTCHA_SITEKEY=""
 #      - AUTH_PROVIDER=Fake
 
     depends_on:
@@ -54,6 +54,7 @@ services:
       - POSTGRES_PASSWORD=mapas
       - POSTGRES_USER=mapas
       - POSTGRES_DB=mapas
+      - PGDATA=mapas
     ports:
       - "5470:5432"
     volumes:

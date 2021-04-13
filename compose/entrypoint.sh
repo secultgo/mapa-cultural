@@ -34,9 +34,7 @@ else
     /var/www/scripts/mc-db-updates.sh
 fi
 
-cd /var/www/scripts && ./deploy.sh
-
-#chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
+chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
 
 cd /
 touch /nohup.out
@@ -45,8 +43,6 @@ nohup /recreate-pending-pcache-cron.sh >> /dev/stdout &
 
 tail -f /nohup.out > /dev/stdout &
 
-#touch /mapas-ready
-
-nginx
+touch /mapas-ready
 
 exec "$@"
