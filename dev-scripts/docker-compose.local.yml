@@ -19,28 +19,30 @@ services:
     links:
       - db
     environment:
-      - PENDING_PCACHE_RECREATION_INTERVAL=15
-      # - DB_HOST=db
-      # - DB_NAME=mapas
-      # - DB_USER=mapas
-      # - DB_PASS=mapas
-
+      #GENERAL CONFIGS:
       - APP_LCODE=pt_BR,es_ES
       - APP_MODE=development
       - ACTIVE_THEME=Goias
+      - PENDING_PCACHE_RECREATION_INTERVAL=15
+
+      #MAILER CONFIGS:
       - MAILER_USER=1a8e3ebbc6723e
       - MAILER_PASS=e6d71da85cb323
-      - AB_PROJECT_ID=1
-      - INC1_OPPORTUNITY_ID=1
-      - INC1_OWNER_ID=3
-      - INC1_SEAL_ID=1
       - MAILER_SERVER=smtp.mailtrap.io
       - MAILER_FROM=mapacultural@goias.gov.br
       - MAILER_PORT=2525
       - MAILER_PROTOCOL=tls
-      - GOOGLE_RECAPTCHA_SECRET=""
-      - GOOGLE_RECAPTCHA_SITEKEY=""
-#      - AUTH_PROVIDER=Fake
+      
+      #AUTH CONFIGS:
+      - GOOGLE_RECAPTCHA_SECRET=6LcfzagaAAAAAIuidAGkNQDvOlPVsZWZ6vSCPcfW
+      - GOOGLE_RECAPTCHA_SITEKEY=6LcfzagaAAAAACWCkiQZ8hhKp6O5KoKda85eE1d8
+#     - AUTH_PROVIDER=Fake
+
+      #ALDIRBLANC CONFIGS:
+      - AB_PROJECT_ID=1
+      - INC1_OPPORTUNITY_ID=1
+      - INC1_OWNER_ID=3
+      - INC1_SEAL_ID=1
 
     depends_on:
       - db
