@@ -182,40 +182,21 @@
             getSelectedCategory: function(){
                 
                 return $q(function(resolve){
-                    var interval = setTimeout(function(){
-                        var $editable = jQuery('.js-editable-registrationCategory');
+                    setTimeout(function(){
+                        var $field = jQuery('#category select');
 
-                        if($editable.length){
-                            var editable = $editable.data('editable');
-                            if(editable){
-                                clearInterval(interval);
-                                resolve(editable.value);
-                            }
+                        if($field.length){
+                            resolve($field.val());    
                         }else{
                             resolve(MapasCulturais.entity.object.category);
                         }
                     },50)
                 });
             },
+            
+            registrationStatuses: MapasCulturais.entity.registrationStatuses,
 
-            registrationStatuses: [
-                {value: "", label: labels['allStatus']},
-                {value: 1, label: labels['pending']},
-                {value: 2, label: labels['invalid']},
-                {value: 3, label: labels['notSelected']},
-                {value: 8, label: labels['suplente']},
-                {value: 10, label: labels['selected']},
-                {value: 0, label: labels['draft']}
-            ],
-
-            registrationStatusesNames: [
-                {value: 1, label: labels['pending']},
-                {value: 2, label: labels['invalid']},
-                {value: 3, label: labels['notSelected']},
-                {value: 8, label: labels['suplente']},
-                {value: 10, label: labels['selected']},
-                {value: 0, label: labels['draft']}
-            ],
+            registrationStatusesNames: MapasCulturais.entity.registrationStatuses,
 
             publishedRegistrationStatuses: [
                 {value: null, label: labels['allStatus']},

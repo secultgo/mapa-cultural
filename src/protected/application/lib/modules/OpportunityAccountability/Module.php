@@ -46,6 +46,29 @@ class Module extends \MapasCulturais\Module
             $this->part('accountability/registration-accountability-panel',[]);
         });
 
+        // Adiciona no painel principal, informações do peojeto de prestação de contas
+        $app->hook('template(panel.index.content.registration):end', function() use ($app){
+            $agent_subquery = new ApiQuery('MapasCulturais\\Entities\\Agent', [
+                'user' => 'EQ(@me)', 
+            ]);
+            
+            $query = new ApiQuery('MapasCulturais\\Entities\\Project', [
+                '@select'=>'id', 
+                'isAccountability' => 'EQ(1)', 
+                'status' => 'GTE(0)',
+                '@permissions' => 'view',
+            ]);
+            
+            $query->addFilterByApiQuery($agent_subquery, 'id', 'owner');
+           
+            $project_ids = $query->findIds();
+            
+            $projects = $app->repo('Project')->findBy(['id' => $project_ids]);
+
+            $this->part('accountability/project-accountability-panel',['projects' => $projects]);
+        });
+        
+
         // impede que a fase de prestação de contas seja considerada a última fase da oportunidade
         $app->hook('entity(Opportunity).getLastCreatedPhase:params', function(Opportunity $base_opportunity, &$params) {
             $params['isAccountabilityPhase'] = 'NULL()';
@@ -237,6 +260,21 @@ class Module extends \MapasCulturais\Module
             }
         }, 1000);
 
+        // aba ficha de inscrição no projeto
+        $app->hook("template(project.single.tabs):end", function () {
+            if (Module::shouldDisplayProjectAccountabilityUI($this->controller)) {
+                $this->part("accountability/registration-tab");
+            }
+        });
+
+        // conteúdo da aba ficha de inscrição no projeto
+        $app->hook("template(project.single.tabs-content):end", function () {
+            if (Module::shouldDisplayProjectAccountabilityUI($this->controller)) {
+                $entity = $this->controller->requestedEntity;
+                $this->part("accountability/registration-tab-content", ['entity' => $entity]);
+            }
+        });
+
         $app->hook("can(Registration.modify)", function ($user, &$result) use ($app) {
             if (($this->canUser("@control", $user)) && Module::hasOpenFields($this)) {
                 $result = true;
@@ -304,6 +342,11 @@ class Module extends \MapasCulturais\Module
         $app->hook('template(opportunity.edit.new-phase-form):end', function () use ($app, $self) {
             $this->part('accountability-phase-confirmation');
 
+        });
+
+        //Insere part para insrir informação no editpox de crição de fases, casos seja prestação de contas
+        $app->hook('template(opportunity.edit.new-phase-form):end', function () use ($app, $self) {
+            $this->part('accountability-phase-info');
         });
 
         $app->hook('entity(Opportunity).insert:after', function () use ($app, $self) {
@@ -459,6 +502,29 @@ class Module extends \MapasCulturais\Module
                 $html = str_replace(array_keys($terms), array_values($terms), $html);
             }
          });
+
+         // Remove status desnecessário e subistitui os termos na lista de inscrições da prestação de contas
+         $app->hook('opportunity.registrationStatuses', function(&$registrationStatuses){
+            if($this->isAccountabilityPhase){
+                $terms = [
+                    i::__('Suplente') => i::__('Aprovada com resalvas'),
+                    i::__('Selecionada') => i::__('Aprovada'),     
+                    i::__('Não selecionada') => i::__('Não aprovada'),             
+                ];
+
+                foreach($registrationStatuses as $key => $status){
+                    if(!in_array($status['value'], [0,1,8,9,10])){
+                        unset($registrationStatuses[$key]);
+                    }else{
+                        $registrationStatuses[$key]['label'] = str_replace(array_keys($terms), array_values($terms), $status['label']);
+                    }
+                }
+            }
+
+            rsort($registrationStatuses);
+            
+            $registrationStatuses = array_reverse($registrationStatuses);
+          });
 
          // substitui botões de importar inscrições da fase anterior
          $app->hook('view.partial(import-last-phase-button).params', function ($data, &$template) {
