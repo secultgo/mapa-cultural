@@ -95,7 +95,7 @@ return [
                      'status' => env('INC2_STATUS', 0)
                 ],
                 'inciso3_opportunity_ids' => (array) json_decode( env('INC3_OPPORTUNITY_IDS',
-                '[80, 90, 91, 92, 112, 130, 131, 132]')),
+                '[80, 90, 91, 92, 112, 130, 131, 132, 167]')),
             ],
         ],
         'AldirBlancDataprev' => [
