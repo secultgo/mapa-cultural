@@ -14,4 +14,4 @@ O Mapa goiano alcança as diversas áreas culturais: Circo, Dança, Teatro, Mús
 <!-- Alterar o número abaixo, e este comentário, para forçar nova build via pipeline -->
 <!-- 5.0.0.0: Atualizacoes 10/12 -->
 
-Versão 5.0.0.1allbank
+Versão 5.0.0.2allbank
