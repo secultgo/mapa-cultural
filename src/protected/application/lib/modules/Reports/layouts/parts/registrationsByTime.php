@@ -4,6 +4,7 @@ use MapasCulturais\i;
 
 //Recebe os valores do sistema
 $count = 0;
+$labels = [];
 $colors = [];
 $serie = [];
 $height = 'auto';
