@@ -467,7 +467,7 @@ class Registration extends \MapasCulturais\Entity
         $evaluations = $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
 
         foreach ($evaluations as $eval){
-            echo '<p><b>'.$eval->user->profile->name.':</b><br>';
+            echo '<p><b>Avaliador '.$eval->id.':</b><br>';
             $i=0;
             foreach($eval->evaluationData as $grade){
                 $isObs=$i-1==(count((Array)$grade));
