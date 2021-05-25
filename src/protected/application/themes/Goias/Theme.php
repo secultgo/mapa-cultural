@@ -84,7 +84,7 @@ class Theme extends BaseV1\Theme{
         $app->hook('view.render(<<*>>):before', function() use($app) {
             $this->_publishAssets();
         });
-        $app->hook('template(site.index.home-search):end', function () {
+        $app->hook('template(site.index.home-search-non-ab):end', function () {
             $this->part('aldirblanc.php');
         });        
         $app->hook('template(site.index.home-developers):end', function () {
