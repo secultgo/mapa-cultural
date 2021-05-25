@@ -467,10 +467,10 @@ class Registration extends \MapasCulturais\Entity
         $evaluations = $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
 
         foreach ($evaluations as $eval){
-            echo '<p><b>Avaliador '.$eval->id.':</b><br>';
+            echo '<p><b>Avaliação '.$eval->id.':</b><br>';
             $i=0;
             foreach($eval->evaluationData as $grade){
-                $isObs=$i-1==(count((Array)$grade));
+                $isObs=$i+1==(count((Array)$eval->evaluationData));
                 echo ($isObs?'Observação: ':'Critério '.$this->_numberToRomanRepresentation($i+1)).($isObs?'':': Nota ').current((Array)$grade).'<br>';
                 $i=$i+1;
             }
