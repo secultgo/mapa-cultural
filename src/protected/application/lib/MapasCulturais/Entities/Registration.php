@@ -452,6 +452,47 @@ class Registration extends \MapasCulturais\Entity
         return $method->valueToString($value);
     }
 
+    function getUserEvaluationsString(){
+        $app = App::i();
+        $status = [ \MapasCulturais\Entities\RegistrationEvaluation::STATUS_EVALUATED,
+            \MapasCulturais\Entities\RegistrationEvaluation::STATUS_SENT
+        ];
+        $committee = $this->opportunity->getEvaluationCommittee();
+        $users = [];
+
+        foreach ($committee as $item) {
+            $users[] = $item->agent->user->id;
+        }
+
+        $evaluations = $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
+
+        foreach ($evaluations as $eval){
+            echo '<p><b>'.$eval->user->profile->name.':</b><br>';
+            $i=0;
+            foreach($eval->evaluationData as $grade){
+                $isObs=$i-1==(count((Array)$grade));
+                echo ($isObs?'Observação: ':'Critério '.$this->_numberToRomanRepresentation($i+1)).($isObs?'':': Nota ').current((Array)$grade).'<br>';
+                $i=$i+1;
+            }
+            echo '</p>';
+        }
+    }
+
+    function _numberToRomanRepresentation($number) {
+        $map = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
+        $returnValue = '';
+        while ($number > 0) {
+            foreach ($map as $roman => $int) {
+                if($number >= $int) {
+                    $number -= $int;
+                    $returnValue .= $roman;
+                    break;
+                }
+            }
+        }
+        return $returnValue;
+    }
+
     function getSpaceData(){
         if(array_key_exists('acessibilidade_fisica', $this->_spaceData)){
             $this->_spaceData['acessibilidade_fisica'] = str_replace(';', ', ', $this->_spaceData['acessibilidade_fisica']);
