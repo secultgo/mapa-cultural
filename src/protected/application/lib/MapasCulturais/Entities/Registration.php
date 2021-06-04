@@ -466,13 +466,50 @@ class Registration extends \MapasCulturais\Entity
 
         $evaluations = $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
 
-        foreach ($evaluations as $eval){
-            echo '<p><b>Avaliação '.$eval->id.':</b><br>';
-            $i=0;
-            foreach($eval->evaluationData as $grade){
-                $isObs=$i+1==(count((Array)$eval->evaluationData));
-                echo ($isObs?'Observação: ':'Critério '.$this->_numberToRomanRepresentation($i+1)).($isObs?'':': Nota ').current((Array)$grade).'<br>';
-                $i=$i+1;
+        foreach ($evaluations as $eval) {
+            echo '<p><b>Avaliação ' . $eval->id . ':</b><br>';
+            $em = $this->getEvaluationMethod();
+            if ("simple" === $em->slug) {
+                $i = 0;
+                foreach ($eval->evaluationData as $grade) {
+                    $isObs = $i + 1 == (count((array)$eval->evaluationData));
+                    echo ($isObs ? 'Observação: ' : 'Avaliação: ') . ($isObs ? current((array)$grade) : $em->valueToString(current((array)$grade))) . '<br>';
+                    $i = $i + 1;
+                }
+            } else if ("technical" == $em->slug) {
+                $i = 0;
+                foreach ($eval->evaluationData as $grade) {
+                    $isObs = $i + 1 == (count((array)$eval->evaluationData));
+                    echo ($isObs ? 'Observação: ' : 'Critério ' . $this->_numberToRomanRepresentation($i + 1)) . ($isObs ? '' : ': Nota ') . current((array)$grade) . '<br>';
+                    $i = $i + 1;
+                }
+            } else if ("documentary" == $em->slug) {
+                foreach ((array)$eval->evaluationData as $grade) {
+                    $evaluationString = '';
+                    switch($grade['evaluation']){
+                        case 'valid':
+                            $evaluationString = 'Válida';
+                            break;
+                        case 'invalid':
+                            $evaluationString = 'Inválida';
+                            break;
+                        }
+                    $obs_string='';
+                    if(isset($grade['obs_items'])||isset($grade['obs'])){
+                        $obs_string.=' (';
+                        if(isset($grade['obs_items'])&&isset($grade['obs'])){
+                            $obs_string.=$grade['obs_items'];
+                            $obs_string.='; ';
+                            $obs_string.=$grade['obs'];
+                        }else if(!isset($grade['obs_items'])){
+                            $obs_string.=$grade['obs_items'];
+                        }else if(!isset($grade['obs'])){
+                            $obs_string.=$grade['obs'];
+                        }
+                        $obs_string.=')';
+                    }
+                    echo "Campo '".$grade['label']."': ".$evaluationString.$obs_string.'<br>';
+                }
             }
             echo '</p>';
         }
