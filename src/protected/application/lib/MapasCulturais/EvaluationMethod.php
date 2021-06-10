@@ -150,10 +150,6 @@ abstract class EvaluationMethod extends Plugin implements \JsonSerializable{
 
         return $this->_getConsolidatedResult($registration);
     }
-    
-    function getUserEvaluationsString(Entities\Registration $registration){
-        return $this->_getConsolidatedResult($registration);
-    }
 
     private $_canUserEvaluateRegistrationCache = [];
 
