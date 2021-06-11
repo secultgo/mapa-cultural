@@ -80,12 +80,51 @@
             previousMessage: {},
             spinner: false,
             sending: false,
+            chatFocusTime: 60000,
             currentUserId: MapasCulturais.userProfile.id,
+            chatFocus: false,
             
             apiQuery: {
 
             }
         };
+
+        $scope.setFocus = function (fieldId) {   
+            if(!fieldId){
+                fieldId = "event";
+            }  
+
+            document.querySelector('.txt-'+fieldId).focus();
+        }
+
+        $scope.toogleTalk = function (fieldId) { 
+            if(!fieldId){
+                fieldId = "event";
+            } 
+
+            var chat = document.querySelector('.chat-'+fieldId);            
+            chat.classList.toggle('hidden')
+        }
+        
+        $scope.checkToggleTalk = function(fieldId){
+            if(!fieldId){
+                fieldId = "event";
+            } 
+
+            var chat = document.querySelector('.chat-'+fieldId);       
+            
+            if(chat.classList.contains("hidden")){
+                chat.classList.toggle('hidden')
+            }
+        }
+
+        $scope.getClassName = function(fieldId){
+            if(!fieldId){
+                return "event";
+            } 
+
+            return fieldId;
+        }
 
         $scope.init = function(threadId) {
             $scope.data.threadId = threadId;
@@ -95,12 +134,50 @@
             return $rootScope.closedChats && $rootScope.closedChats[$scope.data.threadId];
         }
 
+        $scope.$watch('data.chatFocus', function(new_val, old_val) {
+            
+            if(new_val != old_val){
+                clearInterval($scope.data.interval);
+                $scope.data.chatFocusTime = new_val ? 10000 : 60000;
+                $scope.data.interval = setInterval(getLatestMessages, $scope.data.chatFocusTime);           
+            }
+        });
+
         var adjustBoxPosition = function () {
             setTimeout(function () {
                 adjustingBoxPosition = true;
                 $('#module-name-owner-button').click();
                 adjustingBoxPosition = false;
             });
+        };
+
+        var getLatestMessages = function () {
+            ChatService.find($scope.data.threadId).success(function (data, status, headers) {
+                $scope.data.messages.forEach(function (current) {
+                    
+                    var found = false;
+                    data.forEach(function(returnApi){
+                        if(current.id == returnApi.id){
+                            found = true;
+                        }
+                    });
+
+                    if(!found){
+                        data.push(current);
+                    }
+                });
+
+                $scope.data.messages = data;
+            });
+        };
+
+        // Verifica se pressionou CTRl+ENTER
+        $scope.handleCtrlEnterAction = function (e) {
+            var chatMessage = this.data.newMessage;
+            if (e.ctrlKey && e.key === 'Enter' && chatMessage.trim() !== '') {
+                e.preventDefault();
+                $scope.sendMessage(chatMessage);
+            }
         };
 
         $scope.sendMessage = function (message) {
@@ -120,6 +197,7 @@
                 $scope.data.newMessage = '';
                 $scope.data.sending = false;
             });
+
 
         }
 
@@ -143,6 +221,8 @@
                 this.style.height = (this.scrollHeight) + "px";
             });
         }, 0);
+
+        $scope.data.interval = setInterval(getLatestMessages, $scope.data.chatFocusTime);
 
     }]);
 })(angular);

@@ -3,15 +3,13 @@
 use MapasCulturais\i;
 
 ?>
-<?php $this->applyTemplateHook('dynamic-reports', 'before'); ?>
+<?php $this->applyTemplateHook('print-dynamic-graphics', 'before'); ?>
 <div class="charts-dynamic">
-    <?php $this->applyTemplateHook('dynamic-reports', 'begin'); ?>
+    <?php $this->applyTemplateHook('print-dynamic-graphics', 'begin'); ?>
     <div class="chart-wrap type-{{graphic.typeGraphic}}" ng-repeat="(key, graphic) in data.graphics">  
         <header>
             <h3>{{graphic.title}}</h3>
-            <button ng-click="createCsv(graphic.reportData.graphicId)" name="{{graphic.identifier}}" class="hltip download" title="<?php i::_e("Imprimir relatório"); ?>"></button>
-            <button ng-click="deleteGraphic(graphic.reportData.graphicId)" class="hltip delete" title="<?php i::_e("Excluir gráfico"); ?>"></button>
-            <span class="hltip type" title="{{graphic.fields}}"><i class="fas fa-info-circle"></i></span>
+            <span class="hltip type">{{graphic.fields}}</span>
             <p class="description">{{graphic.description}}</p>
             
             <div ng-if="graphic.typeGraphic === 'table' && graphic.graphBreak">
@@ -19,8 +17,8 @@ use MapasCulturais\i;
             </div>
         </header>
         
-        <div ng-if="graphic.typeGraphic == 'table'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto; width: 100%;">
-        <table>
+        <div ng-if="graphic.typeGraphic == 'table'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto; width:100%;">
+            <table>
                 <thead>
                     <tr>
                         <th></th>
@@ -42,11 +40,12 @@ use MapasCulturais\i;
                 </tbody>
             </table> 
         </div>
+
         <div ng-if="graphic.typeGraphic === 'pie'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto; width:60%">
             <canvas id="dynamic-graphic-{{graphic.identifier}}"></canvas>
         </div>
-        <div ng-if="graphic.typeGraphic === 'bar' || graphic.typeGraphic === 'horizontalBar'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}"
-         style="position: relative; height:auto;" ng-style="{ 'width' : graphic.countData + '%'}">
+
+        <div ng-if="graphic.typeGraphic === 'bar' || graphic.typeGraphic === 'horizontalBar'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto;" ng-style="{ 'width' : graphic.countData + '%'}">
             <div class="chart-scroll">
                 <canvas id="dynamic-graphic-{{graphic.identifier}}"></canvas>
             </div>
@@ -57,7 +56,7 @@ use MapasCulturais\i;
                 <canvas id="dynamic-graphic-{{graphic.identifier}}"></canvas>
             </div>
         </div>
-
+            
         <footer>
             <div class="legends-charts" id="dynamic-legends-{{graphic.identifier}}">
                 <div class="each" ng-if="graphic.typeGraphic != 'pie'" ng-repeat="(key, label) in graphic.data.legends">
@@ -71,6 +70,6 @@ use MapasCulturais\i;
         </footer>
 
     </div>
-    <?php $this->applyTemplateHook('dynamic-reports', 'end'); ?>
+    <?php $this->applyTemplateHook('print-dynamic-graphics', 'after'); ?>
 </div>
-<?php $this->applyTemplateHook('dynamic-reports', 'after'); ?>
+<?php $this->applyTemplateHook('print-dynamic-graphics', 'end'); ?>

@@ -29,9 +29,19 @@
                 'space': '(Espaço)'
             },
             error: false,
-            typeGraphicDictionary: {pie: "Pizza", bar: "Barras", line: "Linha", table: "Tabela"},
-            graphics:[]          
+            typeGraphicDictionary: {pie: "Pizza", bar: "Coluna", line: "Linha", table: "Tabela"},
+            graphics:[],
+            groupData: false
         };
+
+        $scope.statuses = [
+            {value : 'all', title : 'Mostrar todos'},
+            {value : 'draft', title : 'Somente em rascunho'},
+            {value : 'approved', title : 'Somente Aprovados'}
+        ];
+
+        $scope.reportFilter = MapasCulturais.reportStatus;
+
 
         ReportsService.findDataOpportunity().success(function (data, status, headers){
             var dataOpportunity = angular.copy(data);
@@ -57,7 +67,15 @@
             });
         });
 
-        ReportsService.getData({opportunity_id: MapasCulturais.entity.id}).success(function (data, status, headers){
+        $scope.setReportFilter = function(){
+
+            var route = MapasCulturais.createUrl('opportunity', 'single', {id: MapasCulturais.entity.id, status: $scope.reportFilter});
+
+            window.location = route+"#/tab=reports";
+           
+        }
+
+        ReportsService.getData({opportunity_id: MapasCulturais.entity.id, status: $scope.reportFilter}).success(function (data, status, headers){
 
             var legendsToString = [];            
             data.forEach(function(item){
@@ -84,7 +102,8 @@
                 
                 legendsToString = [];
             });
-            $scope.data.graphics = data;            
+            $scope.data.graphics = data;
+            $scope.checkTableGraphic();
             $scope.graphicGenerate();
         });
         
@@ -95,6 +114,7 @@
             var fieldB = indexB ? " x " +$scope.data.dataDisplayB[indexB].label : "";        
             var config = {
                 typeGraphic:$scope.data.dataForm.type,
+                groupData:$scope.data.groupData,
                 opportunity_id: MapasCulturais.entity.id,
                 title: $scope.data.dataForm.title,
                 description: $scope.data.dataForm.description,
@@ -110,15 +130,16 @@
                     }
                 ],
             }
-            ReportsService.save(config).success(function (data, status, headers){
+            ReportsService.save(config, $scope.reportFilter).success(function (data, status, headers){
                 
+              
                 if (data.error) {
                     $scope.clearModal();
                     MapasCulturais.Messages.error("Dados insuficientes para gerar a visualização desse gráfico");
                     $scope.data.error = data.error;
                     return;
                 }
-
+                
                 $scope.data.graphics = $scope.data.graphics.filter(function (item) {
                     if (item.reportData.graphicId != data.graphicId) return item;
                 });
@@ -128,8 +149,7 @@
 
             });
 
-            ReportsService.getData({opportunity_id: MapasCulturais.entity.id, reportData:config}).success(function (data, status, headers){   
-
+            ReportsService.getData({opportunity_id: MapasCulturais.entity.id, reportData:config, status: $scope.reportFilter}).success(function (data, status, headers){
                 config.graphicId = $scope.data.creatingGraph.graphicId;
                 var graphic = {
                     columns: config.columns,
@@ -165,6 +185,7 @@
                 if (!$scope.data.error) {
                     $scope.data.graphics.push(graphic);
                     $scope.graphicGenerate();
+                    $scope.checkTableGraphic();
                 }
             });
         }
@@ -178,10 +199,78 @@
            var url = MapasCulturais.createUrl('reports','csvDynamicGraphic', {graphicId: graphicId, opportunity_id:MapasCulturais.entity.id});
            document.location = url;
         }
+
+        //Calcula a largura em porcentagem para o gráfico, baseado na quantidade de dados
+        $scope.widthCalc = function(data){
+            if(data < 30 || (data * 2) < 100){
+                return  100;  
+            }else{
+               return (data * 2);
+            }
+        }
+
+        // Checa se é necessário quebrar o grafico de tabela em varios gráficos
+       $scope.checkTableGraphic = function(){   
+           
+            if(!MapasCulturais.isPrintReport){
+                return;
+            }
+            
+            var scopeGraphic = angular.copy($scope.data.graphics); 
+
+            scopeGraphic.forEach(function(item, indexScope){             
+                if(item.typeGraphic == "table"){
+                    $scope.data.graphics.splice(indexScope, 1);
+                    var limit = 10;
+                    var soma = Math.floor( item.data.labels.length / limit );
+                    var resto = ( ( item.data.labels.length % limit ) > 0 ) ? 1 : 0;
+                    var qtdGraphic = soma + resto;
+                    var newGraphics = [];
+
+                    for ( var i = 0; i < qtdGraphic; i++ ) {
+                        var copy = angular.copy(item);
+
+                        if(i < (qtdGraphic -1)){
+                            copy.data.legends = {}
+                        }
+
+                        newGraphics.push(copy);                                              
+                    }
+
+                    newGraphics.forEach(function(grafic, index){
+                        grafic.identifier = grafic.identifier+"-"+index;
+                        var min = index * limit
+                        var max = (min) + limit;
+                        var newLabels = grafic.data.labels.slice(min, max);
+                        grafic.data.labels = newLabels;
+                    }); 
+
+                    newGraphics.forEach(function(item, index){
+                        item.data.series.forEach(function(serie){
+                            var min = index * limit
+                            var max = (min) + limit;
+                            var newData = serie.data.slice(min, max);
+                            serie.data = newData;
+                        });                      
+                    }); 
+
+                    newGraphics.forEach(function(item, index){
+                        item.graphBreak = (qtdGraphic > 1) ? true : false;
+                        item.totalBreak = qtdGraphic;
+                        item.graphPart = (index+1);
+                        $scope.data.graphics.push(item)
+                    });
+                   
+
+                }
+
+                
+            });
+       }        
         
         $scope.graphicGenerate = function() {
             var _datasets;
-            $scope.data.graphics.forEach(function(item){
+            $scope.data.graphics.forEach(function(item, index){
                 if(item.typeGraphic == "table"){
                     var sumLines = [];
                     var sumColumns = [];
@@ -211,10 +300,13 @@
                     
                     item.data.total = total;
                     item.data.sumLines = sumLines;
-                    item.data.sumColumns = sumColumns;
+                    item.data.sumColumns = sumColumns;             
                     
                 }
                 if(item.typeGraphic != "pie"){
+                    
+                    $scope.data.graphics[index].countData = $scope.widthCalc(item.data.series[0].data.length);
+
                     _datasets = item.data.series.map(function (serie){
                        return {                             
                             label: serie.label,
@@ -235,6 +327,12 @@
                     }];
 
                 }
+
+                var stacked = false;
+                if(item.groupData === "true" || item.reportData.groupData === true){
+                    stacked = true;
+                }
+                
                 if(item.typeGraphic != "table"){
                     var config = {
                         type: item.typeGraphic,
@@ -244,6 +342,14 @@
                         },
                         options: {
                             responsive: true,
+                            scales: {
+                                xAxes: [{
+                                   stacked: stacked 
+                                }],
+                                yAxes: [{
+                                   stacked: stacked,
+                                }]
+                             },
                             legend: false,
                             plugins: {
                                 datalabels: {     
@@ -415,18 +521,20 @@
             $scope.data.reportModal = false;
             $scope.data.graphicData = false;
             $scope.data.graphicType = true;
+            $scope.data.checked = false;
+            $scope.data.groupData = false;
             $scope.data.dataForm.type = '';
             $scope.data.dataForm.title = '';
             $scope.data.dataForm.description = '';
             $scope.data.dataForm.dataDisplayA = '';
             $scope.data.dataForm.dataDisplayB = '';
         }
+
     }]);
     
     module.factory('ReportsService', ['$http', '$rootScope', 'UrlService', function ($http, $rootScope, UrlService) {  
         return {  
             findDataOpportunity: function (data) {
-               
                 var url = MapasCulturais.createUrl('reports', 'dataOpportunityReport', {opportunity_id: MapasCulturais.entity.id});
 
                 return $http.get(url, data).
@@ -437,9 +545,9 @@
                     $rootScope.$emit('error', {message: "Reports not found for this opportunity", data: data, status: status});
                 });
             },
-            save: function (data) {
+            save: function (data, status) {
                
-                var url = MapasCulturais.createUrl('reports', 'saveGraphic', {opportunity_id: MapasCulturais.entity.id});
+                var url = MapasCulturais.createUrl('reports', 'saveGraphic', {opportunity_id: MapasCulturais.entity.id, status: status});
 
                 return $http.post(url, data).
                 success(function (data, status, headers) {
@@ -450,8 +558,8 @@
                 });
             },
             getData: function (data) {
-               
-                var url = MapasCulturais.createUrl('reports', 'getGraphic', {opportunity_id: MapasCulturais.entity.id});
+
+                var url = MapasCulturais.createUrl('reports', 'getGraphic', {opportunity_id: MapasCulturais.entity.id, status: data.status});
 
                 return $http.get(url, {params:data}).
                 success(function (data, status, headers) {
