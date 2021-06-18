@@ -400,6 +400,7 @@ class Registration extends EntityController {
     }
 
     function POST_saveEvaluation(){
+        try{
         $registration = $this->getRequestedEntity();
         if(isset($this->postData['uid'])){
             $user = App::i()->repo('User')->find($this->postData['uid']);
@@ -433,6 +434,10 @@ class Registration extends EntityController {
         $this->setRegistrationStatus($registration);
 
         $this->json($evaluation);
+    }catch(\Exception $e){
+        echo json_encode($e);
+        echo debug_backtrace();
+    }
     }
 
     function setRegistrationStatus(Entities\Registration $registration) {
