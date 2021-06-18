@@ -436,7 +436,7 @@ class Registration extends EntityController {
         $this->json($evaluation);
     }catch(\Exception $e){
         echo json_encode($e);
-        echo debug_backtrace();
+        echo json_encode(debug_backtrace());
     }
     }
 
