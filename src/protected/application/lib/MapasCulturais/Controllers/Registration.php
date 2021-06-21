@@ -400,22 +400,22 @@ class Registration extends EntityController {
     }
 
     function POST_saveEvaluation(){
-            echo json_encode('PostData >>>>>'.PHP_EOL.$this->postData.PHP_EOL.PHP_EOL);
-            echo json_encode('URLData >>>>>'.PHP_EOL.$this->urlData.PHP_EOL.PHP_EOL);
-            echo json_encode('Registration >>>>>'.PHP_EOL.$this->getRequestedEntity().PHP_EOL.PHP_EOL);
+            echo json_encode('PostData >>>>>'.PHP_EOL.json_encode($this->postData).PHP_EOL.PHP_EOL);
+            echo json_encode('URLData >>>>>'.PHP_EOL.json_encode($this->urlData).PHP_EOL.PHP_EOL);
+            echo json_encode('Registration >>>>>'.PHP_EOL.json_encode($this->getRequestedEntity()).PHP_EOL.PHP_EOL);
             $registration = $this->getRequestedEntity();
             if(isset($this->postData['uid'])){
                 $user = App::i()->repo('User')->find($this->postData['uid']);
             } else {
                 $user = null;
             }
-            echo json_encode('User >>>>>'.PHP_EOL.$user.PHP_EOL.PHP_EOL);
+            echo json_encode('User >>>>>'.PHP_EOL.json_encode($user).PHP_EOL.PHP_EOL);
 
             if (isset($this->urlData['status'])) {
                 if ($this->urlData['status'] === 'evaluated') {
                     if ($errors = $registration->getEvaluationMethod()->getValidationErrors($registration->getEvaluationMethodConfiguration(), $this->postData['data'])){
                         $this->errorJson($errors, 400);
-                        echo json_encode('Error 1 >>>>>'.PHP_EOL.$errors.PHP_EOL.PHP_EOL);
+                        echo json_encode('Error 1 >>>>>'.PHP_EOL.json_encode($errors).PHP_EOL.PHP_EOL);
                         return;
                     }
                     $status = Entities\RegistrationEvaluation::STATUS_EVALUATED;
@@ -429,14 +429,14 @@ class Registration extends EntityController {
                     $status = Entities\RegistrationEvaluation::STATUS_DRAFT;
                 } else {
                     $this->errorJson("Invalid evaluation status {$this->urlData["status"]} received from client.", 400);
-                    echo json_encode('Error 3 >>>>>'.PHP_EOL.'Status invalid: '.$this->urlData["status"].PHP_EOL.PHP_EOL);
+                    echo json_encode('Error 3 >>>>>'.PHP_EOL.'Status invalid: '.json_encode($this->urlData["status"]).PHP_EOL.PHP_EOL);
                     return;
                 }
                 $evaluation = $registration->saveUserEvaluation(($this->postData['data'] ?? []), $user, $status);
-                echo json_encode('Evaluation >>>>>'.PHP_EOL.$evaluation.PHP_EOL.PHP_EOL);
+                echo json_encode('Evaluation >>>>>'.PHP_EOL.json_encode($evaluation).PHP_EOL.PHP_EOL);
             } else {
                 $evaluation = $registration->saveUserEvaluation($this->postData['data'], $user);
-                echo json_encode('Evaluation >>>>>'.PHP_EOL.$evaluation.PHP_EOL.PHP_EOL);
+                echo json_encode('Evaluation >>>>>'.PHP_EOL.json_encode($evaluation).PHP_EOL.PHP_EOL);
             }
 
             $this->setRegistrationStatus($registration);
