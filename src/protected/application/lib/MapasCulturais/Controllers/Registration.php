@@ -400,44 +400,48 @@ class Registration extends EntityController {
     }
 
     function POST_saveEvaluation(){
-        try{
-        $registration = $this->getRequestedEntity();
-        if(isset($this->postData['uid'])){
-            $user = App::i()->repo('User')->find($this->postData['uid']);
-        } else {
-            $user = null;
-        }
-
-        if (isset($this->urlData['status'])) {
-            if ($this->urlData['status'] === 'evaluated') {
-                if ($errors = $registration->getEvaluationMethod()->getValidationErrors($registration->getEvaluationMethodConfiguration(), $this->postData['data'])){
-                    $this->errorJson($errors, 400);
-                    return;
-                }
-                $status = Entities\RegistrationEvaluation::STATUS_EVALUATED;
-            } else if ($this->urlData['status'] === 'draft') {
-                $evaluation = $registration->getUserEvaluation($user);
-                if (!$evaluation || !$evaluation->canUser('modify', $user)) {
-                    $this->errorJson("User {$user->id} is trying to modify evaluation {$evaluation->id}.", 401);
-                    return;
-                }
-                $status = Entities\RegistrationEvaluation::STATUS_DRAFT;
+            echo json_encode('PostData >>>>>'.PHP_EOL.$this->postData.PHP_EOL.PHP_EOL);
+            echo json_encode('URLData >>>>>'.PHP_EOL.$this->urlData.PHP_EOL.PHP_EOL);
+            echo json_encode('Registration >>>>>'.PHP_EOL.$this->getRequestedEntity().PHP_EOL.PHP_EOL);
+            $registration = $this->getRequestedEntity();
+            if(isset($this->postData['uid'])){
+                $user = App::i()->repo('User')->find($this->postData['uid']);
             } else {
-                $this->errorJson("Invalid evaluation status {$this->urlData["status"]} received from client.", 400);
-                return;
+                $user = null;
             }
-            $evaluation = $registration->saveUserEvaluation(($this->postData['data'] ?? []), $user, $status);
-        } else {
-            $evaluation = $registration->saveUserEvaluation($this->postData['data'], $user);
-        }
+            echo json_encode('User >>>>>'.PHP_EOL.$user.PHP_EOL.PHP_EOL);
 
-        $this->setRegistrationStatus($registration);
+            if (isset($this->urlData['status'])) {
+                if ($this->urlData['status'] === 'evaluated') {
+                    if ($errors = $registration->getEvaluationMethod()->getValidationErrors($registration->getEvaluationMethodConfiguration(), $this->postData['data'])){
+                        $this->errorJson($errors, 400);
+                        echo json_encode('Error 1 >>>>>'.PHP_EOL.$errors.PHP_EOL.PHP_EOL);
+                        return;
+                    }
+                    $status = Entities\RegistrationEvaluation::STATUS_EVALUATED;
+                } else if ($this->urlData['status'] === 'draft') {
+                    $evaluation = $registration->getUserEvaluation($user);
+                    if (!$evaluation || !$evaluation->canUser('modify', $user)) {
+                        $this->errorJson("User {$user->id} is trying to modify evaluation {$evaluation->id}.", 401);
+                        echo json_encode('Error 2 >>>>>'.PHP_EOL.'Permission error'.PHP_EOL.PHP_EOL);
+                        return;
+                    }
+                    $status = Entities\RegistrationEvaluation::STATUS_DRAFT;
+                } else {
+                    $this->errorJson("Invalid evaluation status {$this->urlData["status"]} received from client.", 400);
+                    echo json_encode('Error 3 >>>>>'.PHP_EOL.'Status invalid: '.$this->urlData["status"].PHP_EOL.PHP_EOL);
+                    return;
+                }
+                $evaluation = $registration->saveUserEvaluation(($this->postData['data'] ?? []), $user, $status);
+                echo json_encode('Evaluation >>>>>'.PHP_EOL.$evaluation.PHP_EOL.PHP_EOL);
+            } else {
+                $evaluation = $registration->saveUserEvaluation($this->postData['data'], $user);
+                echo json_encode('Evaluation >>>>>'.PHP_EOL.$evaluation.PHP_EOL.PHP_EOL);
+            }
 
-        $this->json($evaluation);
-    }catch(\Exception $e){
-        echo json_encode($e);
-        echo json_encode(debug_backtrace());
-    }
+            $this->setRegistrationStatus($registration);
+
+            $this->json($evaluation);
     }
 
     function setRegistrationStatus(Entities\Registration $registration) {
