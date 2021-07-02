@@ -10,11 +10,9 @@
                 <th class="registration-agents-col">
                     <?php \MapasCulturais\i::_e("Agentes");?>
                 </th>
-                <?php if ($entity->publishedRegistrations): ?>
-                    <th class="registration-status-col">
-                        Avaliações
-                    </th>
-                <?php endif; ?>
+                <th class="registration-status-col">
+                    Avaliações
+                </th>
                 <th class="registration-status-col">
                     <?php \MapasCulturais\i::_e("Status");?>
                 </th>
@@ -51,11 +49,9 @@
                         <?php endforeach; ?>
                         <?php $this->applyTemplateHook('user-registration-table--registration--agents', 'end', $reg_args); ?>
                     </td>
-                    <?php if ($entity->publishedRegistrations): ?>
-                        <td class="registration-agents-col">
-                            <?php echo $registration->getUserEvaluationsString(); ?>
-                        </td>
-                    <?php endif; ?>
+                    <td class="registration-agents-col">
+                        <?php echo $registration->getUserEvaluationsString(); ?>
+                    </td>
                     <td class="registration-status-col">
                         <?php $this->applyTemplateHook('user-registration-table--registration--status', 'begin', $reg_args); ?>
                         <?php if ($registration->status > 0): ?>
