@@ -17,7 +17,7 @@
         <?php endif; ?>
 
         <?php if($entity->canUser('viewEvaluations') || $entity->canUser('@control')): ?>
-            <li><a href="#evaluations" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Avaliações");?></a></li>
+            <li><a href="#evaluations" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Avaliações de Habilitação");?></a></li>
         <?php endif; ?>
 
     <?php endif; ?>
