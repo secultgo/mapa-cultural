@@ -11,6 +11,9 @@
             <?php \MapasCulturais\i::_e("Inscrição enviada no dia");?>    
             <?php echo $sentDate->format(\MapasCulturais\i::__('d/m/Y à\s H:i:s')); ?>
         </div>
+        <div class="alignright">
+            <a class="btn btn-primary" onclick="window.print();" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Imprimir comprovante");?></a>
+        </div>
     <?php endif; ?>
 
     <h4><?php \MapasCulturais\i::_e("Número da Inscrição");?></h4>
