@@ -2067,10 +2067,13 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
                     MapasCulturais.Messages.error(labels['limitReached']);
                 }else if(MapasCulturais.entity.object.registrationLimit > 0 && registration.owner && $scope.data.registrations.length >= MapasCulturais.entity.object.registrationLimit){
                     MapasCulturais.Messages.error(labels['VacanciesOver']);
-                }else if(registration.owner && (MapasCulturais.entity.object.registrationLimit == 0 || $scope.data.registrations.length <= MapasCulturais.entity.object.registrationLimit)){
-                    RegistrationService.register(registration).success(function(rs){
-                        document.location = rs.editUrl;
-                    });
+                }else if(registration.owner && (MapasCulturais.entity.object.registrationLimit == 0 || $scope.data.registrations.length <= MapasCulturais.entity.object.registrationLimit)){                    
+                    
+                    if(confirm(labels['confirmInitialActiveOpportunityLabel'])){
+                        RegistrationService.register(registration).success(function(rs){
+                            document.location = rs.editUrl;
+                        });
+                    }
                 }else {
                     setTimeout(function(){
                         $('#select-registration-owner-button').trigger("click");
@@ -2165,8 +2168,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             $scope.data.sent = false;
             $scope.sendRegistration = function(redirectUrl){
 
-                // TODO: i18n
-                if(!confirm('Ao enviar a prestação de conta, não será mais permitido editar os campos. tem certeza que deseja continuar?')){
+                if(!confirm(labels['confirmFinalActiveOpportunityLabel'])){
                     return;
                 }
                 
