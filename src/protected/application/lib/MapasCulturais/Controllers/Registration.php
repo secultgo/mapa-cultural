@@ -400,39 +400,48 @@ class Registration extends EntityController {
     }
 
     function POST_saveEvaluation(){
-        $registration = $this->getRequestedEntity();
-        if(isset($this->postData['uid'])){
-            $user = App::i()->repo('User')->find($this->postData['uid']);
-        } else {
-            $user = null;
-        }
-
-        if (isset($this->urlData['status'])) {
-            if ($this->urlData['status'] === 'evaluated') {
-                if ($errors = $registration->getEvaluationMethod()->getValidationErrors($registration->getEvaluationMethodConfiguration(), $this->postData['data'])){
-                    $this->errorJson($errors, 400);
-                    return;
-                }
-                $status = Entities\RegistrationEvaluation::STATUS_EVALUATED;
-            } else if ($this->urlData['status'] === 'draft') {
-                $evaluation = $registration->getUserEvaluation($user);
-                if (!$evaluation || !$evaluation->canUser('modify', $user)) {
-                    $this->errorJson("User {$user->id} is trying to modify evaluation {$evaluation->id}.", 401);
-                    return;
-                }
-                $status = Entities\RegistrationEvaluation::STATUS_DRAFT;
+            echo json_encode('PostData >>>>>'.json_encode($this->postData));
+            echo json_encode('URLData >>>>>'.json_encode($this->urlData));
+            echo json_encode('Registration >>>>>'.json_encode($this->getRequestedEntity()));
+            $registration = $this->getRequestedEntity();
+            if(isset($this->postData['uid'])){
+                $user = App::i()->repo('User')->find($this->postData['uid']);
             } else {
-                $this->errorJson("Invalid evaluation status {$this->urlData["status"]} received from client.", 400);
-                return;
+                $user = null;
             }
-            $evaluation = $registration->saveUserEvaluation(($this->postData['data'] ?? []), $user, $status);
-        } else {
-            $evaluation = $registration->saveUserEvaluation($this->postData['data'], $user);
-        }
+            echo json_encode('User >>>>>'.json_encode($user));
 
-        $this->setRegistrationStatus($registration);
+            if (isset($this->urlData['status'])) {
+                if ($this->urlData['status'] === 'evaluated') {
+                    if ($errors = $registration->getEvaluationMethod()->getValidationErrors($registration->getEvaluationMethodConfiguration(), $this->postData['data'])){
+                        $this->errorJson($errors, 400);
+                        echo json_encode('Error 1 >>>>>'.json_encode($errors));
+                        return;
+                    }
+                    $status = Entities\RegistrationEvaluation::STATUS_EVALUATED;
+                } else if ($this->urlData['status'] === 'draft') {
+                    $evaluation = $registration->getUserEvaluation($user);
+                    if (!$evaluation || !$evaluation->canUser('modify', $user)) {
+                        $this->errorJson("User {$user->id} is trying to modify evaluation {$evaluation->id}.", 401);
+                        echo json_encode('Error 2 >>>>>'.'Permission error');
+                        return;
+                    }
+                    $status = Entities\RegistrationEvaluation::STATUS_DRAFT;
+                } else {
+                    $this->errorJson("Invalid evaluation status {$this->urlData["status"]} received from client.", 400);
+                    echo json_encode('Error 3 >>>>>'.'Status invalid: '.json_encode($this->urlData["status"]));
+                    return;
+                }
+                $evaluation = $registration->saveUserEvaluation(($this->postData['data'] ?? []), $user, $status);
+                echo json_encode('Evaluation >>>>>'.json_encode($evaluation));
+            } else {
+                $evaluation = $registration->saveUserEvaluation($this->postData['data'], $user);
+                echo json_encode('Evaluation >>>>>'.json_encode($evaluation));
+            }
 
-        $this->json($evaluation);
+            $this->setRegistrationStatus($registration);
+
+            $this->json($evaluation);
     }
 
     function setRegistrationStatus(Entities\Registration $registration) {

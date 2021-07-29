@@ -1824,7 +1824,9 @@ class Theme extends MapasCulturais\Theme {
             'sent' => i::__('Enviada'),
             'confirmEvaluationLabel' => i::__('Aplicar resultado das avaliações'),
             'applyEvaluations' => i::__('Deseja aplicar o resultado de todas as avaliações como o status das respectivas inscrições?'),
-
+            'confirmInitialActiveOpportunityLabel' => i::__('Caso esta seja a sua segunda (ou mais) inscrição NESTE edital, as anteriores serão canceladas.'),
+            'confirmFinalActiveOpportunityLabel' => i::__('Esta inscrição será considerada a válida e enviada para análise, caso tenha realizado inscrições anteriores a esta, elas serão canceladas conforme prevê este edital.'),
+            
             'Inscrição' => i::__('Inscrição'),
             'Categorias' => i::__('Categorias'),
             'Agentes' => i::__('Agentes'),
