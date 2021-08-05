@@ -2166,12 +2166,12 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
                     });
             }; 
             $scope.data.sent = false;
-            $scope.sendRegistration = function(redirectUrl){
+            $scope.sendRegistration = function(redirectUrl = false, isAccountability = false){
 
                 if(!confirm(labels['confirmFinalActiveOpportunityLabel'])){
                     return;
                 }
-                
+
                 RegistrationService.send($scope.data.registration.id).success(function(response){
                     $('.js-response-error').remove();
                     if(response.error){
@@ -2208,7 +2208,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
                         if (redirectUrl) {
                             document.location = redirectUrl;
                         } 
-                        else if(redirectUrl === undefined) {
+                        else {
                             document.location = response.redirect || response.singleUrl;
                         } 
                     }
