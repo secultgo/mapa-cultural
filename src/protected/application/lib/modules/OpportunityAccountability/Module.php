@@ -42,6 +42,14 @@ class Module extends \MapasCulturais\Module
 
         $registration_repository = $app->repo('Registration');
 
+         //Caso exista prestação de contas, impede que seja possível deletar fases anteriores.
+         $app->hook("can(Opportunity.remove)", function($user, &$result){
+            $entity = $this->controller->requestedEntity;
+            if($entity->parent && $entity->parent->accountabilityPhase){
+                $result = false;
+            }
+        });
+        
         // Abre div antes das mensagens do CHAT
         $app->hook('template(project.single.chat-messages):before ', function (){
             echo '<button ng-click="toogleTalk(field.id)">'.i::__('Abrir/Fechar conversa').'</button>';
@@ -503,7 +511,7 @@ class Module extends \MapasCulturais\Module
             $entity = $this->controller->requestedEntity;
             $base_phase = $entity->parent ?? $entity;
             // accountabilityPhase existe apenas quando lastPhase existe
-            if ($entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
+            if (isset($base_phase->lastPhase) && $entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
                 $this->part('singles/opportunity-projects--tab', ['entity' => $entity]);
             }
         });
@@ -512,7 +520,7 @@ class Module extends \MapasCulturais\Module
             $entity = $this->controller->requestedEntity;
             $base_phase = $entity->parent ?? $entity;
             // accountabilityPhase existe apenas quando lastPhase existe
-            if ($entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
+            if (isset($base_phase->lastPhase) && $entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
                 $this->part('singles/opportunity-projects', ['entity' => $entity]);
             }
         });
