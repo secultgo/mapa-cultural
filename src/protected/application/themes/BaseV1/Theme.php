@@ -892,13 +892,13 @@ class Theme extends MapasCulturais\Theme {
             );
 
             $this->jsObject['routes'] = $app->config['routes'];
-            
+
             $this->addDocumentMetas();
             $this->includeVendorAssets();
             $this->includeCommonAssets();
             $this->includeChatAssets();
             $this->_populateJsObject();
-            
+
             $this->enqueueScript('app', 'events-js', 'js/events.js', array('mapasculturais'));
             $this->localizeScript('singleEvents', [
                 'correctErrors' => \MapasCulturais\i::__('Corrija os erros indicados abaixo.'),
@@ -908,8 +908,8 @@ class Theme extends MapasCulturais\Theme {
                 'confirmDescription' => \MapasCulturais\i::__('As datas foram alteradas mas a descrição não. Tem certeza que deseja salvar?'),
                 'Erro'=> \MapasCulturais\i::__('Erro'),
             ]);
-    
-            
+
+
         });
 
         $app->hook('entity(<<agent|space>>).<<insert|update>>:before', function() use ($app) {
@@ -1026,7 +1026,7 @@ class Theme extends MapasCulturais\Theme {
 
         // faz a keyword buscar pelo documento do owner nas inscrições
         $app->hook('repo(Registration).getIdsByKeywordDQL.join', function(&$joins, $keyword) use($format_doc) {
-            
+
             if ($format_doc($keyword)) {
                 $joins .= " LEFT JOIN o.__metadata doc WITH doc.key = 'documento'";
             }
@@ -1269,7 +1269,7 @@ class Theme extends MapasCulturais\Theme {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             $output = curl_exec($ch);
             $json = json_decode($output);
-            
+
             if (isset($json->cep)) {
                 $response = [
                     'success' => true,
@@ -1488,6 +1488,11 @@ class Theme extends MapasCulturais\Theme {
         // Cropbox
         $this->enqueueScript('vendor', 'cropbox', '/vendor/cropbox/jquery.cropbox.js', array('jquery'));
         $this->enqueueStyle ('vendor', 'cropbox', '/vendor/cropbox/jquery.cropbox.css');
+
+        // Quill
+        $this->enqueueScript('vendor', 'quill-js', '/vendor/quill/quill.js');
+        $this->enqueueStyle ('vendor', 'quill-css', '/vendor/quill/quill.css');
+
     }
 
     function includeCommonAssets() {
@@ -1499,7 +1504,7 @@ class Theme extends MapasCulturais\Theme {
 
         $this->enqueueScript('app', 'tim', 'js/tim.js');
         $this->enqueueScript('app', 'modal-js', 'js/modal.js');
-        
+
         $this->localizeScript('tim', [
             'previous' => i::__('Anterior'),
             'next' => i::__('Próxima'),
@@ -1914,7 +1919,7 @@ class Theme extends MapasCulturais\Theme {
             ));
         }
 
-        if (($this->controller->id === 'site' && $this->controller->action === 'search') || 
+        if (($this->controller->id === 'site' && $this->controller->action === 'search') ||
             ($this->controller->id === 'panel' && $this->controller->action === 'userManagement')) {
             $skeleton_field = [
                 'fieldType' => 'checklist',
@@ -2183,7 +2188,7 @@ class Theme extends MapasCulturais\Theme {
 
         return $filters;
     }
-    
+
     function addEntityToJs(MapasCulturais\Entity $entity){
         $this->jsObject['entity'] = [
             'id' => $entity->id,
@@ -2194,7 +2199,7 @@ class Theme extends MapasCulturais\Theme {
             'canUserChangeOwner' => $entity->canUser('changeOwner'),
             'canUserCreateRelatedAgentsWithControl' => $entity->canUser('createAgentRelationWithControl'),
             'status' => $entity->status,
-            'object' => json_decode(json_encode($entity)) 
+            'object' => json_decode(json_encode($entity))
         ];
 
         if($entity->usesNested() && $entity->id){
@@ -2356,7 +2361,7 @@ class Theme extends MapasCulturais\Theme {
     function addOpportunityToJs(Entities\Opportunity $entity){
         $app = App::i();
 
-        
+
         $registrationStatuses = [
             ['value' => null, 'label' => i::__('Todas')],
             ['value' => 1, 'label' => i::__('Pendente')],
@@ -2374,7 +2379,7 @@ class Theme extends MapasCulturais\Theme {
         $this->jsObject['entity']['registrationStatuses'] = $registrationStatuses;
 
         usort($this->jsObject['entity']['registrationFileConfigurations'], function($a,$b){
-        
+
             if($a->title > $b->title){
                 return 1;
             }else if($a->title < $b->title){
@@ -2443,7 +2448,7 @@ class Theme extends MapasCulturais\Theme {
         $this->jsObject['entity']['canUserViewUserEvaluations'] = $entity->canUser('viewUserEvaluations');
 
         $this->jsObject['registration'] = $entity;
-        
+
         if($entity->opportunity->canUser('viewEvaluations')){
             $this->jsObject['evaluation'] = $this->getCurrentRegistrationEvaluation($entity);
             $this->jsObject['evaluationConfiguration'] = $entity->opportunity->evaluationMethodConfiguration;
@@ -2666,11 +2671,11 @@ class Theme extends MapasCulturais\Theme {
 
     public function renderModalFor($entity_name, $show_icon = true, $label = "", $classes = "", $use_modal = true) {
         $app = App::i();
-        
-        $entity_classname = $app->controller($entity_name)->entityClassName;        
+
+        $entity_classname = $app->controller($entity_name)->entityClassName;
 
         $current_entity_classname = $this->controller->entityClassName;
-        
+
         $app->applyHook("modal({$entity_name}):before", [$entity_classname]);
 
         if ("edit" != $this->controller->action || ($entity_classname != $current_entity_classname) ) {
@@ -2693,11 +2698,11 @@ class Theme extends MapasCulturais\Theme {
     public function renderModalRequiredMetadata($entity_classname, $entity_name){
         $app = App::i();
         $metadata = $app->getRegisteredMetadata($entity_classname);
-        
-        $app->applyHook("modal({$entity_name}).metadata:before", [$entity_classname, &$metadata]);        
-        
+
+        $app->applyHook("modal({$entity_name}).metadata:before", [$entity_classname, &$metadata]);
+
         foreach($metadata as $meta){
-           
+
             $show_meta = $meta->is_required;
             $app->applyHook("modal({$entity_name}).metadata({$meta->key})", [$entity_classname, &$meta, &$show_meta]);
 
@@ -2729,48 +2734,48 @@ class Theme extends MapasCulturais\Theme {
                 $this->part("modal/entity-dropdown", ['attr' => $_attr, 'options' => $options]);
             }
         }
-        
+
         $app->applyHook("modal({$entity_name}).taxonomies:before", [$entity_classname, &$taxonomies]);
     }
 
     public function renderModalFields($entity_classname, $entity_name, $modal_id) {
         $app = App::i();
-        
+
         $properties = $entity_classname::getPropertiesMetadata();
         $properties_validations = $entity_classname::getValidations();
-        
+
         $not_use_fields = [
             'createTimestamp'
 
         ];
 
         $app->applyHook("modal({$entity_name}).fields:before", [$entity_classname, &$properties, &$not_use_fields]);
-        
+
         foreach ($properties as $field => $definition) {
             if((in_array($field, $not_use_fields))){
                 continue;
             }
 
-            $show_field = 
-                !$definition['isMetadata'] && !$definition['isEntityRelation'] && 
+            $show_field =
+                !$definition['isMetadata'] && !$definition['isEntityRelation'] &&
                 ($definition['required'] || isset($properties_validations[$field]['required']) );
-            
+
             $app->applyHook("modal({$entity_name}).field({$field})", [$entity_classname, &$definition, &$show_field]);
-            
+
             if ($show_field) {
                 if($field === '_type' && $entity_classname::usesTypes()){
                     $this->part("modal/field--entity-type", ['entity_classname' => $entity_classname, 'definition' => $definition, 'modal_id' => $modal_id]);
 
                 } else if ($definition['type'] === 'string') {
-                    
+
                     $this->part('modal/field--input-text', ['entity_classname' => $entity_classname, 'field' => $field, 'definition' => $definition, 'modal_id' => $modal_id]);
                     
                 } else if ($definition['type'] === 'text'){
                     $this->part("modal/field--textarea", ['entity_classname' => $entity_classname, 'field' => $field, 'definition' => $definition, 'modal_id' => $modal_id]);
-                
-                }else if ($definition['type'] === 'datetime'){                    
+
+                }else if ($definition['type'] === 'datetime'){
                     $this->part("modal/field--input-datetime", ['entity_classname' => $entity_classname, 'field' => $field, 'definition' => $definition, 'modal_id' => $modal_id]);
-                
+
                 }
             }
         }

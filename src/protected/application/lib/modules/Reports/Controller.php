@@ -84,6 +84,20 @@ class Controller extends \MapasCulturais\Controller
     }
 
     /**
+     * Página de impressão de dos reports
+     */
+    public function GET_printReports()
+    {
+        $this->requireAuthentication();
+        
+        $opp = $this->getOpportunity();
+        
+        $request = $this->data;
+       
+        $this->render('print-reports', ['opportunity' => $opp, 'status' => $request['status']]);
+    }
+
+    /**
      * Gera CSV das inscrições agrupadas por status
      *
      *
@@ -473,7 +487,7 @@ class Controller extends \MapasCulturais\Controller
         $return = [];
 
         $request = $this->data;
-        
+
         if(!(isset($request['reportData']))){
             
             $params = ['objectId' => $opp->id, "group" => "reports"];
@@ -483,15 +497,15 @@ class Controller extends \MapasCulturais\Controller
             foreach ($metalists as $metalist){
                 $value = json_decode($metalist->value, true);
                 $value['reportData']['graphicId'] = $metalist->id;
-                $value['data'] = $this->getData($value, $opp);
+                $value['data'] = $this->getData($value, $opp, $request['status']);
                 $return[] = $value;
                 
             }
         }else{
             $reportData = json_decode($request['reportData'], true);
-            $return =  $this->getData($reportData, $opp);
+            $return =  $this->getData($reportData, $opp, $request['status']);
         }
-        
+
         $this->apiResponse($return);
     }
 
@@ -506,18 +520,18 @@ class Controller extends \MapasCulturais\Controller
         $opp = $app->repo("Opportunity")->find($request["opportunity_id"]);
         $opp->checkPermission('viewReport');
                 
-        $preload = $this->getData($this->data, $opp);
+        $preload = $this->getData($this->data, $opp, $request['status']);
 
         /**
          * Verifica se existe dados suficientes para gerar o gráfico
          */ 
         if ($preload['typeGraphic'] == 'pie') {
-            if (!$module->checkIfChartHasData($preload['data'])) {
+            if (!$module->checkIfChartHasData($preload['data']) && $request['status'] == 'all') {
                 $this->apiResponse(['error' => true]);
                 return;
             }
         } else {
-            if (!$module->checkIfChartHasData($preload['series'])) {
+            if (!$module->checkIfChartHasData($preload['series']) && $request['status'] == 'all') {
                 $this->apiResponse(['error' => true]);
                 return;
             }
@@ -595,7 +609,7 @@ class Controller extends \MapasCulturais\Controller
         foreach ($metalists as $metalist){
             $value = json_decode($metalist->value, true);
             $value['reportData']['graphicId'] = $metalist->id;
-            $value['data'] = $this->getData($value, $opp);
+            $value['data'] = $this->getData($value, $opp, $_SESSION['reportStatusRegistration']);
             $return = $value;
         }
 
@@ -623,7 +637,7 @@ class Controller extends \MapasCulturais\Controller
         $this->createCsv($header, $csv_data, $action, $opp->id);
     }
 
-    public function getData($reportData, $opp)
+    public function getData($reportData, $opp, $status)
     {
         $em = $opp->getEvaluationMethod();
         $app = App::i();
@@ -633,9 +647,9 @@ class Controller extends \MapasCulturais\Controller
         $dataB = $reportData["columns"][1];
         $conn = $app->em->getConnection();
         $query = $this->buildQuery($reportData["columns"], $opp,
-                                   ($reportData["typeGraphic"] == "line"));
+                                   ($reportData["typeGraphic"] == "line"), $status);
         $result = $conn->fetchAll($query, ["opportunity" => $opp->id]);
-        
+
         $return = [];
         $labels = [];
         $color = [];
@@ -670,8 +684,25 @@ class Controller extends \MapasCulturais\Controller
         return $return;
     }
 
-    public function buildQuery($columns, $op, $timeSeries=false)
+    public function buildQuery($columns, $op, $timeSeries=false, $statusValue = "all")
     {
+
+        switch ($statusValue) {
+            case 'all':
+                $status = '> 0';
+                break;
+            case 'draft':
+                $status = '= 0';
+                break;
+            case 'approved':
+                $status = '= 10';
+                break;
+            default:
+                $status = '> 0';
+                break;
+        }
+
+
         // FIXME: remove empty definitions at the source, not here
         $columns = array_filter($columns, function ($item) {
             return (strlen($item["value"]) > 0);
@@ -696,7 +727,7 @@ class Controller extends \MapasCulturais\Controller
         $out .= ("SELECT " . $this->querySelect($targets, $timeSeries) .
                  " FROM registration r " .
                  $this->queryJoins($tables, $types, $ctes) .
-                 "WHERE r.opportunity_id = :opportunity AND r.status > 0 " .
+                 "WHERE r.opportunity_id = :opportunity AND r.status {$status} " .
                  "GROUP BY " . $this->queryGroup($targets) .
                  $this->queryOrder($targets, $timeSeries));
         return $out;

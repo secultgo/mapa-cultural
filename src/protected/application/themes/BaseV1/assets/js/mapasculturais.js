@@ -27,6 +27,17 @@ function copyToClipboard(element) {
     }
 }
 
+/**@TODO Internacionalizar */
+function alertPublish(id){
+    MapasCulturais.confirm('ATENÇÃO, Essa ação é uma ação irreversível. Caso a próxima fase seja uma prestação de contas, primeiro crie a fase de prestação de contas para só depois fazer a publicação.', function () {
+        var url = MapasCulturais.createUrl('opportunity', 'publishRegistrations', [id]);
+        $.get(url, function() {
+            MapasCulturais.Messages.success('Resultado publicado');
+        });
+        location.reload();
+    });
+}
+
 $(function () {
     //    $.fn.select2.defaults.separator = '; ';
     //    $.fn.editabletypes.select2.defaults.viewseparator = '; ';
@@ -51,6 +62,12 @@ $(function () {
             url: _url, type: 'POST',
             data: _entity,
             success: function (r) {
+                
+                if((r.hasOwnProperty('error'))){
+                    $(".modal-loading").hide();
+                    $(".create-entity").css("display", "block");
+                }
+                
                 if (r.id) {
                     var name = r.name;
                     /*

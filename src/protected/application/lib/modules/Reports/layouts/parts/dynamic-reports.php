@@ -6,22 +6,26 @@ use MapasCulturais\i;
 <?php $this->applyTemplateHook('dynamic-reports', 'before'); ?>
 <div class="charts-dynamic">
     <?php $this->applyTemplateHook('dynamic-reports', 'begin'); ?>
-    <div class="chart-wrap" ng-repeat="(key, graphic) in data.graphics">  
+    <div class="chart-wrap type-{{graphic.typeGraphic}}" ng-repeat="(key, graphic) in data.graphics">  
         <header>
             <h3>{{graphic.title}}</h3>
-            <button ng-click="createCsv(graphic.reportData.graphicId)" name="{{graphic.identifier}}" class="hltip download" title="<?php i::_e("Baixar em CSV"); ?>"></button>
+            <button ng-click="createCsv(graphic.reportData.graphicId)" name="{{graphic.identifier}}" class="hltip download" title="<?php i::_e("Imprimir relatório"); ?>"></button>
             <button ng-click="deleteGraphic(graphic.reportData.graphicId)" class="hltip delete" title="<?php i::_e("Excluir gráfico"); ?>"></button>
             <span class="hltip type" title="{{graphic.fields}}"><i class="fas fa-info-circle"></i></span>
             <p class="description">{{graphic.description}}</p>
+            
+            <div ng-if="graphic.typeGraphic === 'table' && graphic.graphBreak">
+                <?php $this->part('info-dynamic-graphics-break')?>
+            </div>
         </header>
         
         <div ng-if="graphic.typeGraphic == 'table'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto; width: 100%;">
-            <table>
+        <table>
                 <thead>
                     <tr>
                         <th></th>
-                        <th ng-repeat="(key, label) in graphic.data.labels">{{label}}</th>
-                        <th><?php i::_e("Total"); ?></th>
+                        <th ng-repeat="(key, label) in graphic.data.labels"><span>{{label}}</span></th>
+                        <th><span><?php i::_e("Total"); ?></span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,12 +41,23 @@ use MapasCulturais\i;
                     </tr>
                 </tbody>
             </table> 
-        </div>            
-    
-        <div ng-if="graphic.typeGraphic != 'table'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto;" ng-style="{'width': (graphic.typeGraphic == 'pie') ? '60%' : '100%'}">
+        </div>
+        <div ng-if="graphic.typeGraphic === 'pie'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto; width:60%">
             <canvas id="dynamic-graphic-{{graphic.identifier}}"></canvas>
         </div>
-        
+        <div ng-if="graphic.typeGraphic === 'bar' || graphic.typeGraphic === 'horizontalBar'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}"
+         style="position: relative; height:auto;" ng-style="{ 'width' : graphic.countData + '%'}">
+            <div class="chart-scroll">
+                <canvas id="dynamic-graphic-{{graphic.identifier}}"></canvas>
+            </div>
+        </div>
+
+        <div ng-if="graphic.typeGraphic === 'line'" class="chart-container dynamic-graphic-{{graphic.identifier}} chart-{{graphic.typeGraphic}}" style="position: relative; height:auto; width:100%">
+            <div class="chart-scroll">
+                <canvas id="dynamic-graphic-{{graphic.identifier}}"></canvas>
+            </div>
+        </div>
+
         <footer>
             <div class="legends-charts" id="dynamic-legends-{{graphic.identifier}}">
                 <div class="each" ng-if="graphic.typeGraphic != 'pie'" ng-repeat="(key, label) in graphic.data.legends">

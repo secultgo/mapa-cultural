@@ -15,9 +15,10 @@ use MapasCulturais\i;
     ]);
  * 
  */
-$title = $title ?? null;
+$title    = $title ?? null;
 $chart_id = uniqid('chart-line-');
 $datasets = [];
+$print    = $print ?? false;
 
 if (isset($series) && is_array($series)) {
     $datasets = array_map(function ($dataset) {
@@ -36,6 +37,22 @@ if (isset($series) && is_array($series)) {
     }, $series);
 }
 
+/**
+ * Calcula a largura em porcentagem para o gráfico, baseado na quantidade de dados
+ */
+$count_data = function ( $data ) use ( $print ) {
+
+    if ( $print ) {
+        return 100;
+    }
+
+    if ( count( $data ) < 30 || (count( $data ) * 2) < 100) {
+        return 100;
+    } else {
+        return count( $data ) * 2;
+    }
+};
+
 $width = $width ?? '50vw';
 $height = $height ?? '50vw';
 
@@ -43,7 +60,7 @@ $route = MapasCulturais\App::i()->createUrl('reports', $action, ['opportunity_id
 
 ?>
 
-<div class="chart-wrap">
+<div class="chart-wrap type-line">
 
     <header>
         <?php if ($title) : ?>
@@ -51,9 +68,13 @@ $route = MapasCulturais\App::i()->createUrl('reports', $action, ['opportunity_id
         <?php endif; ?>
         <a href="<?= $route ?>" name="<?= $chart_id ?>" class="btn btn-default hltip download" title="<?php i::_e("Baixar em CSV"); ?>"><?php i::_e("Baixar em CSV"); ?></a>
     </header>
-    <div class="chart-container chart-line" style="position: relative; height:<?= $height ?>; width:<?= $width ?>;">
-        <canvas id="<?= $chart_id ?>"></canvas>
+
+    <div class="chart-scroll">
+        <div class="chart-container chart-line" style="position: relative; height:<?= $height ?>; width:<?= $count_data($series[0]['data']) ?>%;">
+            <canvas id="<?= $chart_id ?>"></canvas>
+        </div>
     </div>
+
     <footer>
         <?php $this->part('chart-legends', ["legends" => $legends, "colors" => $colors, 'opportunity' => $opportunity]); ?>
     </footer>

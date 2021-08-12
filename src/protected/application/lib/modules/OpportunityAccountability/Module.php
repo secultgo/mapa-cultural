@@ -2,6 +2,7 @@
 
 namespace OpportunityAccountability;
 
+use DateTime;
 use stdClass;
 use MapasCulturais\i;
 use MapasCulturais\App;
@@ -41,6 +42,156 @@ class Module extends \MapasCulturais\Module
 
         $registration_repository = $app->repo('Registration');
 
+         //Caso exista prestação de contas, impede que seja possível deletar fases anteriores.
+         $app->hook("can(Opportunity.remove)", function($user, &$result){
+            $entity = $this->controller->requestedEntity;
+            if($entity->parent && $entity->parent->accountabilityPhase){
+                $result = false;
+            }
+        });
+        
+        // Abre div antes das mensagens do CHAT
+        $app->hook('template(project.single.chat-messages):before ', function (){
+            echo '<button ng-click="toogleTalk(field.id)">'.i::__('Abrir/Fechar conversa').'</button>';
+            echo '<div class="hidden chat-{{getClassName(field.id)}}">';
+        });
+        
+         // Fecha div depois das mensagens do CHAT
+        $app->hook('template(project.single.chat-messages):end ', function (){
+            echo '</div>';
+        });
+        
+
+        // Adiciona Coluna na lista de prestação de Contas
+        $app->hook('template(opportunity.single.registration-list-header):end', function(){
+            $entity = $this->controller->requestedEntity;
+            
+            if($entity->isAccountabilityPhase){
+                $this->part('accountability-registrations-header');
+            }
+        });
+
+        // Carrega botão de publicar resultado de uma única inscrição
+        $app->hook('template(opportunity.single.registration-list-item):end', function(){
+            $entity = $this->controller->requestedEntity;
+
+            if($entity->isAccountabilityPhase){
+                $registrations = $entity->getAllRegistrations();
+                $isPublishedResult = [];
+                
+                foreach ($registrations as $registration){
+
+                    $metadata = $registration->getMetadata();
+
+                    if(isset($metadata['isPublishedResult']) && (bool) $metadata['isPublishedResult']){
+                        $isPublishedResult[] = $registration->id;
+                    }
+                }
+
+                $this->jsObject['accountability']['isPublishedResult'] = $isPublishedResult;
+
+                $this->part('accountability-registrations-list');
+            }
+        });
+
+        // Adiciona resultado na tela caso metadado isPublishedResult esteja true
+        $app->hook('template(opportunity.single.tabs):end', function() use ($app){
+            $entity = $this->controller->requestedEntity;
+
+            if(!$entity->publishedRegistrations && $entity->isAccountabilityPhase){           
+                $registrations = $entity->getAllRegistrations();
+                
+                $query = new ApiQuery('MapasCulturais\\Entities\\Agent', [
+                    'user' => 'EQ(@me)', 
+                ]);
+                    
+                $ids = $query->findIds();
+                
+                $viewTab = false;
+                foreach ($registrations as $registration){
+                    if( (bool) $registration->isPublishedResult && in_array($registration->owner->id, $ids) && $registration->canUser("@control")){
+                        $viewTab = true;                       
+                    }
+                }
+
+                if($viewTab){
+                    // Adiciona a tab Resultado
+                    $this->part('accountability-published-result-tab', ['registration' => $registration]);
+
+                    // Adiciona conteúdo na aba de resultados individual
+                    $app->hook('template(opportunity.single.opportunity-registrations--tables):end', function() use ($entity){
+                        $this->part('accountability-published-result-list', ['entity' => $entity]);
+                    });
+                }
+
+            }
+        });
+       
+        //Adiciona coluna de data de envio e data de avaliação na lista de pareceres
+        $app->hook('template(opportunity.single.opportunity-evaluations--<<admin|committee>>--table-thead-tr):end', function(){
+            $entity = $this->controller->requestedEntity;
+
+            if($entity->isAccountabilityPhase){ 
+                $this->part('accountability-evaluation-admin-table-head');
+            }
+        });
+        
+         //Adiciona conteúdo na coluna de data de envio e data de avaliação na lista de pareceres
+         $app->hook('template(opportunity.single.opportunity-evaluations--<<admin|committee>>--table-tbody-tr):end', function() use ($app){
+            $entity = $this->controller->requestedEntity;
+
+            if($entity->isAccountabilityPhase){ 
+                $registrations = $entity->getAllRegistrations();
+                $result = [];
+                foreach ($registrations as $registration){
+                    $evaluation = $app->repo('RegistrationEvaluation')->findOneBy(['registration' => $registration->id]);
+
+                    $result[$registration->id] = [
+                        'dateSent' => ($registration->status >= 1) ? ($registration->sentTimestamp)->format('d/m/Y H:i:s') : i::__('Não enviado'),
+                        'dateEvaluate' => ($evaluation && $evaluation->status > 0) ? ($evaluation->updateTimestamp)->format('d/m/Y H:i:s') : i::__('Não informado') 
+                    ];
+                }
+
+                $this->jsObject['accountability']['dates'] = $result;
+
+                $this->part('accountability-evaluation-admin-table-body');
+            }
+        });
+
+        //Adiciona texto explicativo na tela de projetos em rascungo
+        $app->hook('template(project.single.tab-about--highlighted-message):before', function(){
+            $entity = $this->controller->requestedEntity;
+            if($entity->isAccountability){
+                if($entity->status == Project::STATUS_DRAFT){
+                    $from = $entity->opportunity->accountabilityPhase->registrationFrom->format('d/m/Y');
+                    $this->part('accountability-phase-project-info',['from' => $from]);
+                }
+            }
+        });
+
+        // Altera mensagem da revisão para informar o término e a reabertura de um paracer técnico
+        $app->hook('POST(registration.saveEvaluation):before', function() use ($app){
+            $request = $this->data;
+            if($request['status'] == "evaluated"){
+                $message = i::__("Parecer técnico finalizado");
+            }else if($request['status'] == "draft"){
+                $message = i::__("Parecer técnico reaberto");
+            }
+            $app->hook('entity(EntityRevision).insert:before',function () use ($message){
+                $this->message = $message;
+            });
+        });
+
+        //Evita que inscrições que um parecerisja já iniciou o parecer sejam exibidas para os demais
+        $app->hook("can(Registration.evaluate)", function ($user, &$result) use ($app) {
+            $registration = $this->accountabilityPhase;
+            $evaluation = $app->repo("RegistrationEvaluation")->findOneBy(["registration" => $registration]);
+            
+            if($evaluation && !$user->equals($evaluation->user)){
+                $result = false;
+            }
+        });
+
         // Adiciona no painel principal, informações da prestaao de Contas
         $app->hook('template(panel.index.content.registration):end', function() use ($app){
             $this->part('accountability/registration-accountability-panel',[]);
@@ -48,23 +199,12 @@ class Module extends \MapasCulturais\Module
 
         // Adiciona no painel principal, informações do peojeto de prestação de contas
         $app->hook('template(panel.index.content.registration):end', function() use ($app){
-            $agent_subquery = new ApiQuery('MapasCulturais\\Entities\\Agent', [
+            $agents = new ApiQuery('MapasCulturais\\Entities\\Agent', [
                 'user' => 'EQ(@me)', 
             ]);
-            
-            $query = new ApiQuery('MapasCulturais\\Entities\\Project', [
-                '@select'=>'id', 
-                'isAccountability' => 'EQ(1)', 
-                'status' => 'GTE(0)',
-                '@permissions' => 'view',
-            ]);
-            
-            $query->addFilterByApiQuery($agent_subquery, 'id', 'owner');
-           
-            $project_ids = $query->findIds();
-            
-            $projects = $app->repo('Project')->findBy(['id' => $project_ids]);
 
+            $projects = $app->repo('Project')->findBy(['owner' => $agents->findIds()]);
+           
             $this->part('accountability/project-accountability-panel',['projects' => $projects]);
         });
         
@@ -311,7 +451,7 @@ class Module extends \MapasCulturais\Module
             if (!isset($registration->openFields)) {
                 return;
             }
-            $openFields = json_decode($registration->openFields, true);
+            $openFields = $registration->openFields;
             if (($openFields[$this->key] ?? "") == "true") {
                 return;
             }
@@ -371,7 +511,7 @@ class Module extends \MapasCulturais\Module
             $entity = $this->controller->requestedEntity;
             $base_phase = $entity->parent ?? $entity;
             // accountabilityPhase existe apenas quando lastPhase existe
-            if ($entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
+            if (isset($base_phase->lastPhase) && $entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
                 $this->part('singles/opportunity-projects--tab', ['entity' => $entity]);
             }
         });
@@ -380,7 +520,7 @@ class Module extends \MapasCulturais\Module
             $entity = $this->controller->requestedEntity;
             $base_phase = $entity->parent ?? $entity;
             // accountabilityPhase existe apenas quando lastPhase existe
-            if ($entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
+            if (isset($base_phase->lastPhase) && $entity->accountabilityPhase && $base_phase->lastPhase->publishedRegistrations) {
                 $this->part('singles/opportunity-projects', ['entity' => $entity]);
             }
         });
@@ -505,15 +645,15 @@ class Module extends \MapasCulturais\Module
 
          // Remove status desnecessário e subistitui os termos na lista de inscrições da prestação de contas
          $app->hook('opportunity.registrationStatuses', function(&$registrationStatuses){
-            if($this->isAccountabilityPhase){
-                $terms = [
-                    i::__('Suplente') => i::__('Aprovada com resalvas'),
-                    i::__('Selecionada') => i::__('Aprovada'),     
-                    i::__('Não selecionada') => i::__('Não aprovada'),             
-                ];
-
-                foreach($registrationStatuses as $key => $status){
-                    if(!in_array($status['value'], [0,1,8,9,10])){
+             if($this->isAccountabilityPhase){
+                 $terms = [
+                     i::__('Suplente') => i::__('Aprovada com resalvas'),
+                     i::__('Selecionada') => i::__('Aprovada'),     
+                     i::__('Não selecionada') => i::__('Não aprovada'),             
+                    ];
+                    
+                    foreach($registrationStatuses as $key => $status){
+                        if(!in_array($status['value'], [0,1,3,8,9,10]) || ($status['value'] == "" && !is_int($status['value']))){
                         unset($registrationStatuses[$key]);
                     }else{
                         $registrationStatuses[$key]['label'] = str_replace(array_keys($terms), array_values($terms), $status['label']);
@@ -701,6 +841,12 @@ class Module extends \MapasCulturais\Module
                 }
             }
         ]);
+            
+        $this->registerRegistrationMetadata('isPublishedResult', [
+            'label' => i::__('Indica se o resultado foi publicado a e uma determinada inscrição'),
+            'type' => 'boolean',
+            'default' => false
+        ]);
 
         $this->registerRegistrationMetadata('openFields', [
             'label' => i::__('Campos abertos para o proponente preencher após o envio da inscrição'),
@@ -768,7 +914,7 @@ class Module extends \MapasCulturais\Module
 
     static function hasOpenFields($registration)
     {
-        $openFields = json_decode($registration->openFields, true);
+        $openFields = $registration->openFields;
         foreach (($openFields ?? []) as $value) {
             if ($value == "true") {
                 return true;

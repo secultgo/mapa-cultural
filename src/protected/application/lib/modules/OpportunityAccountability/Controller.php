@@ -25,6 +25,34 @@ class Controller extends \MapasCulturais\Controller
 
         $this->render('registration', ['entity' => $registration]);
     }
+    
+    /**
+     * Method POST_publishedResult
+     *
+     */
+    public function POST_publishedResult()
+    {
+        
+        $this->requireAuthentication();
+
+        $request = $this->data;
+
+        $app = App::i();
+
+        $registration = $app->repo('Registration')->find($request['registrationId']);
+
+        if(($registration->opportunity->owner->id != $app->user->profile->id)){
+            if(!$app->user->is('admin')){
+                $this->errorJson([], '403');
+            }
+        }
+        
+        $registration->isPublishedResult = true;
+        
+        $app->disableAccessControl();
+        $registration->save(true);
+        $app->enableAccessControl();
+    }
 
     /**
      * Method POST_openFields
@@ -38,7 +66,7 @@ class Controller extends \MapasCulturais\Controller
         $registration = $app->repo('Registration')->find($request['id']);
         $registration->checkPermission('evaluate');
 
-        $openFields = json_decode($registration->openFields, true);
+        $openFields = (array)$registration->openFields;
 
         $field_id = key($request['data']);
 
@@ -75,7 +103,7 @@ class Controller extends \MapasCulturais\Controller
         $registration = $app->repo('Registration')->find($request['id']);
         $registration->checkPermission('evaluate');
 
-        $openFields = json_decode($registration->openFields, true);
+        $openFields = (array)$registration->openFields;
 
         $field_id = key($request['data']);
 
