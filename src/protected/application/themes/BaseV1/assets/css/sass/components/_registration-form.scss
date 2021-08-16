@@ -128,6 +128,14 @@ article.opportunity .editable-buttons button {
             }
         }
     }
+    .canceled {
+        .dropdown {
+            background-color: $brand-warning;
+            .placeholder {
+                color: #fff;
+            }
+        }
+    }
     .approved {
         .dropdown {
             background-color: $brand-success;

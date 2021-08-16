@@ -28,6 +28,7 @@
             case 3: return 'notapproved'; break;
             case 8: return 'waitlist'; break;
             case 10: return 'approved'; break;
+            case 11: return 'canceled'; break;
         }
     }
 

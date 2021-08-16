@@ -38,6 +38,7 @@ class Registration extends \MapasCulturais\Entity
     const STATUS_WAITLIST = 8;
     const STATUS_NOTAPPROVED = 3;
     const STATUS_INVALID = 2;
+    const STATUS_CANCELED = 11;
 
 
     protected $__enableMagicGetterHook = true;
@@ -690,6 +691,11 @@ class Registration extends \MapasCulturais\Entity
     function setStatusToInvalid(){
         $this->_setStatusTo(self::STATUS_INVALID);
         App::i()->applyHookBoundTo($this, 'entity(Registration).status(invalid)');
+    }
+
+    function setStatusToCanceled(){
+        $this->_setStatusTo(self::STATUS_CANCELED);
+        App::i()->applyHookBoundTo($this, 'entity(Registration).status(canceled)');
     }
 
     function forceSetStatus(Registration $registration, $status = "pendent") {

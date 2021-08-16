@@ -17,12 +17,13 @@ use MapasCulturais\i;
 <div id='status-info' class="alert info">
     <p><?php i::_e("Altere os status das inscrições na última coluna da tabela de acordo com o seguinte critério:");?></p>
     <ul>
-        <li><span><?php i::_e("Inválida - em desacordo com o regulamento (ex. documentação incorreta).");?></span></li>
+        <li><span><?php i::_e("Inválida - em desacordo com o regulamento (ex. documentação incorreta).");?></span></li>        
         <li><span><?php i::_e("Pendente - ainda não avaliada.");?></span></li>
         <li><span><?php i::_e("Não selecionada - avaliada, mas não selecionada.");?></span></li>
         <li><span><?php i::_e("Suplente - avaliada, mas aguardando vaga.");?></span></li>
         <li><span><?php i::_e("Selecionada - avaliada e selecionada.");?></span></li>
         <li><span><?php i::_e("Rascunho - utilize essa opção para permitir que o responsável edite e reenvie uma inscrição. Ao selecionar esta opção, a inscrição não será mais exibida nesta tabela.");?></span></li>
+        <li><span><?php i::_e("Cancelada - em desacordo com o regulamento (somente a última inscrição será válida).");?></span></li>
     </ul>
     <div class="close"></div>
 </div>
