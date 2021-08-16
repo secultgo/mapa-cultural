@@ -169,6 +169,19 @@
 					}
 				}
 			}
+			&.canceled {
+				border-left: 3px solid #000;
+				background-color: #999;
+				&:hover {
+					background-color: lighten(#999, 5%);
+				}
+				.dropdown {
+					background-color: #000;
+					.placeholder {
+						color: #fff;
+					}
+				}
+			}
 			td {
 				word-wrap: break-word;
 			}
@@ -306,6 +319,9 @@
 }
 .status-invalid {
 	background-color: #000;
+}
+.status-canceled{
+	background-color: $brand-warning;
 }
 .status-draft {
 	background-color: $brand-draft;
