@@ -170,13 +170,13 @@
 				}
 			}
 			&.canceled {
-				border-left: 3px solid #000;
+				border-left: 3px solid $brand-warning;
 				background-color: #999;
 				&:hover {
 					background-color: lighten(#999, 5%);
 				}
 				.dropdown {
-					background-color: #000;
+					background-color: $brand-warning;
 					.placeholder {
 						color: #fff;
 					}
