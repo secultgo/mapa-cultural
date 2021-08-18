@@ -1,4 +1,7 @@
-<?php $sentDate = $entity->sentTimestamp; ?>
+<?php 
+use MapasCulturais\Entities\Registration;
+$sentDate = $entity->sentTimestamp; 
+?>
 
 <h3 class="registration-header"><?php \MapasCulturais\i::_e("Formulário de Inscrição");?></h3>
 
@@ -10,9 +13,16 @@
         <div class="alert success">
             <?php \MapasCulturais\i::_e("Inscrição enviada no dia");?>    
             <?php echo $sentDate->format(\MapasCulturais\i::__('d/m/Y à\s H:i:s')); ?>
-        </div>
+        </div> 
+        
         <div class="alignright">
-            <a class="btn btn-primary" onclick="window.print();" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Imprimir comprovante");?></a>
+            <?php if($entity->status === Registration::STATUS_CANCELED): ?>    
+                <span class="alert warning">
+                Cancelada em desacordo com o regulamento (somente a última inscrição será válida)
+                </span>
+            <?php else: ?>
+                <a class="btn btn-primary" onclick="window.print();" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Imprimir comprovante");?></a>
+            <?php endif; ?> 
         </div>
     <?php endif; ?>
 
@@ -27,10 +37,11 @@
         <?php elseif($opportunity->publishedRegistrations): ?>
             <span class="status status-{{getStatusSlug(<?php echo $entity->status ?>)}}">{{getStatusNameById(<?php echo $entity->status ?>)}}</span>
         <?php endif; ?>        
-    </div>        
+    </div>     
     <?php $this->applyTemplateHook('header-fieldset', 'end');?>
 
 </div>
+
 <?php $this->applyTemplateHook('header-fieldset', 'after');?>
 
 <?php if($entity->projectName): ?>

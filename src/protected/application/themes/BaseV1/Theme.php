@@ -2370,6 +2370,7 @@ class Theme extends MapasCulturais\Theme {
             ['value' => 8, 'label' => i::__('Suplente')],
             ['value' => 10,'label' => i::__('Selecionada')],
             ['value' => 0, 'label' => i::__('Rascunho')],
+            ['value' => 11, 'label' => i::__('Cancelada')],
         ];
 
         $app->applyHookBoundTo($entity, 'opportunity.registrationStatuses', [&$registrationStatuses]);
