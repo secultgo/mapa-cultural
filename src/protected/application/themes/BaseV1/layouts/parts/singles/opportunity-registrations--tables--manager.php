@@ -13,9 +13,12 @@ use MapasCulturais\i;
     <a class="btn btn-default download hltip" title="Baixar todos inscritos" href="<?php echo $this->controller->createUrl('report', [$entity->id]); ?>"><?php i::_e("Todos");?></a>
     <a class="btn btn-default download hltip" title="Baixar inscrições em rascunho" href="<?php echo $this->controller->createUrl('reportDrafts', [$entity->id]); ?>"><?php i::_e("Rascunhos");?></a>
     <a class="btn btn-default download hltip" title="Baixar inscrições selecionadas" href="<?php echo $this->controller->createUrl('reportApproved', [$entity->id]); ?>"><?php i::_e("Selecionados");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições pendentes" href="<?php echo $this->controller->createUrl('reportPending', [$entity->id]); ?>"><?php i::_e("Pendentes");?></a>
+    <a class="btn btn-default download hltip" title="Baixar inscrições pendentes" href="<?php echo $this->controller->createUrl('reportPending', [$entity->id]); ?>"><?php i::_e("Pendentes");?></a>    
     <?php $this->applyTemplateHook('header-inscritos','end'); ?>
 </header>
+<p style="text-align:right">
+    <small><span>*</span><em> <?php i::_e('Os arquivos aqui baixados são melhor visualizados usando o LibreOffice') ?></em></small>
+</p>
 <div id='status-info' class="alert info">
     <p><?php i::_e("Altere os status das inscrições na última coluna da tabela de acordo com o seguinte critério:");?></p>
     <ul>
