@@ -453,7 +453,7 @@ class Registration extends \MapasCulturais\Entity
         return $method->valueToString($value);
     }
 
-    function getUserEvaluationsString(){
+    function getUserEvaluations() {
         $app = App::i();
         $status = [ \MapasCulturais\Entities\RegistrationEvaluation::STATUS_EVALUATED,
             \MapasCulturais\Entities\RegistrationEvaluation::STATUS_SENT
@@ -465,7 +465,12 @@ class Registration extends \MapasCulturais\Entity
             $users[] = $item->agent->user->id;
         }
 
-        $evaluations = $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
+        return $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
+    }
+
+    function getUserEvaluationsString(){
+        
+        $evaluations = $this->getUserEvaluations();
 
         foreach ($evaluations as $eval) {
             echo '<p><b>Avaliação ' . $eval->id . ':</b><br>';

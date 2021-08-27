@@ -44,6 +44,13 @@ class Module extends \MapasCulturais\Module{
             }
         });
 
+        // adiciona o botão de recurso na tela de formulário de inscrição
+        $app->hook("template(registration.view.registration-evaluations-field-list):after", function ($registration, $opportunity){
+            if($registration->canUser('sendClaimMessage')){
+                $this->part('claim-form', ['registration' => $registration, 'opportunity' => $opportunity]);
+            }
+        });
+
         // ação de enviar recurso
         $app->hook('POST(opportunity.sendOpportunityClaimMessage)', function() use($app) {
             if(!isset($this->data['registration_id'])) {
