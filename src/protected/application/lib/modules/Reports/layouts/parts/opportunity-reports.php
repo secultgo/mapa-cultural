@@ -14,6 +14,10 @@ $prinUrl = $app->createUrl('reports', 'printReports', array('opportunity_id' => 
             <a href="<?=$prinUrl?>" class="btn btn-default hltip print-reports" title="" hltitle="Baixar em CSV" target="_blank"><i class="fas fa-print"></i> <?php i::_e("Imprimir");?></a>
         </header>
 
+        <p class="text-align:right">
+            <small><span>*</span><em> <?php i::_e('Os arquivos aqui baixados são melhor visualizados usando o LibreOffice') ?></em></small>
+        </p>
+
 	    <label for="reportFilter">Filtrar dados por
 		    <select ng-model='reportFilter' ng-options="status.value as status.title for status in statuses" ng-click='setReportFilter()'>
 			    <option value="" ng-hide="reportFilter">Selecione uma opção ...</option>

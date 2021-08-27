@@ -130,20 +130,32 @@ class Opportunity extends EntityController {
         $this->reportOutput('report-csv', ['entity' => $entity], $filename);
     }
 
-    function GET_reportDrafts(){
+    protected function reportByStatus($status, $label){
         $this->requireAuthentication();
         $app = App::i();
-
+        
         $entity = $this->requestedEntity;
         $entity->checkPermission('@control');
         $app->controller('Registration')->registerRegistrationMetadata($entity);
-        $registrationsDraftList = $entity->getRegistrationsByStatus(Entities\Registration::STATUS_DRAFT);
+        $registrationsDraftList = $entity->getRegistrationsByStatus($status);
 
         $date = date('Y-m-d.Hi');
 
-        $filename = sprintf(\MapasCulturais\i::__("oportunidade-%s--rascunhos--%s"), $entity->id, $date);
+        $filename = sprintf(\MapasCulturais\i::__("oportunidade-%s--".$label."--%s"), $entity->id, $date);
 
         $this->reportOutput('report-drafts-csv', ['entity' => $entity, 'registrationsDraftList' => $registrationsDraftList], $filename );
+     }
+
+     function GET_reportDrafts(){ 
+         $this->reportByStatus(Entities\Registration::STATUS_DRAFT, "rascunhos");
+     }
+
+     function GET_reportApproved(){ 
+         $this->reportByStatus(Entities\Registration::STATUS_APPROVED, "selecionadas");
+     }
+
+     function GET_reportPending(){ 
+         $this->reportByStatus(Entities\Registration::STATUS_ENABLED, "pendentes");
      }
 
     function GET_reportEvaluations(){
@@ -200,7 +212,7 @@ class Opportunity extends EntityController {
 
             ob_start();
             $this->partial($view, $view_params);
-
+            
             $output = ob_get_clean();
 
             /**
