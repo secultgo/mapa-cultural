@@ -848,6 +848,19 @@ return [
             __exec("ALTER TABLE registration ADD consolidated_result VARCHAR(255) DEFAULT NULL;");
         }
     },
+    
+    'add resources columns to registration' => function () {
+        if (__column_exists('registration', 'requested_resource_timestamp') &&
+            __column_exists('registration', 'requested_resource') &&
+            __column_exists('registration', 'justification_resource')) {
+            echo "ALREADY APPLIED";
+            return true;
+        }
+        __exec("ALTER TABLE registration ADD requested_resource_timestamp TIMESTAMP DEFAULT NULL;");
+        __exec("ALTER TABLE registration ADD requested_resource TEXT DEFAULT NULL;");
+        __exec("ALTER TABLE registration ADD justification_resource TEXT DEFAULT NULL;");
+        return true;
+    },
 
     'create evaluation methods tables' => function (){
         if(__table_exists('evaluation_method_configuration')){
