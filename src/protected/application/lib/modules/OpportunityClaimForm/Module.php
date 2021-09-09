@@ -37,10 +37,13 @@ class Module extends \MapasCulturais\Module{
             $this->part('claim-configuration', ['opportunity' => $this->controller->requestedEntity]);
         });
 
-        // adiciona o botão de recurso na lista de
+        // adiciona o botão de recurso na lista de inscrições ou a mensagem de recurso já enviado
         $app->hook("template(opportunity.<<*>>.user-registration-table--registration--status):end", function ($registration, $opportunity){
-            if($registration->canUser('sendClaimMessage')){
+            if($registration->canUser('sendClaimMessage') && $registration->requestedResource === null){
                 $this->part('claim-form', ['registration' => $registration, 'opportunity' => $opportunity]);
+            } else
+            if ($registration->requestedResource !== null) {
+                $this->part('sent-claim-message', ['registration' => $registration]);
             }
         });
 
