@@ -1345,6 +1345,16 @@ class Registration extends \MapasCulturais\Entity
         return $evaluation;
     }
 
+    function saveResource($message) {
+        $this->checkPermission('sendClaimMessage');
+        $app = App::i();
+        $app->disableAccessControl();
+        $this->requestedResource = $message;
+        $this->requestedResourceTimestamp = new \DateTime;
+        $this->save(true);
+        $app->enableAccessControl();
+    }
+
     public function evaluationUserChangeStatus($user, Registration $registration, $status) {
         if ($registration->canUser('evaluate', $user)) {
             $method_name = 'setStatusTo' . ucfirst($status);

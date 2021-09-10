@@ -41,8 +41,7 @@ class Module extends \MapasCulturais\Module{
         $app->hook("template(opportunity.<<*>>.user-registration-table--registration--status):end", function ($registration, $opportunity){
             if($registration->canUser('sendClaimMessage') && $registration->requestedResource === null){
                 $this->part('claim-form', ['registration' => $registration, 'opportunity' => $opportunity]);
-            } else
-            if ($registration->requestedResource !== null) {
+            } elseif ($registration->requestedResource !== null) {
                 $this->part('sent-claim-message', ['registration' => $registration]);
             }
         });
@@ -92,6 +91,10 @@ class Module extends \MapasCulturais\Module{
                     'subject' => $message['title'],
                     'body' => $message['body']
                 ]);
+                /*
+                 * Salva os dados de recurso na inscrição
+                 */                
+                $registration->saveResource($this->data['message']);
             }
         });
     }
