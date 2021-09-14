@@ -42,6 +42,8 @@ $_params = [
         <?php $this->part('singles/registration-single--fields', $_params) ?>
         
         <?php $this->part('singles/registration-single--evaluations', $_params) ?>
+        
+        <?php $this->part('singles/registration-single--resource', $_params) ?>
 
         <?php $this->applyTemplateHook('form','end'); ?>
     </article>
