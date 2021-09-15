@@ -1,6 +1,6 @@
 <div ng-if="<?php echo sizeof($entity->getUserEvaluations()) > 0; ?>" id="registration-evaluations" class="registration-fieldset">
     
-    <h4><?php \MapasCulturais\i::_e("Avaliações");?></h4>
+    <h4><?php \MapasCulturais\i::_e("Avaliação de Habilitação");?></h4>
     
     <?php $this->applyTemplateHook('registration-evaluations-field-list', 'before') ?>
     <?php echo $entity->getUserEvaluationsString(); ?>

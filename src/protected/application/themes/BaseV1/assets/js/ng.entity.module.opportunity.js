@@ -1429,6 +1429,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
     var select_fields = MapasCulturais.opportunitySelectFields.map(function(e){ return e.fieldName; });
     var registrationsApi;
     var evaluationsApi;
+    var resourcesApi;
 
     var committeeApi = new OpportunityApiService($scope, 'evaluationCommittee', 'evaluationCommittee', {'@opportunity': getOpportunityId()});
 
@@ -1531,6 +1532,16 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             });
         }
     
+        $scope.findResources = function(){
+             if(resourcesApi.finish()){
+                return null;
+            }
+            $scope.data.findingResources = true;
+            return resourcesApi.find().success(function(){
+                $scope.data.findingResources = false;
+            });
+        }
+    
         $scope.$watch('registrationsFilters', do_filter, true);
     
         $scope.$watch('evaluationsFilters', function(){
@@ -1547,6 +1558,22 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', qdata);
             
             $scope.findEvaluations();
+        }, true);
+    
+        $scope.$watch('resourcesFilters', function(){
+            var qdata = {
+                '@opportunity': getOpportunityId(),
+                '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
+                '@order': 'evaluation desc'
+            };
+            for(var prop in $scope.resourcesFilters){
+                if($scope.resourcesFilters[prop]){
+                    qdata[prop] = 'EQ(' + $scope.resourcesFilters[prop] + ')'
+                }
+            }
+            resourcesApi = new OpportunityApiService($scope, 'resources', 'findResources', qdata);
+            
+            $scope.findResources();
         }, true);
 
         committeeApi.find().success(function(result){
@@ -1571,6 +1598,12 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             if(!$scope.data.findingEvaluations){
                 if(document.body.offsetHeight - $window.pageYOffset <  $window.innerHeight){
                     $scope.findEvaluations();
+                }
+            }
+        }  else if (document.location.hash.indexOf("tab=resources") >= 0){
+            if(!$scope.data.findingResources){
+                if(document.body.offsetHeight - $window.pageYOffset <  $window.innerHeight){
+                    $scope.findResources();
                 }
             }
         } else  if(document.location.hash.indexOf("tab=support") >= 0){
@@ -1661,6 +1694,11 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             {value: -1, label: labels['pending']},
             {value: 1, label: labels['evaluated']},
             {value: 2, label: labels['sent']}
+        ],
+
+        resourceStatuses: [
+            {value: 1, label: labels['evaluated']},
+            {value: 2, label: labels['notEvaluated']}
         ],
 
         registrationStatuses: RegistrationService.registrationStatuses,
@@ -1831,6 +1869,27 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         return labels[statusSlug];
 
     }
+
+    $scope.getResourceStatusLabel = function(resource){
+        var status;
+        
+        if (resource.registration.justificationResource){
+            status = 1;
+        } else {
+            status = -1;
+        }
+
+        var slugs = {
+            '-1': 'notEvaluated',
+            '1': 'evaluated'
+        };
+        var statusSlug = slugs[status];
+
+        return labels[statusSlug];
+
+    }
+
+    
 
     $scope.getEvaluationResultString = function(registration){
 
@@ -2272,6 +2331,12 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,'
         });
 
+        var resourcesApi = new OpportunityApiService($scope, 'resources', 'findResources', {
+            '@opportunity': getOpportunityId(),
+            '@limit': 50, 
+            '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,'
+        });
+
         var registrationAndEvaluationsApi = new OpportunityApiService($scope, 'registrationAndEvaluations', 'findRegistrationsAndEvaluations', {
             '@opportunity': getOpportunityId(),
             '@limit': 50,
@@ -2322,6 +2387,12 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         evaluationsApi.find().success(function(){
             $scope.data.evaluations.forEach(function(e){
                 $scope.evaluations[e.registration.id] = e.evaluation;
+            });
+        });
+
+        resourcesApi.find().success(function(){
+            $scope.data.resources.forEach(function(e){
+                $scope.resources[e.registration.id] = e.evaluation;
             });
         });
 
