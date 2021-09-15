@@ -1371,6 +1371,7 @@ $$
                             ON u.id = re.user_id
                         where 
                             r.status > 0
+                            AND r.status <> 11
                     UNION
                     SELECT 
                         r2.id AS registration_id, 
@@ -1397,6 +1398,7 @@ $$
                             p2.action = 'evaluate' AND
                             
                             r2.status > 0 AND
+                            r2.status <> 11 AND
                             p2.user_id IN (
                                 SELECT user_id FROM agent WHERE id in (
                                     SELECT agent_id 
