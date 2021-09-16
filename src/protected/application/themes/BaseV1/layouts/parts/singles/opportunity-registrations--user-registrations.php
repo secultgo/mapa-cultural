@@ -50,7 +50,8 @@
                         <?php $this->applyTemplateHook('user-registration-table--registration--agents', 'end', $reg_args); ?>
                     </td>
                     <td class="registration-agents-col">
-                        <?php echo $registration->getUserEvaluationsString(); ?>
+                        <!-- Comentando avaliação a pedido de Paula e André (temporário) -->
+                        <!--< ?php echo $registration->getUserEvaluationsString(); ?> -->
                     </td>
                     <td class="registration-status-col">
                         <?php $this->applyTemplateHook('user-registration-table--registration--status', 'begin', $reg_args); ?>
