@@ -14,7 +14,10 @@
                 MapasCulturais.opportunity_claim_ok = false;
             }
 
-            if(MapasCulturais.opportunity_claim_ok) {
+            if(MapasCulturais.opportunity_claim_ok) {            
+                if (!confirm("Você tem certeza que deseja enviar o recurso?\n\nApós a finalização não será mais possível modificar a solicitação.")) {
+                    return;
+                }
                 OpportunityClaimService.send(message,registration_id).
                     success(function (data) {
                         $scope.data.message = '';
@@ -42,6 +45,8 @@
                 return $http.post(this.getUrl('sendOpportunityClaimMessage'), {message: message, registration_id: registration_id}).
                     success(function(data, status){
                         MapasCulturais.Messages.success(labels.claimSended);
+                        // Atualiza a tela para ocultar o botão de recurso após a solicitação
+                        location.reload();
                     }).
                     error(function(data, status){
                         MapasCulturais.Messages.error(labels.claimSendError);

@@ -130,20 +130,32 @@ class Opportunity extends EntityController {
         $this->reportOutput('report-csv', ['entity' => $entity], $filename);
     }
 
-    function GET_reportDrafts(){
+    protected function reportByStatus($status, $label){
         $this->requireAuthentication();
         $app = App::i();
-
+        
         $entity = $this->requestedEntity;
         $entity->checkPermission('@control');
         $app->controller('Registration')->registerRegistrationMetadata($entity);
-        $registrationsDraftList = $entity->getRegistrationsByStatus(Entities\Registration::STATUS_DRAFT);
+        $registrationsDraftList = $entity->getRegistrationsByStatus($status);
 
         $date = date('Y-m-d.Hi');
 
-        $filename = sprintf(\MapasCulturais\i::__("oportunidade-%s--rascunhos--%s"), $entity->id, $date);
+        $filename = sprintf(\MapasCulturais\i::__("oportunidade-%s--".$label."--%s"), $entity->id, $date);
 
         $this->reportOutput('report-drafts-csv', ['entity' => $entity, 'registrationsDraftList' => $registrationsDraftList], $filename );
+     }
+
+     function GET_reportDrafts(){ 
+         $this->reportByStatus(Entities\Registration::STATUS_DRAFT, "rascunhos");
+     }
+
+     function GET_reportApproved(){ 
+         $this->reportByStatus(Entities\Registration::STATUS_APPROVED, "selecionadas");
+     }
+
+     function GET_reportPending(){ 
+         $this->reportByStatus(Entities\Registration::STATUS_ENABLED, "pendentes");
      }
 
     function GET_reportEvaluations(){
@@ -200,7 +212,7 @@ class Opportunity extends EntityController {
 
             ob_start();
             $this->partial($view, $view_params);
-
+            
             $output = ob_get_clean();
 
             /**
@@ -568,7 +580,7 @@ class Opportunity extends EntityController {
         $registration_idsSplittedUsingComma = implode(',', $registration_ids);
         if($registration_ids){
             $rdata = [
-                '@select' => 'id,status,category,consolidatedResult,singleUrl,owner.name,previousPhaseRegistrationId',
+                '@select' => 'id,status,category,consolidatedResult,singleUrl,owner.name,previousPhaseRegistrationId,requestedResource,justificationResource',
                 'id' => "IN({$registration_idsSplittedUsingComma})"
             ];
 
@@ -794,6 +806,113 @@ class Opportunity extends EntityController {
         foreach($evaluations as $eval) {
             $_result[] = [
                 'evaluation' => $_evaluations[$eval['evaluation_id']] ?? null,
+                'registration' => $_registrations[$eval['registration_id']] ?? null,
+                'valuer' => $valuer_by_id[$eval['valuer_agent_id']] ?? null
+            ];
+        }
+
+        if (!is_null($opportunity_id) && is_int($opportunity_id)) {
+            return $_result;
+        }
+
+        $this->apiAddHeaderMetadata($this->data, $_result, $queryNumberOfResults);
+        $this->apiResponse($_result);
+    }
+
+
+
+    function API_findResources($opportunity_id = null) {
+        $this->requireAuthentication();
+
+        $app = App::i();
+        $conn = $app->em->getConnection();
+
+        $opportunity = $this->_getOpportunity($opportunity_id);
+
+        $committee = $this->_getOpportunityCommittee($opportunity_id);
+
+        foreach($committee as $valuer){
+            $valuer_by_id[$valuer['user']] = $valuer;
+        }
+
+        $users = implode(',', array_map(function ($el){ return $el['user']; }, $committee));
+
+        $params = ['opp' => $opportunity->id];
+
+        $queryNumberOfResults = $conn->fetchColumn("
+            SELECT count(*) 
+            FROM evaluations 
+            WHERE 
+                opportunity_id = :opp AND
+                registration_id IN (SELECT r.id FROM registration r where r.requested_resource is not null AND r.opportunity_id = :opp) AND
+                valuer_user_id IN({$users})
+        ", $params);
+
+        $valuer_by_id = [];
+
+        foreach($committee as $valuer){
+            $valuer_by_id[$valuer['id']] = $valuer;
+        }
+
+        $sql_limit = "";
+        if (isset($this->data['@limit'])) {
+            $limit = intval($this->data['@limit']);
+
+            $sql_limit = "LIMIT $limit";
+
+            if (isset($this->data['@page'])) {
+                $page = intval($this->data['@page']);
+                $offset = ($page - 1) * $limit;
+                $sql_limit .= " OFFSET {$offset}";
+            }
+        }
+
+        $sql_status = "";
+        if (isset($this->data['status'])) {
+            if(preg_match('#EQ\( *(-?\d) *\)#', $this->data['status'], $matches)) {
+                $status = $matches[1];
+                $sql_status = " AND evaluation_status = {$status}";
+            }
+        }
+        $sql_resource_status = "";
+        if (isset($this->data['resources'])) {
+            if(preg_match('#EQ\( *(-?\d) *\)#', $this->data['resources'], $matches)) {
+                $resource_status = $matches[1];
+                if ($resource_status == 1) {
+                    $sql_resource_status = " AND justification_resource is not null";
+                } else
+                if ($resource_status == 2) {
+                    $sql_resource_status = " AND justification_resource is null";
+                }                
+            }
+        }
+
+        $resources = $conn->fetchAll("
+            SELECT 
+                registration_id, 
+                evaluation_id, 
+                valuer_agent_id
+            FROM evaluations
+            WHERE
+                opportunity_id = :opp AND
+                registration_id IN (SELECT r.id FROM registration r where r.requested_resource is not null AND r.opportunity_id = :opp $sql_resource_status) AND
+                valuer_user_id IN({$users})
+                $sql_status
+            ORDER BY registration_sent_timestamp ASC
+            $sql_limit
+        ", $params);
+
+        $registration_ids = array_filter(array_unique(array_map(function($r) { return $r['registration_id']; }, $resources)));
+        $resources_ids = array_filter(array_unique(array_map(function($r) { return $r['evaluation_id']; }, $resources)));
+
+        $_registrations = $this->_getOpportunityRegistrations($opportunity, $registration_ids);
+        $_resources = $this->_getOpportunityEvaluations($opportunity, $resources_ids);
+
+        $_result = [];
+
+        foreach($resources as $eval) {
+            $_result[] = [
+                'evaluation' => $_resources[$eval['evaluation_id']] ?? null,
                 'registration' => $_registrations[$eval['registration_id']] ?? null,
                 'valuer' => $valuer_by_id[$eval['valuer_agent_id']] ?? null
             ];

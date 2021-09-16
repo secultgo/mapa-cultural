@@ -84,6 +84,7 @@ $child_entity_request = isset($child_entity_request) ? $child_entity_request : n
 
             <?php if($entity->canUser('viewEvaluations') || $entity->canUser('@control')): ?>
                 <?php $this->part('singles/opportunity-evaluations', ['entity' => $entity]) ?>
+                <?php $this->part('singles/opportunity-resources', ['entity' => $entity]) ?>
             <?php endif; ?>
         <?php endif; ?>
 

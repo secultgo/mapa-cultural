@@ -196,6 +196,28 @@ class Registration extends \MapasCulturais\Entity
      */
     protected $subsite;
 
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="requested_resource_timestamp", type="datetime", nullable=true)
+     */
+    protected $requestedResourceTimestamp;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="requested_resource", type="text", nullable=true)
+     */
+    protected $requestedResource;
+
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="justification_resource", type="text", nullable=true)
+     */
+    protected $justificationResource;
+
 
     public $preview = false;
 
@@ -453,7 +475,7 @@ class Registration extends \MapasCulturais\Entity
         return $method->valueToString($value);
     }
 
-    function getUserEvaluationsString(){
+    function getUserEvaluations() {
         $app = App::i();
         $status = [ \MapasCulturais\Entities\RegistrationEvaluation::STATUS_EVALUATED,
             \MapasCulturais\Entities\RegistrationEvaluation::STATUS_SENT
@@ -465,7 +487,12 @@ class Registration extends \MapasCulturais\Entity
             $users[] = $item->agent->user->id;
         }
 
-        $evaluations = $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
+        return $app->repo('RegistrationEvaluation')->findByRegistrationAndUsersAndStatus($this, $users, $status);
+    }
+
+    function getUserEvaluationsString(){
+        
+        $evaluations = $this->getUserEvaluations();
 
         foreach ($evaluations as $eval) {
             echo '<p><b>Avaliação ' . $eval->id . ':</b><br>';
@@ -1316,6 +1343,16 @@ class Registration extends \MapasCulturais\Entity
         $this->saveEvaluation($evaluation, $data, $evaluation_status);
 
         return $evaluation;
+    }
+
+    function saveResource($message) {
+        $this->checkPermission('sendClaimMessage');
+        $app = App::i();
+        $app->disableAccessControl();
+        $this->requestedResource = $message;
+        $this->requestedResourceTimestamp = new \DateTime;
+        $this->save(true);
+        $app->enableAccessControl();
     }
 
     public function evaluationUserChangeStatus($user, Registration $registration, $status) {

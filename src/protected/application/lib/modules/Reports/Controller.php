@@ -1031,18 +1031,23 @@ class Controller extends \MapasCulturais\Controller
         }
         $agentClass = Agent::getClassName();
         $fields[] = $this->fieldDefinition(i::__("Faixa etária"), "dataDeNascimento", "am", "dateToAge");
-        $this->getEntitySelectFields($fields, "owner", $agentClass, "a", $fieldsUse["agent"]);
+        $this->getEntitySelectFields($fields, "owner", $agentClass, "a", $fieldsUse["agent"]); 
+        $fields[] = $this->fieldDefinition(i::__("Município (Agente Responsável)"), "En_Municipio", "am", 'owner');      
+        
         $fields[] = $this->fieldDefinition(i::__("Área de atuação do agente responsável"), "term", "t", "owner");
         if (($opportunity->useAgentRelationColetivo ?? "dontUse") != "dontUse") {
             $this->getEntitySelectFields($fields, "coletivo", $agentClass, "a", $fieldsUse["collective"]);
+            $fields[] = $this->fieldDefinition(i::__("Município (Agente Coletivo)"), "am", "am", 'coletivo'); 
             $fields[] = $this->fieldDefinition(i::__("Área de atuação do agente coletivo"), "term", "t", "coletivo");
         }
         if (($opportunity->useAgentRelationInstituicao ?? "dontUse") != "dontUse") {
             $this->getEntitySelectFields($fields, "instituicao", $agentClass, "a", $fieldsUse["collective"]);
+            $fields[] = $this->fieldDefinition(i::__("Município (Agente Instituição relacionada)"), "En_Municipio", "am", 'instituicao'); 
             $fields[] = $this->fieldDefinition(i::__("Área de atuação da instituição"), "term", "t", "instituicao");
         }
         if(($opportunity->useSpaceRelationIntituicao ?? "dontUse") != "dontUse") {
             $this->getEntitySelectFields($fields, "space", Space::getClassName(), "s", $fieldsUse["collective"]);
+            $fields[] = $this->fieldDefinition(i::__("Município (Espaço)"), "En_Municipio", "am", 'space'); 
         }
         return $fields;
     }

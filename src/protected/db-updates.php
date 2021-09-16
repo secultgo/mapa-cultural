@@ -848,6 +848,19 @@ return [
             __exec("ALTER TABLE registration ADD consolidated_result VARCHAR(255) DEFAULT NULL;");
         }
     },
+    
+    'add resources columns to registration' => function () {
+        if (__column_exists('registration', 'requested_resource_timestamp') &&
+            __column_exists('registration', 'requested_resource') &&
+            __column_exists('registration', 'justification_resource')) {
+            echo "ALREADY APPLIED";
+            return true;
+        }
+        __exec("ALTER TABLE registration ADD requested_resource_timestamp TIMESTAMP DEFAULT NULL;");
+        __exec("ALTER TABLE registration ADD requested_resource TEXT DEFAULT NULL;");
+        __exec("ALTER TABLE registration ADD justification_resource TEXT DEFAULT NULL;");
+        return true;
+    },
 
     'create evaluation methods tables' => function (){
         if(__table_exists('evaluation_method_configuration')){
@@ -1358,6 +1371,7 @@ $$
                             ON u.id = re.user_id
                         where 
                             r.status > 0
+                            AND r.status <> 11
                     UNION
                     SELECT 
                         r2.id AS registration_id, 
@@ -1384,6 +1398,7 @@ $$
                             p2.action = 'evaluate' AND
                             
                             r2.status > 0 AND
+                            r2.status <> 11 AND
                             p2.user_id IN (
                                 SELECT user_id FROM agent WHERE id in (
                                     SELECT agent_id 
@@ -1488,6 +1503,65 @@ $$
         }
     },
 
+    'add timestamp columns to registration_evaluation' => function () {
+        if (__column_exists('registration_evaluation', 'create_timestamp') &&
+            __column_exists('registration_evaluation', 'update_timestamp')) {
+            echo "ALREADY APPLIED";
+            return true;
+        }
+        __exec("ALTER TABLE registration_evaluation ADD create_timestamp TIMESTAMP DEFAULT NOW() NOT NULL;");
+        __exec("ALTER TABLE registration_evaluation ADD update_timestamp TIMESTAMP DEFAULT NULL;");
+        return true;
+    },
+
+    'create chat tables' => function () {
+        if (!__sequence_exists("chat_thread_id_seq")) {
+            __exec("CREATE SEQUENCE chat_thread_id_seq INCREMENT BY 1 MINVALUE 1 START 1");
+        }
+        if (!__table_exists("chat_thread")) {
+            __exec("CREATE TABLE chat_thread (
+                id INT NOT NULL,
+                object_id INT NOT NULL,
+                object_type VARCHAR(255) NOT NULL,
+                type VARCHAR(255) NOT NULL,
+                identifier VARCHAR(255) NOT NULL,
+                description TEXT DEFAULT NULL,
+                create_timestamp TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+                last_message_timestamp TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL,
+                status INT NOT NULL,
+                PRIMARY KEY(id))");
+            __exec("COMMENT ON COLUMN chat_thread.object_type IS '(DC2Type:object_type)'");
+        }
+        if (!__sequence_exists("chat_message_id_seq")) {
+            __exec("CREATE SEQUENCE chat_message_id_seq INCREMENT BY 1 MINVALUE 1 START 1");
+        }
+        if (!__table_exists("chat_message")) {
+            __exec("CREATE TABLE chat_message (
+                id INT NOT NULL,
+                chat_thread_id INT NOT NULL,
+                parent_id INT DEFAULT NULL,
+                user_id INT NOT NULL,
+                payload TEXT NOT NULL,
+                create_timestamp TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+                PRIMARY KEY(id))");
+            __exec("CREATE INDEX IDX_FAB3FC16C47D5262 ON chat_message (chat_thread_id)");
+            __exec("CREATE INDEX IDX_FAB3FC16727ACA70 ON chat_message (parent_id)");
+            __exec("CREATE INDEX IDX_FAB3FC16A76ED395 ON chat_message (user_id)");
+            __exec("ALTER TABLE chat_message ADD
+                CONSTRAINT FK_FAB3FC16C47D5262
+                FOREIGN KEY (chat_thread_id) REFERENCES chat_thread (id)
+                ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE");
+            __exec("ALTER TABLE chat_message ADD
+                CONSTRAINT FK_FAB3FC16727ACA70
+                FOREIGN KEY (parent_id) REFERENCES chat_message (id)
+                ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE");
+            __exec("ALTER TABLE chat_message ADD
+                CONSTRAINT FK_FAB3FC16A76ED395
+                FOREIGN KEY (user_id) REFERENCES usr (id)
+                ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE");
+        }
+    },
+
     'create table job' => function () use($conn) {
         __exec("CREATE TABLE job (
                     id VARCHAR(255) NOT NULL, 
@@ -1503,11 +1577,147 @@ $$
                     PRIMARY KEY(id)
                 );");
 
+
         __exec("COMMENT ON COLUMN job.metadata IS '(DC2Type:json_array)';");
 
         __exec("CREATE INDEX job_next_execution_timestamp_idx ON job (next_execution_timestamp);");
         __exec("CREATE INDEX job_search_idx ON job (next_execution_timestamp, iterations_count, status);");
-   
     },
 
+    'clean existing orphans' => function () {
+        __exec("CREATE OR REPLACE FUNCTION pg_temp.tempfn_clean_orphans(tbl name, ctype name, cid name)
+                    RETURNS VOID
+                    LANGUAGE 'plpgsql' AS $$
+                    BEGIN
+                        EXECUTE format('DELETE FROM %1\$I WHERE (
+                                %2\$I=''MapasCulturais\Entities\Agent'' AND
+                                %3\$I NOT IN (SELECT id FROM agent)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\ChatMessage'' AND
+                                %3\$I NOT IN (SELECT id FROM chat_message)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\ChatThread'' AND
+                                %3\$I NOT IN (SELECT id FROM chat_thread)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\EvaluationMethodConfiguration'' AND
+                                %3\$I NOT IN (SELECT id FROM evaluation_method_configuration)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Event'' AND
+                                %3\$I NOT IN (SELECT id FROM event)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Notification'' AND
+                                %3\$I NOT IN (SELECT id FROM notification)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Opportunity'' AND
+                                %3\$I NOT IN (SELECT id FROM opportunity)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Project'' AND
+                                %3\$I NOT IN (SELECT id FROM project)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Registration'' AND
+                                %3\$I NOT IN (SELECT id FROM registration)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\RegistrationFileConfiguration'' AND
+                                %3\$I NOT IN (SELECT id FROM registration_file_configuration)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Space'' AND
+                                %3\$I NOT IN (SELECT id FROM space)
+                            ) OR (
+                                %2\$I=''MapasCulturais\Entities\Subsite'' AND
+                                %3\$I NOT IN (SELECT id FROM subsite)
+                            )', tbl, ctype, cid);
+                    END; $$;");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('agent_relation', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('seal_relation', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('space_relation', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('term_relation', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('metalist', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('file', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('chat_thread', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('pcache', 'object_type', 'object_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('request', 'origin_type', 'origin_id')");
+        __exec("SELECT pg_temp.tempfn_clean_orphans('request', 'destination_type', 'destination_id')");
+    },
+
+    'add triggers for orphan cleanup' => function () {
+        __exec("CREATE OR REPLACE FUNCTION fn_clean_orphans()
+                    RETURNS trigger
+                    LANGUAGE 'plpgsql'
+                    COST 100
+                    VOLATILE NOT LEAKPROOF AS $$
+                        DECLARE _p_type VARCHAR;
+                    BEGIN
+                        _p_type=TG_ARGV[0];
+                        DELETE FROM agent_relation WHERE
+                            object_type::varchar=_p_type AND object_id=OLD.id;
+                        DELETE FROM seal_relation WHERE
+                            object_type=_p_type AND object_id=OLD.id;   
+                        DELETE FROM space_relation WHERE
+                            object_type=_p_type AND object_id=OLD.id;
+                        DELETE FROM term_relation WHERE
+                            object_type::varchar=_p_type AND object_id=OLD.id;
+                        DELETE FROM metalist WHERE
+                            object_type=_p_type AND object_id=OLD.id;
+                        DELETE FROM file WHERE
+                            object_type::varchar=_p_type AND object_id=OLD.id;
+                        DELETE FROM chat_thread WHERE
+                            object_type=_p_type AND object_id=OLD.id;
+                        DELETE FROM pcache WHERE
+                            object_type::varchar=_p_type AND object_id=OLD.id;
+                        DELETE FROM request WHERE
+                            (origin_type=_p_type AND origin_id=OLD.id) OR
+                            (destination_type=_p_type AND destination_id=OLD.id);
+                        RETURN NULL;
+                    END; $$;");
+
+        __try("CREATE TRIGGER trigger_clean_orphans_agent
+                    AFTER DELETE ON agent
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Agent')");
+
+        __try("CREATE TRIGGER trigger_clean_orphans_chat_message
+                    AFTER DELETE ON chat_message
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\ChatMessage')");
+        __try("CREATE TRIGGER trigger_clean_orphans_chat_thread
+                    AFTER DELETE ON chat_thread
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\ChatThread')");
+        __try("CREATE TRIGGER trigger_clean_orphans_evaluation_method_configuration
+                    AFTER DELETE ON evaluation_method_configuration
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\EvaluationMethodConfiguration')");
+        __try("CREATE TRIGGER trigger_clean_orphans_event
+                    AFTER DELETE ON event
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Event')");
+        __try("CREATE TRIGGER trigger_clean_orphans_notification
+                    AFTER DELETE ON notification
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Notification')");
+        __try("CREATE TRIGGER trigger_clean_orphans_opportunity
+                    AFTER DELETE ON opportunity
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Opportunity')");
+        __try("CREATE TRIGGER trigger_clean_orphans_project
+                    AFTER DELETE ON project
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Project')");
+        __try("CREATE TRIGGER trigger_clean_orphans_registration
+                    AFTER DELETE ON registration
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Registration')");
+        __try("CREATE TRIGGER trigger_clean_orphans_registration_file_configuration
+                    AFTER DELETE ON registration_file_configuration
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\RegistrationFileConfiguration')");
+        __try("CREATE TRIGGER trigger_clean_orphans_space
+                    AFTER DELETE ON space
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Space')");
+        __try("CREATE TRIGGER trigger_clean_orphans_subsite
+                    AFTER DELETE ON subsite
+                    FOR EACH ROW
+                    EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Subsite')");
+    },
 ] + $updates ;
