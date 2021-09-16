@@ -1873,7 +1873,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
     $scope.getResourceStatusLabel = function(resource){
         var status;
         
-        if (resource.registration.justificationResource){
+        if (resource.registration && resource.registration.justificationResource){
             status = 1;
         } else {
             status = -1;
