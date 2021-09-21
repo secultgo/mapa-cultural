@@ -1586,6 +1586,63 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         });
     }
 
+    $scope.evaluationsFilterTimeout = null;
+
+    $scope.filterEvaluations = function(){
+        
+        $timeout.cancel($scope.evaluationsFilterTimeout);
+        
+        $scope.evaluationsFilterTimeout = $timeout(function() {
+            
+            var keywords = $scope.data.evaluationsFilters.toLowerCase().split(' ');
+            
+            $scope.data.evaluations.forEach(function(evt,i){
+                var show = true;
+                keywords.forEach(function(keyword){
+                    keyword = keyword.trim();
+                    var match = false;
+
+                    if(evt.registration.owner.name.toLowerCase().indexOf(keyword) >= 0){
+                        match = true;
+                    }else if(evt.registration.number.toLowerCase().indexOf(keyword) >= 0){
+                        match = true;
+                    }
+                    show = show && match;
+                });
+                evt.hidden = !show;
+
+            });
+        },500);
+    };
+
+    $scope.resourcesFilterTimeout = null;
+
+    $scope.filterResources = function(){
+        
+        $timeout.cancel($scope.resourcesFilterTimeout);
+        
+        $scope.resourcesFilterTimeout = $timeout(function() {
+            
+            var keywords = $scope.data.resourcesFilters.toLowerCase().split(' ');
+            
+            $scope.data.resources.forEach(function(evt,i){
+                var show = true;
+                keywords.forEach(function(keyword){
+                    keyword = keyword.trim();
+                    var match = false;
+                    
+                    if(evt.registration.owner.name.toLowerCase().indexOf(keyword) >= 0){
+                        match = true;
+                    }else if(evt.registration.number.toLowerCase().indexOf(keyword) >= 0){
+                        match = true;
+                    }
+                    show = show && match;
+                });
+                evt.hidden = !show;
+            });
+        },500);
+    };
+
     angular.element($window).bind("scroll", function(){
         // @TODO: refatorar este if
         if(document.location.hash.indexOf("tab=inscritos") >= 0){
@@ -1745,16 +1802,6 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
     }, MapasCulturais);
 
     $scope.usingRegistrationsFilters = function(){
-        var using = false;
-        for(var i in $scope.registrationsFilters){
-            if($scope.registrationsFilters[i]){
-                using = true;
-            }
-        }
-        return using;
-    };
-
-    $scope.usingEvaluationsFilters = function(){
         var using = false;
         for(var i in $scope.registrationsFilters){
             if($scope.registrationsFilters[i]){
@@ -2385,15 +2432,11 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         });
 
         evaluationsApi.find().success(function(){
-            $scope.data.evaluations.forEach(function(e){
-                $scope.evaluations[e.registration.id] = e.evaluation;
-            });
+            $scope.evaluations = $scope.data.evaluations;
         });
 
         resourcesApi.find().success(function(){
-            $scope.data.resources.forEach(function(e){
-                $scope.resources[e.registration.id] = e.evaluation;
-            });
+            $scope.resources = $scope.data.resources;
         });
 
         var last = '';

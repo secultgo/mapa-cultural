@@ -744,6 +744,12 @@ class Opportunity extends EntityController {
 
         $users = implode(',', array_map(function ($el){ return $el['user']; }, $committee));
 
+        if (!$users) {
+            $this->apiAddHeaderMetadata($this->data, [], 0);
+            $this->apiResponse([]);
+            return;
+        }
+
         $params = ['opp' => $opportunity->id];
 
         $queryNumberOfResults = $conn->fetchColumn("
@@ -836,6 +842,12 @@ class Opportunity extends EntityController {
         }
 
         $users = implode(',', array_map(function ($el){ return $el['user']; }, $committee));
+
+        if (!$users) {
+            $this->apiAddHeaderMetadata($this->data, [], 0);
+            $this->apiResponse([]);
+            return;
+        }
 
         $params = ['opp' => $opportunity->id];
 

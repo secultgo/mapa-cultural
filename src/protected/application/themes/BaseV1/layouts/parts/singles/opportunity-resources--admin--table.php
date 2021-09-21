@@ -4,6 +4,10 @@
 <p style="text-align:right">
     <small><span>*</span><em> <?php \MapasCulturais\i::_e('Passe o mouse sobre a avaliação para visualizar a solicitação de recurso') ?></em></small>
 </p>
+<div id="filtro-inscritos">
+    <span class="label"> <?php \MapasCulturais\i::_e("Filtrar recursos:");?> </span>
+    <input type="text" ng-model="data.resourcesFilters" ng-change="filterResources()" placeholder="<?php \MapasCulturais\i::_e('Busque pelo número de inscrição ou nome do responsável') ?>" />
+</div>
 <table class="js-registration-list registrations-table" ng-class="{'no-options': data.entity.registrationCategories.length === 0, 'no-attachments': data.entity.registrationFileConfigurations.length === 0, 'registrations-results': data.entity.published}">
     <thead>
         <tr>
@@ -34,18 +38,15 @@
     <tbody>
         <tr>
             <td colspan='10'>
-                <span ng-if="data.resources.length === 0"><?php \MapasCulturais\i::_e("Nenhum avaliação com recurso solicitado.");?></span>
-                <span ng-if="data.resources.length === 1"><?php \MapasCulturais\i::_e("1 avalição com recurso encontrado.");?></span>
-                <span ng-if="data.resources.length > 1">{{data.resources.length}}
-                    <span ng-if="data.resourcesAPIMetadata.count > 0">
-                        <i> de {{ data.resourcesAPIMetadata.count }}</i>
-                    </span>
-                 <?php \MapasCulturais\i::_e("solicitação com recursos");?>
+                <span ng-if="data.resourcesAPIMetadata.count === 0"><?php \MapasCulturais\i::_e("Nenhum recurso solicitado.");?></span>
+                <span ng-if="data.resourcesAPIMetadata.count === 1"><?php \MapasCulturais\i::_e("1 recurso encontrado.");?></span>
+                <span ng-if="data.resources.length > 1">
+                    {{data.resources.length}} <?php \MapasCulturais\i::_e("solicitações de recurso");?>
              </span>                
             </td>
         </tr>
 
-        <tr ng-repeat="resource in data.resources" id="registration-{{resource.registration.id}}" 
+        <tr ng-repeat="resource in data.resources" id="registration-{{resource.registration.id}}" ng-show="!resource.hidden"
             class="hltip" title="{{resource.registration.requestedResource}}">
 
             <td class="registration-id-col">
@@ -72,4 +73,13 @@
             </td>
         </tr>
     </tbody>
+    <tfoot>
+        <tr>
+            <td colspan='{{numberOfEnabledColumns()}}' align="center">
+                <div ng-if="data.findingResources">
+                    <img src="<?php $this->asset('img/spinner_192.gif')?>" width="48">
+                </div>
+            </td>
+        </tr>
+    </tfoot>
 </table>
