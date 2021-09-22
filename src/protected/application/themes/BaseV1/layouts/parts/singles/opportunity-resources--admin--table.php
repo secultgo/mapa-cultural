@@ -6,7 +6,7 @@
 </p>
 <div id="filtro-inscritos">
     <span class="label"> <?php \MapasCulturais\i::_e("Filtrar recursos:");?> </span>
-    <input type="text" ng-model="data.resourcesFilters" ng-change="filterResources()" placeholder="<?php \MapasCulturais\i::_e('Busque pelo número de inscrição ou nome do responsável') ?>" />
+    <input type="text" ng-model="data.resourcesFilter" placeholder="<?php \MapasCulturais\i::_e('Busque pelo número de inscrição ou nome do responsável') ?>" />
 </div>
 <table class="js-registration-list registrations-table" ng-class="{'no-options': data.entity.registrationCategories.length === 0, 'no-attachments': data.entity.registrationFileConfigurations.length === 0, 'registrations-results': data.entity.published}">
     <thead>
@@ -38,15 +38,19 @@
     <tbody>
         <tr>
             <td colspan='10'>
-                <span ng-if="data.resourcesAPIMetadata.count === 0"><?php \MapasCulturais\i::_e("Nenhum recurso solicitado.");?></span>
-                <span ng-if="data.resourcesAPIMetadata.count === 1"><?php \MapasCulturais\i::_e("1 recurso encontrado.");?></span>
-                <span ng-if="data.resources.length > 1">
-                    {{data.resources.length}} <?php \MapasCulturais\i::_e("solicitações de recurso");?>
+                <span ng-if="!usingResourcesFilters() && data.resources.length === 0"><?php \MapasCulturais\i::_e("Nenhum recurso.");?></span>
+                <span ng-if="usingResourcesFilters() && data.resources.length  === 0"><?php \MapasCulturais\i::_e("Nenhum recurso encontrado com os filtros selecionados.");?></span>
+                <span ng-if="!usingResourcesFilters() && data.resources.length === 1"><?php \MapasCulturais\i::_e("1 recurso.");?></span>
+                <span ng-if="usingResourcesFilters() && data.resources.length === 1"><?php \MapasCulturais\i::_e("1 recurso encontrada com os filtros selecionados.");?></span>
+                <span ng-if="!usingResourcesFilters() && data.resources.length > 1">                    
+                    {{data.resources.length}} <i> de {{ data.resourcesAPIMetadata.count }}</i> <?php \MapasCulturais\i::_e("recursos.");?>
+                </span>
+                <span ng-if="usingResourcesFilters() && data.resources.length > 1">{{data.resources.length}} <?php \MapasCulturais\i::_e("recursos encontradas com os filtros selecionados.");?></span>
              </span>                
             </td>
         </tr>
 
-        <tr ng-repeat="resource in data.resources" id="registration-{{resource.registration.id}}" ng-show="!resource.hidden"
+        <tr ng-repeat="resource in data.resources" id="registration-{{resource.registration.id}}"
             class="hltip" title="{{resource.registration.requestedResource}}">
 
             <td class="registration-id-col">

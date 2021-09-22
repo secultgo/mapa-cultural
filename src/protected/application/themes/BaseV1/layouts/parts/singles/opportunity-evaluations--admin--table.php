@@ -8,7 +8,7 @@
 </header>
 <div id="filtro-inscritos">
     <span class="label"> <?php \MapasCulturais\i::_e("Filtrar avaliações:");?> </span>
-    <input type="text" ng-model="data.evaluationsFilters" ng-change="filterEvaluations()" placeholder="<?php \MapasCulturais\i::_e('Busque pelo número de inscrição ou nome do responsável') ?>" />
+    <input type="text" ng-model="data.evaluationsFilter" placeholder="<?php \MapasCulturais\i::_e('Busque pelo número de inscrição ou nome do responsável') ?>" />
 </div>
 <table class="js-registration-list registrations-table" ng-class="{'no-options': data.entity.registrationCategories.length === 0, 'no-attachments': data.entity.registrationFileConfigurations.length === 0, 'registrations-results': data.entity.published}"><!-- adicionar a classe registrations-results quando resultados publicados-->
     <?php $this->applyTemplateHook('opportunity-evaluations--admin--table-thead','before'); ?>
@@ -49,16 +49,19 @@
         <?php $this->applyTemplateHook('opportunity-evaluations--admin--table-tbody','begin'); ?>
         <tr>
             <td colspan='10'>
-                <span ng-if="data.evaluationsAPIMetadata.count === 0"><?php \MapasCulturais\i::_e("Nenhuma avaliação enviada.");?></span>
-                <span ng-if="data.evaluationsAPIMetadata.count === 1"><?php \MapasCulturais\i::_e("1 avaliação encontrada.");?></span>
-                <span ng-if="data.evaluations.length > 1">
-                    {{data.evaluations.length}} <?php \MapasCulturais\i::_e("avaliações");?>
-             </span>                
+                <span ng-if="!usingEvaluationsFilters() && data.evaluations.length === 0"><?php \MapasCulturais\i::_e("Nenhuma avaliação enviada.");?></span>
+                <span ng-if="usingEvaluationsFilters() && data.evaluations.length === 0"><?php \MapasCulturais\i::_e("Nenhuma avaliação encontrada com os filtros selecionados.");?></span>
+                <span ng-if="!usingEvaluationsFilters() && data.evaluations.length === 1"><?php \MapasCulturais\i::_e("1 avaliação.");?></span>
+                <span ng-if="usingEvaluationsFilters() && data.evaluations.length === 1"><?php \MapasCulturais\i::_e("1 avaliação encontrada com os filtros selecionados.");?></span>
+                <span ng-if="!usingEvaluationsFilters() && data.evaluations.length > 1">                    
+                    {{data.evaluations.length}} <i> de {{ data.evaluationsAPIMetadata.count }}</i> <?php \MapasCulturais\i::_e("avaliações.");?>
+                </span>
+                <span ng-if="usingEvaluationsFilters() && data.evaluations.length > 1">{{data.evaluations.length}} <?php \MapasCulturais\i::_e("avaliações encontradas com os filtros selecionados.");?></span>              
             </td>
         </tr>
 
         <?php $this->applyTemplateHook('opportunity-evaluations--admin--table-tbody-tr','begin'); ?>
-        <tr ng-repeat="evaluation in data.evaluations" id="registration-{{evaluation.registration.id}}" ng-show="!evaluation.hidden">
+        <tr ng-repeat="evaluation in data.evaluations" id="registration-{{evaluation.registration.id}}">
             <?php $this->applyTemplateHook('opportunity-evaluations--admin--table-tbody-tr','before'); ?>
 
             <td class="registration-id-col">
