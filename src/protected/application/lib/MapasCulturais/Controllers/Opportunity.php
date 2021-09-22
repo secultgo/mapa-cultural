@@ -787,6 +787,13 @@ class Opportunity extends EntityController {
             }
         }
 
+        $sql_filter = "";
+        if (isset($this->data['@keyword'])) {            
+            $keyword = $this->data['@keyword'];
+            $sql_filter .=  " AND (LOWER(registration_agent_name) LIKE LOWER('%{$keyword}%')";
+            $sql_filter .=  " OR registration_number LIKE '%{$keyword}%')";
+        }
+        
         $evaluations = $conn->fetchAll("
             SELECT 
                 registration_id, 
@@ -797,6 +804,7 @@ class Opportunity extends EntityController {
                 opportunity_id = :opp AND
                 valuer_user_id IN({$users})
                 $sql_status
+                $sql_filter
             ORDER BY registration_sent_timestamp ASC
             $sql_limit
         ", $params);
@@ -886,6 +894,14 @@ class Opportunity extends EntityController {
                 $sql_status = " AND evaluation_status = {$status}";
             }
         }
+
+        $sql_filter = "";
+        if (isset($this->data['@keyword'])) {            
+            $keyword = $this->data['@keyword'];
+            $sql_filter .=  " AND (LOWER(registration_agent_name) LIKE LOWER('%{$keyword}%')";
+            $sql_filter .=  " OR registration_number LIKE '%{$keyword}%')";
+        }
+
         $sql_resource_status = "";
         if (isset($this->data['resources'])) {
             if(preg_match('#EQ\( *(-?\d) *\)#', $this->data['resources'], $matches)) {
@@ -910,6 +926,7 @@ class Opportunity extends EntityController {
                 registration_id IN (SELECT r.id FROM registration r where r.requested_resource is not null AND r.opportunity_id = :opp $sql_resource_status) AND
                 valuer_user_id IN({$users})
                 $sql_status
+                $sql_filter 
             ORDER BY registration_sent_timestamp ASC
             $sql_limit
         ", $params);
