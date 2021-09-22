@@ -18,6 +18,11 @@
     </div>
 <?php endif?>
 
+<div id="filtro-inscritos">
+    <span class="label"> <?php \MapasCulturais\i::_e("Filtrar avaliações:");?> </span>
+    <input type="text" ng-model="data.evaluationsFilter" placeholder="<?php \MapasCulturais\i::_e('Busque pelo número de inscrição ou nome do responsável') ?>" />
+</div>
+
 <?php $this->part('singles/opportunity-evaluations--committee--buttons', ['entity' => $entity]) ?>
 
 <table class="js-registration-list registrations-table" ng-class="{'no-options': data.entity.registrationCategories.length === 0, 'no-attachments': data.entity.registrationFileConfigurations.length === 0, 'registrations-results': data.entity.published}">

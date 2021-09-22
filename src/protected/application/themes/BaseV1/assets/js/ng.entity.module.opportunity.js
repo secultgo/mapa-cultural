@@ -1435,6 +1435,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
 
     $scope.registrationsFilters = {};
     $scope.evaluationsFilters = {};
+    $scope.resourcesFilters = {};
 
     $scope.isSelected = function(object, key){
         var selected  = false;
@@ -1480,9 +1481,9 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
     };
 
     if(jQuery('.js-registration-list').length) {
-        var do_filter = function(){
-            $timeout.cancel($scope.filterTimeout);
-            $scope.filterTimeout = $timeout(function() {
+        var do_registrations_filter = function(){
+            $timeout.cancel($scope.registrationsFilterTimeout);
+            $scope.registrationsFilterTimeout = $timeout(function() {
                 var qdata = {
                     'status': 'GT(-1)',
                     '@files': '(zipArchive):url',
@@ -1503,13 +1504,70 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             },1500);
         };
 
-        //data.registrations.filtro
+        var do_evaluations_filter = function(){
+            $timeout.cancel($scope.evaluationsFilterTimeout);
+            $scope.evaluationsFilterTimeout = $timeout(function() {
+                var qdata = {
+                    '@opportunity': getOpportunityId(),
+                    '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
+                    '@order': 'evaluation desc'
+                };
+                
+                for(var prop in $scope.evaluationsFilters){
+                    if (prop == 'keyword') {
+
+                        qdata['@keyword'] = $scope.evaluationsFilters[prop];
+                    } else if($scope.evaluationsFilters[prop] || $scope.evaluationsFilters[prop] === 0){
+                        qdata[prop] = 'EQ(' + $scope.evaluationsFilters[prop] + ')'
+                    }
+                }
+                evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', qdata);
+                $scope.findEvaluations();
+            },1500);
+        };
+
+        var do_resources_filter = function(){
+            $timeout.cancel($scope.resourcesFilterTimeout);
+            $scope.resourcesFilterTimeout = $timeout(function() {
+                var qdata = {
+                    '@opportunity': getOpportunityId(),
+                    '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
+                    '@order': 'evaluation desc'
+                };
+                
+                for(var prop in $scope.resourcesFilters){
+                    if (prop == 'keyword') {
+
+                        qdata['@keyword'] = $scope.resourcesFilters[prop];
+                    } else if($scope.resourcesFilters[prop] || $scope.resourcesFilters[prop] === 0){
+                        qdata[prop] = 'EQ(' + $scope.resourcesFilters[prop] + ')'
+                    }
+                }
+                resourcesApi = new OpportunityApiService($scope, 'resources', 'findResources', qdata);
+                $scope.findResources();
+            },1500);
+        };
+
         $scope.data.last_search_value = undefined;
         $scope.$watch('data.registrationsFilter', function(new_val, old_val) {
             if (new_val != $scope.data.last_search_value) {
                 $scope.data.last_search_value = new_val;
                 $scope.registrationsFilters.keyword = new_val;
-                do_filter();
+                do_registrations_filter();
+            }
+        });
+        $scope.$watch('data.evaluationsFilter', function(new_val, old_val) {
+            if (new_val != $scope.data.last_search_value) {
+                $scope.data.last_search_value = new_val;
+                $scope.evaluationsFilters.keyword = new_val;
+                do_evaluations_filter();
+            }
+        });
+        $scope.$watch('data.resourcesFilter', function(new_val, old_val) {
+            if (new_val != $scope.data.last_search_value) {
+                $scope.data.last_search_value = new_val;
+                $scope.resourcesFilters.keyword = new_val;
+                do_resources_filter();
             }
         });
         $scope.findRegistrations = function(){
@@ -1542,39 +1600,11 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             });
         }
     
-        $scope.$watch('registrationsFilters', do_filter, true);
-    
-        $scope.$watch('evaluationsFilters', function(){
-            var qdata = {
-                '@opportunity': getOpportunityId(),
-                '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
-                '@order': 'evaluation desc'
-            };
-            for(var prop in $scope.evaluationsFilters){
-                if($scope.evaluationsFilters[prop]){
-                    qdata[prop] = 'EQ(' + $scope.evaluationsFilters[prop] + ')'
-                }
-            }
-            evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', qdata);
-            
-            $scope.findEvaluations();
-        }, true);
-    
-        $scope.$watch('resourcesFilters', function(){
-            var qdata = {
-                '@opportunity': getOpportunityId(),
-                '@select': 'id,singleUrl,category,owner.{id,name,singleUrl},consolidatedResult,evaluationResultString,status,',
-                '@order': 'evaluation desc'
-            };
-            for(var prop in $scope.resourcesFilters){
-                if($scope.resourcesFilters[prop]){
-                    qdata[prop] = 'EQ(' + $scope.resourcesFilters[prop] + ')'
-                }
-            }
-            resourcesApi = new OpportunityApiService($scope, 'resources', 'findResources', qdata);
-            
-            $scope.findResources();
-        }, true);
+        $scope.$watch('registrationsFilters', do_registrations_filter, true);
+
+        $scope.$watch('evaluationsFilters', do_evaluations_filter, true);
+
+        $scope.$watch('resourcesFilters', do_resources_filter, true);
 
         committeeApi.find().success(function(result){
             $scope.data.evaluationCommittee = result.map(function(e){
@@ -1585,63 +1615,6 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             });
         });
     }
-
-    $scope.evaluationsFilterTimeout = null;
-
-    $scope.filterEvaluations = function(){
-        
-        $timeout.cancel($scope.evaluationsFilterTimeout);
-        
-        $scope.evaluationsFilterTimeout = $timeout(function() {
-            
-            var keywords = $scope.data.evaluationsFilters.toLowerCase().split(' ');
-            
-            $scope.data.evaluations.forEach(function(evt,i){
-                var show = true;
-                keywords.forEach(function(keyword){
-                    keyword = keyword.trim();
-                    var match = false;
-
-                    if(evt.registration.owner.name.toLowerCase().indexOf(keyword) >= 0){
-                        match = true;
-                    }else if(evt.registration.number.toLowerCase().indexOf(keyword) >= 0){
-                        match = true;
-                    }
-                    show = show && match;
-                });
-                evt.hidden = !show;
-
-            });
-        },500);
-    };
-
-    $scope.resourcesFilterTimeout = null;
-
-    $scope.filterResources = function(){
-        
-        $timeout.cancel($scope.resourcesFilterTimeout);
-        
-        $scope.resourcesFilterTimeout = $timeout(function() {
-            
-            var keywords = $scope.data.resourcesFilters.toLowerCase().split(' ');
-            
-            $scope.data.resources.forEach(function(evt,i){
-                var show = true;
-                keywords.forEach(function(keyword){
-                    keyword = keyword.trim();
-                    var match = false;
-                    
-                    if(evt.registration.owner.name.toLowerCase().indexOf(keyword) >= 0){
-                        match = true;
-                    }else if(evt.registration.number.toLowerCase().indexOf(keyword) >= 0){
-                        match = true;
-                    }
-                    show = show && match;
-                });
-                evt.hidden = !show;
-            });
-        },500);
-    };
 
     angular.element($window).bind("scroll", function(){
         // @TODO: refatorar este if
@@ -1805,6 +1778,26 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         var using = false;
         for(var i in $scope.registrationsFilters){
             if($scope.registrationsFilters[i]){
+                using = true;
+            }
+        }
+        return using;
+    };
+
+    $scope.usingEvaluationsFilters = function(){
+        var using = false;
+        for(var i in $scope.evaluationsFilters){
+            if($scope.evaluationsFilters[i]){
+                using = true;
+            }
+        }
+        return using;
+    };
+
+    $scope.usingResourcesFilters = function(){
+        var using = false;
+        for(var i in $scope.resourcesFilters){
+            if($scope.resourcesFilters[i]){
                 using = true;
             }
         }
