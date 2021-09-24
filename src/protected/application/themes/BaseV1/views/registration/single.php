@@ -40,8 +40,8 @@ $_params = [
         <?php $this->part('singles/registration-single--spaces', $_params) ?>
         
         <?php $this->part('singles/registration-single--fields', $_params) ?>
-        <!-- Comentando avaliação a pedido de Paula e André (temporário) -->
-        <!--< ?php $this->part('singles/registration-single--evaluations', $_params) ?>-->
+        
+        <?php $this->part('singles/registration-single--evaluations', $_params) ?>
         
         <?php $this->part('singles/registration-single--resource', $_params) ?>
 
