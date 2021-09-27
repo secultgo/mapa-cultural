@@ -1832,6 +1832,8 @@ class Theme extends MapasCulturais\Theme {
             'notEvaluated' => i::__('Não Avaliada'),
             'all' => i::__('Todas'),
             'sent' => i::__('Enviada'),
+            'approved' => i::__('Aprovado'),
+            'notApproved' => i::__('Não Aprovado'),
             'confirmEvaluationLabel' => i::__('Aplicar resultado das avaliações'),
             'applyEvaluations' => i::__('Deseja aplicar o resultado de todas as avaliações como o status das respectivas inscrições?'),
             'confirmInitialActiveOpportunityLabel' => i::__('Caso esta seja a sua segunda (ou mais) inscrição NESTE edital, as anteriores serão canceladas.'),
