@@ -25,13 +25,10 @@
                 <?php \MapasCulturais\i::_e("Agente Responsável");?>
             </th>
             <th class="registration-status-col">
-                <mc-select placeholder="<?php \MapasCulturais\i::esc_attr_e("Status"); ?>" model="resourcesFilters['status']" data="data.evaluationStatuses"></mc-select>
-            </th>
-            <th class="registration-status-col">
                 <?php \MapasCulturais\i::esc_attr_e("Avaliação"); ?>
             </th>  
             <th class="registration-status-col">
-                <mc-select placeholder="<?php \MapasCulturais\i::esc_attr_e("Recurso"); ?>" model="resourcesFilters['resources']" data="data.resourceStatuses"></mc-select>
+                <mc-select placeholder="<?php \MapasCulturais\i::esc_attr_e("Recurso"); ?>" model="resourcesFilters['resources']" data="data.resourceFilterStatuses"></mc-select>
             </th>  
         </tr>
     </thead>
@@ -67,13 +64,10 @@
                 </p>
             </td>
             <td class="registration-status-col">
-                {{getEvaluationStatusLabel(resource)}}
-            </td>
-            <td class="registration-status-col">
                 {{getEvaluationResultString(resource)}}
             </td>
             <td class="registration-status-col">
-                {{getResourceStatusLabel(resource)}}             
+                {{getResourceStatusLabelByResource(resource)}}             
             </td>
         </tr>
     </tbody>
