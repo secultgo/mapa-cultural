@@ -1848,10 +1848,6 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         return labels[statusSlug];
     }
 
-    $scope.getSelectedResourceStatus = function(status, value) {
-        return status !== null && status === value;
-    }
-
     $scope.getColumnByKey = function(key){
         for(var index in $scope.data.defaultSelectFields){
             if($scope.data.defaultSelectFields[index].fieldName == key ){

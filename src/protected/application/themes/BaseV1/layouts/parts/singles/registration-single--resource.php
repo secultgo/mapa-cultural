@@ -20,7 +20,7 @@
                 <select name="status" required="required">
                     <option value=""><?php \MapasCulturais\i::_e('Selecione') ?></option>
                     <option ng-repeat="status in data.resourceStatuses" value="{{status.value}}" 
-                        ng-selected="{{getSelectedResourceStatus(<?php echo (!empty($entity->statusResource) ? $entity->statusResource : '-1') ?>, status.value)}}">
+                        ng-selected="{{<?php echo (!is_null($entity->statusResource) ? $entity->statusResource : '-1') ?> === status.value}}">
                         {{status.label}}
                     </option>
                 </select>          
