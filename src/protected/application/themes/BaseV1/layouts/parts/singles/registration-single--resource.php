@@ -13,7 +13,8 @@
         }
     ?>
     
-    <?php if($evaluationAgent): ?>
+    <!-- Permite a edição da justificativa de recurso para avaliadores e administradores -->
+    <?php if($evaluationAgent || $app->user->is('admin')): ?>
         <form name="resourceForm" ng-submit="saveJustification()" ng-controller="OpportunityController">   
             <label class="textarea-label">
                 <?php \MapasCulturais\i::_e('Situação:') ?><br>
