@@ -861,6 +861,15 @@ return [
         __exec("ALTER TABLE registration ADD justification_resource TEXT DEFAULT NULL;");
         return true;
     },
+    
+    'add status resources column to registration' => function () {
+        if (__column_exists('registration', 'status_resource')) {
+            echo "ALREADY APPLIED";
+            return true;
+        }
+        __exec("ALTER TABLE registration ADD status_resource SMALLINT DEFAULT NULL;");
+        return true;
+    },
 
     'create evaluation methods tables' => function (){
         if(__table_exists('evaluation_method_configuration')){

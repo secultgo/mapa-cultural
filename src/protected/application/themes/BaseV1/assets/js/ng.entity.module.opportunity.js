@@ -1726,9 +1726,16 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             {value: 2, label: labels['sent']}
         ],
 
+        resourceFilterStatuses: [
+            {value: null, label: labels['allStatus']},            
+            {value: -1, label: labels['notEvaluated']},
+            {value: 1, label: labels['approved']},
+            {value: 0, label: labels['notApproved']}
+        ],
+
         resourceStatuses: [
-            {value: 1, label: labels['evaluated']},
-            {value: 2, label: labels['notEvaluated']}
+            {value: 1, label: labels['approved']},
+            {value: 0, label: labels['notApproved']}
         ],
 
         registrationStatuses: RegistrationService.registrationStatuses,
@@ -1814,6 +1821,32 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             $t.css('width', '100%');
         }
     });
+
+    $scope.saveJustification = function() { 
+        var $formContainer = $('#registration-resource');
+        var $form = $formContainer.find('form');
+        var data = $form.serialize();
+        
+        var url = new UrlService('registration').create('saveResourceJustification', $scope.data.entity.id);        
+        $http.post(url, data).    
+            success(function(data, status){
+                MapasCulturais.Messages.success('Recurso atualizado com sucesso');
+            }).
+            error(function(data, status){
+                MapasCulturais.Messages.error('Erro ao atualizar recurso');
+            });
+    };
+
+    $scope.getResourceStatusLabel = function(status){
+        var slugs = {
+            '-1': 'notEvaluated',
+            '0': 'notApproved',
+            '1': 'approved'
+        };
+        var statusSlug = slugs[status];
+
+        return labels[statusSlug];
+    }
 
     $scope.getColumnByKey = function(key){
         for(var index in $scope.data.defaultSelectFields){
@@ -1910,26 +1943,23 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
 
     }
 
-    $scope.getResourceStatusLabel = function(resource){
+    $scope.getResourceStatusLabelByResource = function(resource){
         var status;
-        
-        if (resource.registration && resource.registration.justificationResource){
-            status = 1;
+        if (resource.registration && resource.registration.statusResource != null){
+            status = resource.registration.statusResource;
         } else {
             status = -1;
         }
-
+        
         var slugs = {
             '-1': 'notEvaluated',
-            '1': 'evaluated'
+            '0': 'notApproved',
+            '1': 'approved'
         };
         var statusSlug = slugs[status];
 
         return labels[statusSlug];
-
-    }
-
-    
+    }    
 
     $scope.getEvaluationResultString = function(registration){
 

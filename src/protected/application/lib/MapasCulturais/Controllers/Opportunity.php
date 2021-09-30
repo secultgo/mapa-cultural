@@ -580,7 +580,7 @@ class Opportunity extends EntityController {
         $registration_idsSplittedUsingComma = implode(',', $registration_ids);
         if($registration_ids){
             $rdata = [
-                '@select' => 'id,status,category,consolidatedResult,singleUrl,owner.name,previousPhaseRegistrationId,requestedResource,justificationResource',
+                '@select' => 'id,status,category,consolidatedResult,singleUrl,owner.name,previousPhaseRegistrationId,requestedResource,justificationResource,statusResource',
                 'id' => "IN({$registration_idsSplittedUsingComma})"
             ];
 
@@ -906,11 +906,10 @@ class Opportunity extends EntityController {
         if (isset($this->data['resources'])) {
             if(preg_match('#EQ\( *(-?\d) *\)#', $this->data['resources'], $matches)) {
                 $resource_status = $matches[1];
-                if ($resource_status == 1) {
-                    $sql_resource_status = " AND justification_resource is not null";
-                } else
-                if ($resource_status == 2) {
-                    $sql_resource_status = " AND justification_resource is null";
+                if ($resource_status == -1) {
+                    $sql_resource_status = " AND status_resource is null";
+                } else {
+                    $sql_resource_status = " AND status_resource = $resource_status";
                 }                
             }
         }

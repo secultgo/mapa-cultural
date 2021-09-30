@@ -446,6 +446,14 @@ class Registration extends EntityController {
             $this->json($evaluation);
     }
 
+    function POST_saveResourceJustification() {
+        $this->requireAuthentication();
+        $registration = $this->getRequestedEntity();
+        $statusResource = intval($this->postData['status']);
+        $justificationResource = $this->postData['justification'];
+        $registration->saveResourceJustification($statusResource, $justificationResource);        
+    }
+
     function setRegistrationStatus(Entities\Registration $registration) {
         $evaluation_type = $registration->getEvaluationMethodDefinition()->slug;
         if ("technical" === $evaluation_type) {
