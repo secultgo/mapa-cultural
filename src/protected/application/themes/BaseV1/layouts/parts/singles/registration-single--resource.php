@@ -13,14 +13,15 @@
         }
     ?>
     
-    <?php if($evaluationAgent): ?>
+    <!-- Permite a edição da justificativa de recurso para avaliadores e administradores -->
+    <?php if($evaluationAgent || $app->user->is('admin')): ?>
         <form name="resourceForm" ng-submit="saveJustification()" ng-controller="OpportunityController">   
             <label class="textarea-label">
                 <?php \MapasCulturais\i::_e('Situação:') ?><br>
                 <select name="status" required="required">
                     <option value=""><?php \MapasCulturais\i::_e('Selecione') ?></option>
                     <option ng-repeat="status in data.resourceStatuses" value="{{status.value}}" 
-                        ng-selected="{{getSelectedResourceStatus(<?php echo (!empty($entity->statusResource) ? $entity->statusResource : '-1') ?>, status.value)}}">
+                        ng-selected="{{<?php echo (!is_null($entity->statusResource) ? $entity->statusResource : '-1') ?> === status.value}}">
                         {{status.label}}
                     </option>
                 </select>          
