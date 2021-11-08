@@ -1,3 +1,4 @@
+<!--
 <div ng-if="<?php echo sizeof($entity->getUserEvaluations()) > 0; ?>" id="registration-evaluations" class="registration-fieldset">
     
     <h4><?php \MapasCulturais\i::_e("Avaliação de Habilitação");?></h4>
@@ -11,3 +12,4 @@
     <?php endif ?>
 
 </div>
+-->
