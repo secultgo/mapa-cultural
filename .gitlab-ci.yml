@@ -1,0 +1,4 @@
+include:
+  - project: 'openshift-namespaces/templates/java-springboot'
+    ref: master
+    file: 'gitlab-ci-templates.yaml'
