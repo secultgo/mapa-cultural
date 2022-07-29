@@ -1,4 +1,9 @@
+variables:
+  NAMESPACE: sistemas-cultura-mapagoiano
+  APP_NAME: mapa-cultural
+  ENV: prod
+  
 include:
-  - project: 'openshift-namespaces/templates/java-springboot'
+  - project: 'openshift-namespaces/templates/php'
     ref: master
     file: 'gitlab-ci-templates.yaml'
