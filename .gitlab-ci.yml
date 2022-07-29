@@ -4,6 +4,6 @@ variables:
   ENV: prod
   
 include:
-  - project: 'openshift-namespaces'
+  - project: 'openshift-namespaces/templates'
     ref: master
-    file: 'templates/php/gitlab-ci-templates.yaml'
+    file: '/php/gitlab-ci-templates.yaml'
