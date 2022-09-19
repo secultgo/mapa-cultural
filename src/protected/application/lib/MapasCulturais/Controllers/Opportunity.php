@@ -580,7 +580,7 @@ class Opportunity extends EntityController {
         $registration_idsSplittedUsingComma = implode(',', $registration_ids);
         if($registration_ids){
             $rdata = [
-                '@select' => 'id,status,category,consolidatedResult,singleUrl,owner.name,previousPhaseRegistrationId,requestedResource,justificationResource',
+                '@select' => 'id,status,category,consolidatedResult,singleUrl,owner.name,previousPhaseRegistrationId,requestedResource,justificationResource,statusResource',
                 'id' => "IN({$registration_idsSplittedUsingComma})"
             ];
 
@@ -744,6 +744,12 @@ class Opportunity extends EntityController {
 
         $users = implode(',', array_map(function ($el){ return $el['user']; }, $committee));
 
+        if (!$users) {
+            $this->apiAddHeaderMetadata($this->data, [], 0);
+            $this->apiResponse([]);
+            return;
+        }
+
         $params = ['opp' => $opportunity->id];
 
         $queryNumberOfResults = $conn->fetchColumn("
@@ -781,6 +787,13 @@ class Opportunity extends EntityController {
             }
         }
 
+        $sql_filter = "";
+        if (isset($this->data['@keyword'])) {            
+            $keyword = $this->data['@keyword'];
+            $sql_filter .=  " AND (LOWER(registration_agent_name) LIKE LOWER('%{$keyword}%')";
+            $sql_filter .=  " OR registration_number LIKE '%{$keyword}%')";
+        }
+        
         $evaluations = $conn->fetchAll("
             SELECT 
                 registration_id, 
@@ -791,6 +804,7 @@ class Opportunity extends EntityController {
                 opportunity_id = :opp AND
                 valuer_user_id IN({$users})
                 $sql_status
+                $sql_filter
             ORDER BY registration_sent_timestamp ASC
             $sql_limit
         ", $params);
@@ -837,6 +851,12 @@ class Opportunity extends EntityController {
 
         $users = implode(',', array_map(function ($el){ return $el['user']; }, $committee));
 
+        if (!$users) {
+            $this->apiAddHeaderMetadata($this->data, [], 0);
+            $this->apiResponse([]);
+            return;
+        }
+
         $params = ['opp' => $opportunity->id];
 
         $queryNumberOfResults = $conn->fetchColumn("
@@ -874,15 +894,22 @@ class Opportunity extends EntityController {
                 $sql_status = " AND evaluation_status = {$status}";
             }
         }
+
+        $sql_filter = "";
+        if (isset($this->data['@keyword'])) {            
+            $keyword = $this->data['@keyword'];
+            $sql_filter .=  " AND (LOWER(registration_agent_name) LIKE LOWER('%{$keyword}%')";
+            $sql_filter .=  " OR registration_number LIKE '%{$keyword}%')";
+        }
+
         $sql_resource_status = "";
         if (isset($this->data['resources'])) {
             if(preg_match('#EQ\( *(-?\d) *\)#', $this->data['resources'], $matches)) {
                 $resource_status = $matches[1];
-                if ($resource_status == 1) {
-                    $sql_resource_status = " AND justification_resource is not null";
-                } else
-                if ($resource_status == 2) {
-                    $sql_resource_status = " AND justification_resource is null";
+                if ($resource_status == -1) {
+                    $sql_resource_status = " AND status_resource is null";
+                } else {
+                    $sql_resource_status = " AND status_resource = $resource_status";
                 }                
             }
         }
@@ -898,6 +925,7 @@ class Opportunity extends EntityController {
                 registration_id IN (SELECT r.id FROM registration r where r.requested_resource is not null AND r.opportunity_id = :opp $sql_resource_status) AND
                 valuer_user_id IN({$users})
                 $sql_status
+                $sql_filter 
             ORDER BY registration_sent_timestamp ASC
             $sql_limit
         ", $params);

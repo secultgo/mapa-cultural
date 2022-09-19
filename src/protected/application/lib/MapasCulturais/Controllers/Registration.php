@@ -332,6 +332,8 @@ class Registration extends EntityController {
 
         $registration->$method_name();
 
+        $app->applyHookBoundTo($this, 'registration.setStatusTo:after', [$registration]);
+
         if($app->request->isAjax()){
             $this->json($registration);
         }else{
@@ -442,6 +444,14 @@ class Registration extends EntityController {
             $this->setRegistrationStatus($registration);
 
             $this->json($evaluation);
+    }
+
+    function POST_saveResourceJustification() {
+        $this->requireAuthentication();
+        $registration = $this->getRequestedEntity();
+        $statusResource = intval($this->postData['status']);
+        $justificationResource = $this->postData['justification'];
+        $registration->saveResourceJustification($statusResource, $justificationResource);        
     }
 
     function setRegistrationStatus(Entities\Registration $registration) {
