@@ -3,7 +3,7 @@
 return [
     // MAIN
 
-    // 'auth.provider' => 'Fake',
+     'auth.provider' => 'Fake',
     // 'auth.config' => [],
 
     // LOG
@@ -11,12 +11,14 @@ return [
     'slim.log.enabled'      => true,
 
     // 'app.log.query'         => true,
-    'app.log.hook'          => 'panel',
-    // 'app.log.requestData'   => true,
-    // 'app.log.translations'  => true,
-    // 'app.log.apiCache'      => true,
+    //'app.log.hook'          => 'send',
+    //'app.log.requestData'   => true,
+    //'app.log.translations'  => true,
+    //'app.log.apiCache'      => true,
     // 'app.log.apiDql'        => true,
     // 'app.log.assets'        => true,
+    'app.log.path'          => '/var/www/private-files/mapasculturais',
+    'slim.log.writer'       => new \MapasCulturais\Loggers\File(function() { return 'slim.log';}),
 
     // CACHE
     // 'app.useRegisteredAutoloadCache' => false,

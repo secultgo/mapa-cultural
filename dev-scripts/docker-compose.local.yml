@@ -1,6 +1,7 @@
 version: '2'
 services:
   mapas:
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: compose/local/Dockerfile
@@ -26,8 +27,8 @@ services:
       - PENDING_PCACHE_RECREATION_INTERVAL=15
 
       #MAILER CONFIGS:
-      - MAILER_USER=1a8e3ebbc6723e
-      - MAILER_PASS=e6d71da85cb323
+      - MAILER_USER=705124f9109aa5
+      - MAILER_PASS=8858c5656a606b
       - MAILER_SERVER=smtp.mailtrap.io
       - MAILER_FROM=mapacultural@goias.gov.br
       - MAILER_PORT=2525
@@ -51,14 +52,15 @@ services:
     tty: true
       
   db:
+    restart: unless-stopped
     image: mdillon/postgis:11
     environment:
       - POSTGRES_PASSWORD=mapas
       - POSTGRES_USER=mapas
       - POSTGRES_DB=mapas
-      - PGDATA=mapas
+        #- PGDATA=mapas
     ports:
       - "5470:5432"
     volumes:
       - ../docker-data/postgres:/var/lib/postgresql/data
-      - ../db/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+      - ../../../dump/mapascult_hom.sql:/docker-entrypoint-initdb.d/dump.sql
