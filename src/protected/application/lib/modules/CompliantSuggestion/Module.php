@@ -101,9 +101,9 @@ class Module extends \MapasCulturais\Module {
         if(array_key_exists('suggestion',$this->_config)) {
             $params['suggestion'] = $this->_config['suggestion'];
         }
-        
-        if(array_key_exists('google-recaptcha-sitekey',$app->_config)) {
-            $params['googleRecaptchaSiteKey'] = $app->_config['google-recaptcha-sitekey'];
+              
+        if(array_key_exists('app.recaptcha.key',$app->_config)) {
+            $params['googleRecaptchaSiteKey'] = $app->_config['app.recaptcha.key'];
         }
         
         $app->hook('template(<<agent|space|event|project>>.<<single>>.main-content):end', function() use ($app, $plugin, $params) {
@@ -112,6 +112,7 @@ class Module extends \MapasCulturais\Module {
 
         $app->hook('mapasculturais.head', function() use($app, $plugin){
             $entity = $app->view->controller->requestedEntity;
+            $plugin->addConfigToJs();
 
             if($entity){
                 $app->view->jsObject['angularAppDependencies'][] = 'module.compliantSuggestion';
@@ -145,16 +146,14 @@ class Module extends \MapasCulturais\Module {
             $entity = $app->repo($this->entityClassName)->find($this->data['entityId']);
             if(array_key_exists('anonimous',$this->data) && $this->data['anonimous']) {
                 $person = \MapasCulturais\i::__("Anônimo");
-                $anonimous = \MapasCulturais\i::__("Anônima");
-                $person_email = \MapasCulturais\i::__("Anônimo");
+                $person_email =  \MapasCulturais\i::__("Anônimo");
             } else {
                 $person = $this->data['name'];
-                $anonimous = "";
                 $person_email = $this->data['email'];
             }
 
             $dataValue = [
-                'name'          => $app->user->is('guest') ? \MapasCulturais\i::__("Usuário Guest") : $app->user->profile->name,
+                'name'          => $app->user->is('guest') ? \MapasCulturais\i::__("Usuário Guest") : $entity->owner->name,
                 'entityType'    => $entity->getEntityTypeLabel(),
                 'entityName'    => $entity->name,
                 'person'        => $person,
@@ -220,16 +219,14 @@ class Module extends \MapasCulturais\Module {
             $message = "";
             if(array_key_exists('anonimous',$this->data) && $this->data['anonimous']) {
                 $person = \MapasCulturais\i::__("Anônimo");
-                $anonimous = \MapasCulturais\i::__("Anônima");
                 $person_email = \MapasCulturais\i::__("Anônimo");
             } else {
                 $person = $this->data['name'];
-                $anonimous = "";
                 $person_email = $this->data['email'];
             }
 
             $dataValue = [
-                'name'          => $app->user->is('guest') ? \MapasCulturais\i::__("Usuário Guest") : $app->user->profile->name,
+                'name'          => $app->user->is('guest') ? \MapasCulturais\i::__("Usuário Guest") : $entity->owner->name,
                 'entityType'    => $entity->getEntityTypeLabel(),
                 'entityName'    => $entity->name,
                 'person'        => $person,
@@ -348,10 +345,24 @@ class Module extends \MapasCulturais\Module {
         $app = App::i();
         $config = $app->_config;
     
-        if (!isset($config['google-recaptcha-sitekey'])) return true;
+        if (!isset($app->_config['app.recaptcha.key'])) return true;
         if (!isset($_POST["g-recaptcha-response"]) || empty($_POST["g-recaptcha-response"])) return false;
 
         $token = $_POST["g-recaptcha-response"];
-        return $this->verificarToken($token, $config["google-recaptcha-secret"]);
+        return $this->verificarToken($token, $app->_config['app.recaptcha.secret']);
+    }
+
+    public function addConfigToJs()
+    {
+        /** @var App $app */
+        $app = App::i();
+
+        $config = [
+            'recaptcha' => [
+                'sitekey' =>  $app->_config['app.recaptcha.key'],
+            ]
+        ];
+
+        $app->view->jsObject['complaintSuggestionConfig'] = $config;
     }
 }

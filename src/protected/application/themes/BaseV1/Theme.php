@@ -4,6 +4,7 @@ namespace MapasCulturais\Themes\BaseV1;
 
 use MapasCulturais;
 use MapasCulturais\App;
+use MapasCulturais\Controllers\Agent;
 use MapasCulturais\Entities;
 use MapasCulturais\Entities\Notification;
 use Respect\Validation\length;
@@ -746,8 +747,9 @@ class Theme extends MapasCulturais\Theme {
 
     protected static function _getTexts(){
         $app = App::i();
+        $class = get_called_class();
 
-        return array_map(function($e) { return $e['text']; }, self::_dict());
+        return array_map(function($e) { return $e['text']; }, $class::_dict());
     }
 
     function getSearchAgentsUrl(){
@@ -776,6 +778,16 @@ class Theme extends MapasCulturais\Theme {
 
     protected function _init() {
         $app = App::i();
+
+        $app->hook('template(seal.edit.tabs):end',function(){
+            $this->part('tab',['id'=>'locked-fields', 'label'=> i::__('Bloqueio de campos')]);
+        });
+
+        $app->hook('template(seal.edit.tabs-content):end',function(){
+            $entity = $this->controller->requestedEntity;
+            $this->includeSealAssets();
+            $this->part('singles/seal-locked-fields', ['entity'=>$entity]);
+        });
 
         if(!$app->user->is('guest') && $app->user->profile->status < 1){
             $app->hook('view.partial(nav-main-user).params', function($params, &$name){
@@ -822,19 +834,19 @@ class Theme extends MapasCulturais\Theme {
 
             $this->jsObject['assets'] = array();
             $this->jsObject['templateUrl'] = array();
-            $this->jsObject['spinnerUrl'] = $this->asset('img/spinner.gif', false);
+            $this->jsObject['spinnerUrl'] = $this->asset('img/spinner.gif', false, false);
 
             $this->jsObject['lcode'] = $app->config['app.lcode'];
 
-            $this->jsObject['assets']['fundo'] = $this->asset('img/fundo.png', false);
-            $this->jsObject['assets']['instituto-tim'] = $this->asset('img/instituto-tim-white.png', false);
-            $this->jsObject['assets']['verifiedIcon'] = $this->asset('img/verified-icon.png', false);
-            $this->jsObject['assets']['avatarAgent'] = $this->asset('img/avatar--agent.png', false);
-            $this->jsObject['assets']['avatarSeal'] = $this->asset('img/avatar--seal.png', false);
-            $this->jsObject['assets']['avatarSpace'] = $this->asset('img/avatar--space.png', false);
-            $this->jsObject['assets']['avatarEvent'] = $this->asset('img/avatar--event.png', false);
-            $this->jsObject['assets']['avatarProject'] = $this->asset('img/avatar--project.png', false);
-            $this->jsObject['assets']['avatarOpportunity'] = $this->asset('img/avatar--opportunity.png', false);
+            $this->jsObject['assets']['fundo'] = $this->asset('img/fundo.png', false, false);
+            $this->jsObject['assets']['instituto-tim'] = $this->asset('img/instituto-tim-white.png', false, false);
+            $this->jsObject['assets']['verifiedIcon'] = $this->asset('img/verified-icon.png', false, false);
+            $this->jsObject['assets']['avatarAgent'] = $this->asset('img/avatar--agent.png', false, false);
+            $this->jsObject['assets']['avatarSeal'] = $this->asset('img/avatar--seal.png', false, false);
+            $this->jsObject['assets']['avatarSpace'] = $this->asset('img/avatar--space.png', false, false);
+            $this->jsObject['assets']['avatarEvent'] = $this->asset('img/avatar--event.png', false, false);
+            $this->jsObject['assets']['avatarProject'] = $this->asset('img/avatar--project.png', false, false);
+            $this->jsObject['assets']['avatarOpportunity'] = $this->asset('img/avatar--opportunity.png', false, false);
 
             $this->jsObject['isEditable'] = $this->isEditable();
             $this->jsObject['isSearch'] = $this->isSearch();
@@ -1228,6 +1240,11 @@ class Theme extends MapasCulturais\Theme {
         $app->hook('template(event.<<create|edit|single>>.tab-about-service):before', function(){
             $this->part('event-attendance', ['entity' => $this->data->entity]);
         });
+
+        // Limita acesso ao botão de download da planila de agentes a administradores
+        $app->hook('enabled.agent.spreadsheet.map', function(&$enabled_export_spreadsheet_map) use ($app){
+            $enabled_export_spreadsheet_map = $app->user->is('admin') ? true : false;
+        });
     }
 
     /*
@@ -1339,6 +1356,61 @@ class Theme extends MapasCulturais\Theme {
         ));
     }
 
+    function getLockedFieldsSeal(){
+        $exclude_list = [
+            'id',
+            'createTimestamp',
+            'status',
+            'userId',
+            'updateTimestamp',
+            '_subsiteId',
+            'geoPais',
+            'geoPais_cod',
+            'geoRegiao',
+            'geoRegiao_cod',
+            'geoEstado',
+            'geoEstado_cod',
+            'geoMesorregiao',
+            'geoMesorregiao_cod',
+            'geoMicrorregiao',
+            'geoMicrorregiao_cod',
+            'geoMunicipio',
+            'geoMunicipio_cod',
+            'geoZona',
+            'geoZona_cod',
+            'geoSubprefeitura',
+            'geoSubprefeitura_cod',
+            'geoDistrito',
+            'geoDistrito_cod',
+            'geoSetor_censitario',
+            'geoSetor_censitario_cod',
+            'event_importer_processed_file',
+            'opportunityTabName',
+            'useOpportunityTab',
+            'sentNotification',
+            'public',
+            'location',
+
+        ];
+        
+        $props = [
+            'agent' => \MapasCulturais\Entities\Agent::getPropertiesMetadata(),
+            'space' => \MapasCulturais\Entities\Space::getPropertiesMetadata(),
+        ];
+
+        $_fields = [];
+        foreach($props as $entity => $values){
+            foreach($values as $field => $v){
+                if(!$v["isEntityRelation"] && !in_array($field,$exclude_list)){
+                    $_fields[$entity][$field] = $v;
+                }
+            }
+        }
+
+        return $_fields;
+        
+    }
+
     function head() {
         parent::head();
 
@@ -1366,8 +1438,9 @@ class Theme extends MapasCulturais\Theme {
         $image_url = $app->view->asset('img/share.png', false);
         if ($entity) {
             $description = $entity->shortDescription ? $entity->shortDescription : $title;
-            if ($entity->avatar)
+            if ($entity->avatar && $entity->avatar->transform('avatarBig')){
                 $image_url = $entity->avatar->transform('avatarBig')->url;
+            }
         }else {
             $description = $this->dict('site: description', false);
         }
@@ -1454,9 +1527,8 @@ class Theme extends MapasCulturais\Theme {
         $this->enqueueScript('vendor', 'leaflet-draw', 'vendor/leaflet/lib/leaflet-plugins-updated-2014-07-25/Leaflet.draw-master/dist/leaflet.draw-src.js', array('leaflet'));
 
         // Google Maps API only needed in site/search and space, agent and event singles, or if the location patch is active
-        if ((preg_match("#site|space|agent|event|subsite#", $this->controller->id) &&
-             preg_match("#search|single|edit|create#", $this->controller->action)) ||
-            App::i()->config["app.enableLocationPatch"]) {
+        if (preg_match("#site|space|agent|event|subsite#", $this->controller->id) &&
+            preg_match("#search|single|edit|create#", $this->controller->action)) {
             $this->includeGeocodingAssets();
         }
 
@@ -1531,8 +1603,10 @@ class Theme extends MapasCulturais\Theme {
         $this->enqueueScript('app', 'mapasculturais-customizable', 'js/customizable.js', array('mapasculturais'));
 
         // This replaces the default geocoder with the google geocoder
-        if (App::i()->config['app.useGoogleGeocode'])
+        if (App::i()->config['app.useGoogleGeocode']){
+            $this->includeGeocodingAssets();
             $this->enqueueScript('app', 'google-geocoder', 'js/google-geocoder.js', array('mapasculturais-customizable'));
+        }
 
         $this->enqueueScript('app', 'ng-mapasculturais', 'js/ng-mapasculturais.js', array('mapasculturais'));
         $this->enqueueScript('app', 'mc.module.notifications', 'js/ng.mc.module.notifications.js', array('ng-mapasculturais'));
@@ -1628,6 +1702,18 @@ class Theme extends MapasCulturais\Theme {
 
     function includeSearchAssets() {
 
+        $this->jsObject['ngSearchAppDependencies'] = [
+            'ng-mapasculturais',
+            'rison',
+            'infinite-scroll',
+            'ui.date',
+            'search.service.find',
+            'search.service.findOne',
+            'search.controller.map',
+            'search.controller.spatial',
+            'mc.module.notifications'
+        ];
+
         $this->enqueueScript('app', 'search.service.find', 'js/ng.search.service.find.js', array('ng-mapasculturais', 'search.controller.spatial'));
         $this->enqueueScript('app', 'search.service.findOne', 'js/ng.search.service.findOne.js', array('ng-mapasculturais', 'search.controller.spatial'));
         $this->enqueueScript('app', 'search.controller.map', 'js/ng.search.controller.map.js', array('ng-mapasculturais', 'map'));
@@ -1664,42 +1750,43 @@ class Theme extends MapasCulturais\Theme {
         $app = App::i();
 
         $this->assetManager->publishAsset('css/main.css.map', 'css/main.css.map');
+        $this->jsObject['assets']['avatarAgent'] = $this->asset('img/avatar--agent.png', false, false);
+        $this->jsObject['assets']['avatarSpace'] = $this->asset('img/avatar--space.png', false, false);
+        $this->jsObject['assets']['avatarEvent'] = $this->asset('img/avatar--event.png', false, false);
+        $this->jsObject['assets']['avatarProject'] = $this->asset('img/avatar--project.png', false, false);
+        $this->jsObject['assets']['avatarOpportunity'] = $this->asset('img/avatar--opportunity.png', false, false);
+        $this->jsObject['assets']['avatarSeal'] = $this->asset('img/avatar--seal.png', false, false);
 
-        $this->jsObject['assets']['avatarAgent'] = $this->asset('img/avatar--agent.png', false);
-        $this->jsObject['assets']['avatarSpace'] = $this->asset('img/avatar--space.png', false);
-        $this->jsObject['assets']['avatarEvent'] = $this->asset('img/avatar--event.png', false);
-        $this->jsObject['assets']['avatarProject'] = $this->asset('img/avatar--project.png', false);
-        $this->jsObject['assets']['avatarOpportunity'] = $this->asset('img/avatar--opportunity.png', false);
-        $this->jsObject['assets']['avatarSeal'] = $this->asset('img/avatar--seal.png', false);
+        $this->jsObject['assets']['iconLocation'] = $this->asset('img/icon-localizacao.png', false, false);
+        $this->jsObject['assets']['iconFullscreen'] = $this->asset('img/icon-fullscreen.png', false, false);
+        $this->jsObject['assets']['iconZoomIn'] = $this->asset('img/icon-zoom-in.png', false, false);
+        $this->jsObject['assets']['iconZoomOut'] = $this->asset('img/icon-zoom-out.png', false, false);
+        $this->jsObject['assets']['layers'] = $this->asset('img/layers.png', false, false);
+        $this->jsObject['assets']['iconCircle'] = $this->asset('img/icon-circulo.png', false, false);
 
-        $this->jsObject['assets']['iconLocation'] = $this->asset('img/icon-localizacao.png', false);
-        $this->jsObject['assets']['iconFullscreen'] = $this->asset('img/icon-fullscreen.png', false);
-        $this->jsObject['assets']['iconZoomIn'] = $this->asset('img/icon-zoom-in.png', false);
-        $this->jsObject['assets']['iconZoomOut'] = $this->asset('img/icon-zoom-out.png', false);
-        $this->jsObject['assets']['layers'] = $this->asset('img/layers.png', false);
-        $this->jsObject['assets']['iconCircle'] = $this->asset('img/icon-circulo.png', false);
+        $this->jsObject['assets']['pinShadow'] = $this->asset('img/pin-sombra.png', false, false);
+        $this->jsObject['assets']['pinMarker'] = $this->asset('img/marker-icon.png', false, false);
 
-        $this->jsObject['assets']['pinShadow'] = $this->asset('img/pin-sombra.png', false);
-        $this->jsObject['assets']['pinMarker'] = $this->asset('img/marker-icon.png', false);
+        $this->jsObject['assets']['pinAgent'] = $this->asset('img/pin-agent.png', false, false);
+        $this->jsObject['assets']['pinSpace'] = $this->asset('img/pin-space.png', false, false);
+        $this->jsObject['assets']['pinEvent'] = $this->asset('img/pin-event.png', false, false);
 
-        $this->jsObject['assets']['pinAgent'] = $this->asset('img/pin-agent.png', false);
-        $this->jsObject['assets']['pinSpace'] = $this->asset('img/pin-space.png', false);
-        $this->jsObject['assets']['pinEvent'] = $this->asset('img/pin-event.png', false);
+        $this->jsObject['assets']['pinAgentGroup'] = $this->asset('img/agrupador-agent.png', false, false);
+        $this->jsObject['assets']['pinEventGroup'] = $this->asset('img/agrupador-event.png', false, false);
+        $this->jsObject['assets']['pinSpaceGroup'] = $this->asset('img/agrupador-space.png', false, false);
+        //$this->jsObject['assets']['pinSealGroup'] = $this->asset('img/agrupador-seal.png', false, false);
 
-        $this->jsObject['assets']['pinAgentGroup'] = $this->asset('img/agrupador-agent.png', false);
-        $this->jsObject['assets']['pinEventGroup'] = $this->asset('img/agrupador-event.png', false);
-        $this->jsObject['assets']['pinSpaceGroup'] = $this->asset('img/agrupador-space.png', false);
-        //$this->jsObject['assets']['pinSealGroup'] = $this->asset('img/agrupador-seal.png', false);
+        $this->jsObject['assets']['pinAgentEventGroup'] = $this->asset('img/agrupador-combinado-agent-event.png', false, false);
+        $this->jsObject['assets']['pinSpaceEventGroup'] = $this->asset('img/agrupador-combinado-space-event.png', false, false);
+        $this->jsObject['assets']['pinAgentSpaceGroup'] = $this->asset('img/agrupador-combinado-space-agent.png', false, false);
+        //$this->jsObject['assets']['pinSealSpaceGroup'] = $this->asset('img/agrupador-combinado-space-seal.png', false, false);
 
-        $this->jsObject['assets']['pinAgentEventGroup'] = $this->asset('img/agrupador-combinado-agent-event.png', false);
-        $this->jsObject['assets']['pinSpaceEventGroup'] = $this->asset('img/agrupador-combinado-space-event.png', false);
-        $this->jsObject['assets']['pinAgentSpaceGroup'] = $this->asset('img/agrupador-combinado-space-agent.png', false);
-        //$this->jsObject['assets']['pinSealSpaceGroup'] = $this->asset('img/agrupador-combinado-space-seal.png', false);
-
-        $this->jsObject['assets']['pinAgentSpaceEventGroup'] = $this->asset('img/agrupador-combinado.png', false);
+        $this->jsObject['assets']['pinAgentSpaceEventGroup'] = $this->asset('img/agrupador-combinado.png', false, false);
 
         $this->jsObject['geoDivisionsHierarchy'] = $app->config['app.geoDivisionsHierarchy'];
 
+        $this->jsObject['defaultCountry'] = $app->config['app.defaultCountry'];
+        
         $this->enqueueScript('app', 'map', 'js/map.js');
     }
 
@@ -1787,8 +1874,11 @@ class Theme extends MapasCulturais\Theme {
             'Todas opções' => i::__('Todas opções'),
         ]);
 
+        $this->jsObject['registrationAutosaveTimeout'] = $app->config['registration.autosaveTimeout'];
+        
         $this->enqueueScript('app', 'entity.module.opportunity', 'js/ng.entity.module.opportunity.js', array('ng-mapasculturais'));
         $this->localizeScript('moduleOpportunity', [
+            'unexpectedError'    => i::__('Um erro inesperado aconteceu.'),
             'allCategories' => i::__('Todas as categorias'),
             'selectFieldType' =>  i::__('Selecione o tipo de campo'),
             'fieldCreated' =>  i::__('Campo criado.'),
@@ -1876,6 +1966,11 @@ class Theme extends MapasCulturais\Theme {
         $this->jsObject['request']['id'] = $entity->id;
 
         $app->applyHookBoundTo($this, 'view.includeAngularEntityAssets:after');
+    }
+
+    function includeSealAssets(){
+        $this->enqueueScript("app","seal-locked-conf","js/seal-locked-conf.js");
+        $this->enqueueStyle("app","seal-locked-conf","css/seal-locked-conf.css");
     }
 
     protected function _printJsObject($var_name = 'MapasCulturais', $print_script_tag = true) {
@@ -2306,8 +2401,7 @@ class Theme extends MapasCulturais\Theme {
     	$app = App::i();
     	if (!$app->user->is('guest')) {
     		$this->jsObject['allowedSeals'] = $app->controller('seal')->apiQuery($query);
-
-        	if($app->user->is('admin') || $this->jsObject['allowedSeals'] > 0) {
+        	if($app->user->is('admin') || count($this->jsObject['allowedSeals']) > 0) {
         		$this->jsObject['canRelateSeal'] = true;
         	} else {
         		$this->jsObject['canRelateSeal'] = false;
@@ -2374,7 +2468,6 @@ class Theme extends MapasCulturais\Theme {
 
 
         $registrationStatuses = [
-            ['value' => null, 'label' => i::__('Todas')],
             ['value' => 1, 'label' => i::__('Pendente')],
             ['value' => 2, 'label' => i::__('Inválida')],
             ['value' => 3, 'label' => i::__('Não selecionada')],
@@ -2459,7 +2552,7 @@ class Theme extends MapasCulturais\Theme {
         $this->jsObject['entity']['canUserSend'] = $entity->canUser('send');
         $this->jsObject['entity']['canUserViewUserEvaluations'] = $entity->canUser('viewUserEvaluations');
 
-        $this->jsObject['registration'] = $entity;
+        $this->jsObject['registration'] = (object) $entity->jsonSerialize();
 
         if($entity->opportunity->canUser('viewEvaluations')){
             $this->jsObject['evaluation'] = $this->getCurrentRegistrationEvaluation($entity);
@@ -2469,7 +2562,7 @@ class Theme extends MapasCulturais\Theme {
             $agent = $def->agent;
             if($agent){
                 $def->agent = $agent->simplify('id,name,shortDescription,singleUrl');
-                $def->agent->avatarUrl = $agent->avatar ? $agent->avatar->transform('avatarSmall')->url : null;
+                $def->agent->avatarUrl = ($agent->avatar && $agent->avatar->transform('avatarSmall')) ? $agent->avatar->transform('avatarSmall')->url : null;
                 if($entity->status > 0){ // is sent
                     if(isset($entity->agentsData[$def->agentRelationGroupName])){
                         foreach($entity->agentsData[$def->agentRelationGroupName] as $prop => $val){
@@ -2683,7 +2776,11 @@ class Theme extends MapasCulturais\Theme {
 
     public function renderModalFor($entity_name, $show_icon = true, $label = "", $classes = "", $use_modal = true) {
         $app = App::i();
-
+        
+        if($app->user->is('guest')){
+            return;
+        }
+        
         $entity_classname = $app->controller($entity_name)->entityClassName;
 
         $current_entity_classname = $this->controller->entityClassName;

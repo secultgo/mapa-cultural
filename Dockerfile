@@ -1,8 +1,10 @@
 FROM base-mapagoiano:latest
 
-# Define the ENV variable
-ENV nginx_vhost /etc/nginx/sites-available/default
-ENV nginx_conf /etc/nginx/conf.d/default.conf
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl libcurl4-gnutls-dev locales imagemagick libmagickcore-dev libmagickwand-dev zip \
+        ruby ruby-dev libpq-dev gnupg nano iputils-ping git \
+        libfreetype6-dev libjpeg62-turbo-dev libpng-dev less vim \
+        sudo
 
 # Enable PHP-fpm on nginx virtualhost configuration
 COPY compose/production/nginx.conf ${nginx_vhost}

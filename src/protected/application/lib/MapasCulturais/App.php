@@ -235,7 +235,7 @@ class App extends \Slim\Slim{
         if($handle = opendir(MODULES_PATH)){
             while (false !== ($file = readdir($handle))) {
                 $dir = MODULES_PATH . $file . '/';
-                if ($file != "." && $file != ".." && is_dir($dir)) {
+                if ($file != "." && $file != ".." && is_dir($dir) && file_exists($dir."/Module.php")) {
                     $available_modules[] = $file;
                     $config['namespaces'][$file] = $dir;
                 }
@@ -798,7 +798,6 @@ class App extends \Slim\Slim{
 
         $this->registerController('event',          'MapasCulturais\Controllers\Event');
         $this->registerController('agent',          'MapasCulturais\Controllers\Agent');
-        $this->registerController('seal',           'MapasCulturais\Controllers\Seal');
         $this->registerController('space',          'MapasCulturais\Controllers\Space');
         $this->registerController('project',        'MapasCulturais\Controllers\Project');
 
@@ -836,6 +835,7 @@ class App extends \Slim\Slim{
         $this->registerApiOutput('MapasCulturais\ApiOutputs\Html');
         $this->registerApiOutput('MapasCulturais\ApiOutputs\Excel');
         $this->registerApiOutput('MapasCulturais\ApiOutputs\Dump');
+        $this->registerApiOutput('MapasCulturais\ApiOutputs\TextTable');
 
         $roles = [
             'saasSuperAdmin' => (object) [
@@ -1037,7 +1037,8 @@ class App extends \Slim\Slim{
                 $group->registerType($type);
                 $this->registerEntityType($type);
 
-                $type_meta = $type_config['metadata'] = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+                $type_meta = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+                $type_config['metadata'] = $type_meta;
 
                 // add group metadata to space type
                 if(key_exists('metadata', $group_config))
@@ -1064,7 +1065,9 @@ class App extends \Slim\Slim{
             $type = new Definitions\EntityType($entity_class, $type_id, $type_config['name']);
 
             $this->registerEntityType($type);
-            $type_config['metadata'] = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+
+            $type_meta = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_config['metadata'] = $type_meta;
 
             // add agents metadata definition to agent type
             foreach($agents_meta as $meta_key => $meta_config)
@@ -1085,8 +1088,10 @@ class App extends \Slim\Slim{
             $type = new Definitions\EntityType($entity_class, $type_id, $type_config['name']);
 
             $this->registerEntityType($type);
-            $type_config['metadata'] = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
 
+            $type_meta = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_config['metadata'] = $type_meta;
+            
             // add events metadata definition to event type
             foreach($event_meta as $meta_key => $meta_config)
                 if(!key_exists($meta_key, $type_meta) || key_exists($meta_key, $type_meta) && is_null($type_config['metadata'][$meta_key]))
@@ -1105,7 +1110,8 @@ class App extends \Slim\Slim{
             $type = new Definitions\EntityType($entity_class, $type_id, $type_config['name']);
 
             $this->registerEntityType($type);
-            $type_config['metadata'] = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_meta = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_config['metadata'] = $type_meta;
 
             // add projects metadata definition to project type
             foreach($projects_meta as $meta_key => $meta_config)
@@ -1125,7 +1131,8 @@ class App extends \Slim\Slim{
             $type = new Definitions\EntityType($entity_class, $type_id, $type_config['name']);
 
             $this->registerEntityType($type);
-            $type_config['metadata'] = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_meta = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_config['metadata'] = $type_meta;
 
             // add opportunities metadata definition to opportunity type
             foreach($opportunities_meta as $meta_key => $meta_config)
@@ -1154,6 +1161,9 @@ class App extends \Slim\Slim{
         	$type = new Definitions\EntityType($entity_class, $type_id, $type_config['name']);
         	$this->registerEntityType($type);
 
+            $type_meta = key_exists('metadata', $type_config) && is_array($type_config['metadata']) ? $type_config['metadata'] : [];
+            $type_config['metadata'] = $type_meta;
+            
         	// add projects metadata definition to project type
             foreach($seals_meta as $meta_key => $meta_config)
                 if(!key_exists($meta_key, $type_meta) || key_exists($meta_key, $type_meta) && is_null($type_config['metadata'][$meta_key]))
@@ -1477,6 +1487,8 @@ class App extends \Slim\Slim{
      * Invoke hook
      * @param  string   $name       The hook name
      * @param  mixed    $hookArgs   (Optional) Argument for hooked functions
+     * 
+     * @return callable[]
      */
     function applyHook($name, $hookArg = null) {
         if (is_null($hookArg))
@@ -1504,6 +1516,8 @@ class App extends \Slim\Slim{
         }
 
         array_pop($this->hookStack);
+
+        return $callables;
     }
 
     /**
@@ -1512,6 +1526,8 @@ class App extends \Slim\Slim{
      * @param  object $target_object Object to bind hook
      * @param  string   $name       The hook name
      * @param  mixed    $hookArgs   (Optional) Argument for hooked functions
+     * 
+     * @return callable[]
      */
     function applyHookBoundTo($target_object, $name, $hookArg = null) {
         if (is_null($hookArg))
@@ -1539,6 +1555,8 @@ class App extends \Slim\Slim{
         }
 
         array_pop($this->hookStack);
+
+        return $callables;
     }
 
 
@@ -1624,6 +1642,10 @@ class App extends \Slim\Slim{
      * @throws Exception 
      */
     public function enqueueJob(string $type_slug, array $data, string $start_string = 'now', string $interval_string = '', int $iterations = 1) {
+        if($this->config['app.log.jobs']) {
+            $this->log->debug("ENQUEUED JOB: $type_slug");
+        }
+
         $type = $this->getRegisteredJobType($type_slug);
         
         if (!$type) {
@@ -1633,6 +1655,7 @@ class App extends \Slim\Slim{
         $id = $type->generateId($data, $start_string, $interval_string, $iterations);
 
         if ($job = $this->repo('Job')->find($id)) {
+            $this->log->debug('JOB ID JÁ EXISTE: ' . $id);
             return $job;
         }
 
@@ -1676,6 +1699,10 @@ class App extends \Slim\Slim{
             $job->execute();
             $this->applyHookBoundTo($this, "app.executeJob:after");
             $this->enableAccessControl();
+
+            return $job_id;
+        } else {
+            return false;
         }
     }
 
@@ -1751,25 +1778,18 @@ class App extends \Slim\Slim{
             $item->save(true);
             $this->enableAccessControl();
 
-            $conn = $this->em->getConnection();
-            $conn->beginTransaction();
-
             try {
                 $entity = $this->repo($item->objectType)->find($item->objectId);
                 if ($entity) {
                     $entity->recreatePermissionCache();
                 }
-                
+                $item = $this->repo('PermissionCachePending')->find($item->id);
                 $this->em->remove($item);
-
                 $this->em->flush();
-                $conn->commit();
-            } catch (\ExceptionAa $e ){
-                
-                $conn->rollBack();
-                
+            } catch (\Exception $e ){
                 $this->disableAccessControl();
-                $item->status = 0;
+                $item = $this->repo('PermissionCachePending')->find($item->id);
+                $item->status = 2; // ERROR
                 $item->save(true);
                 $this->enableAccessControl();
 
@@ -2294,10 +2314,8 @@ class App extends \Slim\Slim{
     public function getControllerByEntity($entity){
         if(is_object($entity))
             $entity = $entity->getClassName();
-        else if(is_string($entity) && strpos($entity, '\\') === false)
-            $entity = '\MapasCulturais\Entities\\' . $entity;
-
-        $controller_class = preg_replace('#\\\Entities\\\([^\\\]+)$#', '\\Controllers\\\$1', $entity);
+        
+        $controller_class = $entity::getControllerClassName();
         return $this->getControllerByClass($controller_class);
     }
 
@@ -2315,10 +2333,8 @@ class App extends \Slim\Slim{
     public function getControllerIdByEntity($entity){
         if(is_object($entity))
             $entity = $entity->getClassName();
-        else if(is_string($entity) && strpos($entity, '\\') === false)
-            $entity = '\MapasCulturais\Entities\\' . $entity;
 
-        $controller_class = preg_replace('#\\\Entities\\\([^\\\]+)$#', '\\Controllers\\\$1', $entity);
+        $controller_class = $entity::getControllerClassName();
 
         return $this->getControllerId($controller_class);
     }
@@ -2833,32 +2849,13 @@ class App extends \Slim\Slim{
      * Utils
      ************/
 
-    function slugify($text) {
-        // replace non letter or digits by -
-        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-
-        // transliterate
-        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-
-        // remove unwanted characters
-        $text = preg_replace('~[^-\w]+~', '', $text);
-
-        // trim
-        $text = trim($text, '-');
-
-        // remove duplicate -
-        $text = preg_replace('~-+~', '-', $text);
-
-        // lowercase
-        $text = strtolower($text);
-
-        if (empty($text)) {
-            return 'n-a';
-        }
-
-        return $text;
+    function slugify($text) {        
+        return Utils::slugify($text);
     }
 
+    function removeAccents($string) {
+        return Utils::removeAccents($string);
+    }
 
     function detachRS($rs){
         $em = $this->_em;
@@ -2965,6 +2962,14 @@ class App extends \Slim\Slim{
             $message->setTo($this->_config['mailer.alwaysTo']);
         }
 
+        if($this->_config['mailer.bcc']){
+            $message->setBcc($this->_config['mailer.bcc']);
+        }
+
+        if($this->_config['mailer.replyTo']){
+            $message->setReplyTo($this->_config['mailer.replyTo']);
+        }
+
         $type = $message->getHeaders()->get('Content-Type');
         $type->setValue('text/html');
         $type->setParameter('charset', 'utf-8');
@@ -3047,22 +3052,48 @@ class App extends \Slim\Slim{
             }
         }
 
+        $header = file_get_contents($header_name);
+        $footer = file_get_contents($footer_name);
+        $content = file_get_contents($file_name);
+
+        $matches = [];
+        if(preg_match_all('#\{\{asset:([^\}]+)\}\}#', $header, $matches)){
+            foreach($matches[0] as $i => $tag){
+                $header = str_replace($tag, $this->view->asset($matches[1][$i], false), $header);
+            }
+        }
+
+        $matches = [];
+        if(preg_match_all('#\{\{asset:([^\}]+)\}\}#', $footer, $matches)){
+            foreach($matches[0] as $i => $tag){
+                $footer = str_replace($tag, $this->view->asset($matches[1][$i], false), $footer);
+            }
+        }
+
+        $matches = [];
+        if(preg_match_all('#\{\{asset:([^\}]+)\}\}#', $content, $matches)){
+            foreach($matches[0] as $i => $tag){
+                $content = str_replace($tag, $this->view->asset($matches[1][$i], false), $content);
+            }
+        }
+
+        
         $mustache = new \Mustache_Engine();
 
         $headerData = $templateData;
         $this->applyHookBoundTo($this, "mustacheTemplate({$template}).headerData", [&$headerData]);
-        $_header = $mustache->render(file_get_contents($header_name), $headerData);
+        $_header = $mustache->render($header, $headerData);
         $this->applyHookBoundTo($this, "mustacheTemplate({$template}).header", [&$_header]);
 
         $footerData = $templateData;
         $this->applyHookBoundTo($this, "mustacheTemplate({$template}).footerData", [&$footerData]);
-        $_footer = $mustache->render(file_get_contents($footer_name),$footerData);
+        $_footer = $mustache->render($footer, $footerData);
         $this->applyHookBoundTo($this, "mustacheTemplate({$template}).footer", [&$_footer]);
 
         $templateData->_footer = $_footer;
         $templateData->_header = $_header;
         $this->applyHookBoundTo($this, "mustacheTemplate({$template}).templateData", [&$templateData]);
-        $content = $mustache->render(file_get_contents($file_name), $templateData);
+        $content = $mustache->render($content, $templateData);
         $this->applyHookBoundTo($this, "mustacheTemplate({$template}).content", [&$content]);
 
         return $content;

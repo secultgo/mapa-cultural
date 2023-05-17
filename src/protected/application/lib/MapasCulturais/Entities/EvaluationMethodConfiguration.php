@@ -80,7 +80,7 @@ class EvaluationMethodConfiguration extends \MapasCulturais\Entity {
     public function jsonSerialize() {
         $result = parent::jsonSerialize();
 
-        $result['opportunity'] = $this->opportunity->simduplify('id,name,singleUrl');
+        $result['opportunity'] = $this->opportunity->simplify('id,name,singleUrl');
 
         return $result;
     }
@@ -132,7 +132,7 @@ class EvaluationMethodConfiguration extends \MapasCulturais\Entity {
     }
     
     function getExtraEntitiesToRecreatePermissionCache(){
-        return [$this->opportunity];
+        return [$this->opportunity->parent ?: $this->opportunity];
     }
     
     

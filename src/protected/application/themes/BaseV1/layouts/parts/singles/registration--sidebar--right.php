@@ -19,10 +19,12 @@ foreach ($opportunity->getEvaluationCommittee() as $evaluation_user) {
         $evaluationAgent = true;
 }
 ?>
+<?= $this->applyTemplateHook('registration-sidebar-rigth','before')?>
 <div class="sidebar registration sidebar-right">
+    <?= $this->applyTemplateHook('registration-sidebar-rigth','begin')?>
     <?php if($action === 'single' && $entity->canUser('viewUserEvaluation')): ?>
         <div id="registration-evaluation-form" class="evaluation-form evaluation-form--<?php echo $evaluationMethod->getSlug(); ?>">
-            <?php if($evaluationAgent): ?>
+            <?php if($evaluationAgent && $entity->canUser('evaluate')): ?>
                 <?php if($infos): ?>
                     <div id="documentary-evaluation-info" class="alert info">
                         <div class="close" style="cursor: pointer;"></div>
@@ -61,5 +63,7 @@ foreach ($opportunity->getEvaluationCommittee() as $evaluation_user) {
                 <?php $this->part($evaluation_view_part_name, $params); ?>
             <?php endif; ?>
         </div>
-    <?php endif; ?>
+        <?php endif; ?>
+    <?= $this->applyTemplateHook('registration-sidebar-rigth','end') ?>
 </div>
+<?= $this->applyTemplateHook('registration-sidebar-rigth','after'); ?>

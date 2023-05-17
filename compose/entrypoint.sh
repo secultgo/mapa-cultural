@@ -24,7 +24,8 @@ echo "\ncorrigindo status da fila de criação de cache de permissão\n\n";
 
 $pdo->query("UPDATE permission_cache_pending SET status = 0;");
 '
-
+mkdir -p /var/www/html/protected/DoctrineProxies
+mkdir -p /var/www/SaaS
 if ! cmp /var/www/version.txt /var/www/private-files/deployment-version >/dev/null 2>&1
 then
     cd /var/www/scripts
@@ -32,16 +33,14 @@ then
     cp /var/www/version.txt /var/www/private-files/deployment-version
 fi
 
-#chown -R www-data:www-data /var/www/html/assets /var/www/html/files /var/www/private-files
-
 cd /
-#touch /nohup.out
-nohup /jobs-cron.sh >> /dev/stdout &
-nohup /recreate-pending-pcache-cron.sh >> /dev/stdout &
+
+touch /nohup.out
+sudo -E -u www-data nohup /jobs-cron.sh >> /dev/stdout &
+sudo -E -u www-data nohup /recreate-pending-pcache-cron.sh >> /dev/stdout &
 
 tail -f /nohup.out > /dev/stdout &
-
-#touch /mapas-ready
+touch /mapas-ready
 
 nginx
 

@@ -5,8 +5,8 @@ use Exception;
 use MapasCulturais\i;
 use MapasCulturais\App;
 use MapasCulturais\Traits;
-use MapasCulturais\Entities;
 use MapasCulturais\ApiQuery;
+use MapasCulturais\Entities;
 
 /**
  * Opportunity Controller
@@ -667,33 +667,74 @@ class Opportunity extends EntityController {
             'opportunity_id' => $opportunity->id,
             ]);
 
-        $sql = "
-        SELECT
-            r.id as registrationId,
-            r.status as registrationStatus,
-            r.consolidated_result as registrationConsolidated_result,
-            r.number as registrationNumber,
-            re.*, 
-            a.id as agentId,
-            a.name as agentName
-        FROM
-            registration r
-        INNER JOIN pcache pc
-            ON pc.object_id = r.id
-                AND pc.object_type = 'MapasCulturais\Entities\Registration'
-                AND pc.action = 'evaluate'
-                AND pc.user_id = :user_id
-        LEFT JOIN registration_evaluation re
-            ON r.id = re.registration_id
-            AND re.user_id = :user_id
-        INNER JOIN agent a
-            ON a.id = r.agent_id
-                WHERE r.status > 0
-                AND r.opportunity_id = :opportunity_id 
-                ORDER BY r.id
-            LIMIT :limit
-            OFFSET :offset
-        ";
+        if(isset($this->data['@pending'])){
+            $sql = "
+            SELECT
+                r.id as registrationId,
+                r.status as registrationStatus,
+                r.consolidated_result as registrationConsolidated_result,
+                r.number as registrationNumber,
+                re.*,
+                a.id as agentId,
+                a.name as agentName
+            FROM
+                registration r
+                INNER JOIN pcache pc ON
+                    pc.object_id = r.id
+                    AND pc.object_type = 'MapasCulturais\Entities\Registration'
+                    AND pc.action = 'evaluate'
+                    AND pc.user_id = :user_id
+                LEFT JOIN registration_evaluation re ON
+                    r.id = re.registration_id
+                    AND re.user_id = :user_id
+                INNER JOIN agent a ON 
+                    a.id = r.agent_id
+            WHERE
+                r.status > 0
+                AND r.opportunity_id = :opportunity_id
+                AND r.id NOT IN (
+                    SELECT registration_id 
+                    FROM registration_evaluation 
+                    WHERE user_id = :user_id
+                )
+            ORDER BY
+                r.id
+            LIMIT
+                :limit OFFSET :offset
+            ";
+        }else{
+            $sql = "
+            SELECT
+                r.id as registrationId,
+                r.status as registrationStatus,
+                r.consolidated_result as registrationConsolidated_result,
+                r.number as registrationNumber,
+                re.*,
+                a.id as agentId,
+                a.name as agentName
+            FROM
+                registration r
+                INNER JOIN pcache pc ON
+                    pc.object_id = r.id
+                    AND pc.object_type = 'MapasCulturais\Entities\Registration'
+                    AND pc.action = 'evaluate'
+                    AND pc.user_id = :user_id
+                LEFT JOIN registration_evaluation re ON
+                    r.id = re.registration_id
+                    AND re.user_id = :user_id
+                INNER JOIN agent a ON 
+                    a.id = r.agent_id
+            WHERE
+                r.status > 0
+                AND r.opportunity_id = :opportunity_id
+            ORDER BY
+                r.id
+            LIMIT
+                :limit OFFSET :offset
+            ";
+        }
+
+        
 
         $limit = isset($data['@limit']) ? $data['@limit'] : 50;
         $page = isset($data['@page'] ) ? $data['@page'] : 1;
@@ -744,7 +785,7 @@ class Opportunity extends EntityController {
 
         $users = implode(',', array_map(function ($el){ return $el['user']; }, $committee));
 
-        if (!$users) {
+        if(empty($users)){
             $this->apiAddHeaderMetadata($this->data, [], 0);
             $this->apiResponse([]);
             return;
@@ -787,13 +828,30 @@ class Opportunity extends EntityController {
             }
         }
 
-        $sql_filter = "";
-        if (isset($this->data['@keyword'])) {            
-            $keyword = $this->data['@keyword'];
-            $sql_filter .=  " AND (LOWER(registration_agent_name) LIKE LOWER('%{$keyword}%')";
-            $sql_filter .=  " OR registration_number LIKE '%{$keyword}%')";
+        $rdata = [
+            '@select' => 'id',
+            'opportunity' => "EQ({$opportunity->id})",
+            '@permissions' => 'viewPrivateData'
+        ];
+
+        foreach($this->data as $k => $v){
+            if(strtolower(substr($k, 0, 13)) === 'registration:'){
+                $rdata[substr($k, 13)] = $v;
+            }
         }
-        
+      
+        if(isset($this->data['valuer:id'])){
+            if(preg_match('#EQ\( *(\d+) *\)#', $this->data['valuer:id'], $matches)) {
+                $valuer_id = $matches[1];
+                $valuer = $app->repo("Agent")->find($valuer_id);
+                $rdata['@permissionsuser'] = $valuer->userId;
+            }
+        }
+
+        $registrations_query = new ApiQuery('MapasCulturais\Entities\Registration', $rdata);
+
+        $registration_ids = implode(",", $registrations_query->findIds() ?: [-1]);
+
         $evaluations = $conn->fetchAll("
             SELECT 
                 registration_id, 
@@ -802,13 +860,15 @@ class Opportunity extends EntityController {
             FROM evaluations
             WHERE
                 opportunity_id = :opp AND
-                valuer_user_id IN({$users})
+                valuer_user_id IN({$users}) AND
+                registration_id IN ({$registration_ids})
                 $sql_status
                 $sql_filter
             ORDER BY registration_sent_timestamp ASC
             $sql_limit
         ", $params);
-
+        
+        
         $registration_ids = array_filter(array_unique(array_map(function($r) { return $r['registration_id']; }, $evaluations)));
         $evaluations_ids = array_filter(array_unique(array_map(function($r) { return $r['evaluation_id']; }, $evaluations)));
 
@@ -819,10 +879,20 @@ class Opportunity extends EntityController {
 
         foreach($evaluations as $eval) {
             $_result[] = [
+                'registration_id' => $eval['registration_id'],
                 'evaluation' => $_evaluations[$eval['evaluation_id']] ?? null,
                 'registration' => $_registrations[$eval['registration_id']] ?? null,
                 'valuer' => $valuer_by_id[$eval['valuer_agent_id']] ?? null
             ];
+        }
+
+        if(!$opportunity->canUser("@control")){
+            $avaliableEvaluationFields = (!empty($opportunity->avaliableEvaluationFields) || $opportunity->avaliableEvaluationFields != "") ? $opportunity->avaliableEvaluationFields : [];
+            foreach($_result as $key => $res){
+                if(!in_array("agentsSummary", array_keys($avaliableEvaluationFields))){
+                    $_result[$key]['registration']['owner'] =  [];
+                }
+            }
         }
 
         if (!is_null($opportunity_id) && is_int($opportunity_id)) {
@@ -1010,6 +1080,8 @@ class Opportunity extends EntityController {
             $app->em->clear();
         }
 
+        $url = $app->createUrl('oportunidade', $opportunity->id);
+        $app->redirect($url);
     }
 
     function GET_exportFields() {
