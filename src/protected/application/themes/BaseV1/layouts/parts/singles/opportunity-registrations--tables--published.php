@@ -4,6 +4,10 @@ use MapasCulturais\i;
 <p ng-if="data.registrationsAPIMetadata.count > 0">
     <?php i::_e('Veja abaixo as inscrições suplentes/selecionadas'); ?>
 </p>
+<div id="filtro-inscritos">
+    <span class="label"> <?php i::_e("Filtrar inscrição:");?> </span>
+    <input ng-model="data.registrationsFilter" placeholder="<?php i::_e('Busque pelo número de inscrição, status da avaliação, nome ou cpf do responsável') ?>" />
+</div>
 <table class="js-registration-list registrations-table published-registration-table" ng-class="{'no-options': data.entity.registrationCategories.length === 0, 'no-attachments': data.entity.registrationFileConfigurations.length === 0, 'registrations-results': data.entity.published}"><!-- adicionar a classe registrations-results quando resultados publicados-->
     <thead>
         <tr>

@@ -27,7 +27,7 @@ $params = ['registration' => $entity, 'opportunity' => $opportunity];
     <hr>
     <label>
         <?php i::_e('Parecer Técnico') ?>
-        <textarea name="data[obs]" ng-model="evaluation['obs']"></textarea>
+        <textarea name="data[obs]" ng-model="evaluation['obs']" required="required"></textarea>
     </label>
     <hr>
     

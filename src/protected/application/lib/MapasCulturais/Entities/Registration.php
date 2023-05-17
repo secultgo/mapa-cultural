@@ -210,6 +210,13 @@ class Registration extends \MapasCulturais\Entity
      */
     protected $requestedResource;
 
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="status_resource", type="smallint", nullable=true)
+     */
+    protected $statusResource;
+
 
     /**
      * @var string
@@ -1351,6 +1358,15 @@ class Registration extends \MapasCulturais\Entity
         $app->disableAccessControl();
         $this->requestedResource = $message;
         $this->requestedResourceTimestamp = new \DateTime;
+        $this->save(true);
+        $app->enableAccessControl();
+    }
+
+    function saveResourceJustification($statusResource, $justificationResource) {
+        $app = App::i();
+        $app->disableAccessControl();
+        $this->statusResource = $statusResource;
+        $this->justificationResource = $justificationResource;
         $this->save(true);
         $app->enableAccessControl();
     }
