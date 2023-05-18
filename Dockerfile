@@ -6,34 +6,67 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libfreetype6-dev libjpeg62-turbo-dev libpng-dev less vim \
         sudo
 
-# Enable PHP-fpm on nginx virtualhost configuration
-COPY compose/production/nginx.conf ${nginx_vhost}
-COPY compose/production/nginx.conf ${nginx_conf}
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+    && apt-get install -y nodejs
 
-RUN mkdir -p /run/php && \
-    chown -R www-data:www-data /var/www/html && \
-    chown -R www-data:www-data /run/php
+RUN rm -rf /var/lib/apt/lists
+
+# Install uglify and terser
+RUN npm install -g \
+        terser \
+        uglifycss \
+        autoprefixer
+
+# Install sass
+RUN gem install sass -v 3.4.22
+
+# Install extensions
+RUN docker-php-ext-install opcache pdo_pgsql zip xml curl json 
+
+# Install GD
+RUN docker-php-ext-install -j$(nproc) iconv \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd
+
+# Install APCu
+RUN pecl install apcu \
+    && echo "extension=apcu.so" > /usr/local/etc/php/conf.d/apcu.ini
+
+# Install imagick
+RUN pecl install imagick-beta \
+    && echo "extension=imagick.so" > /usr/local/etc/php/conf.d/ext-imagick.ini
+
+# Install composer
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php composer-setup.php --version=1.10.16 --install-dir=/usr/local/bin && \
+    rm composer-setup.php
+
+# Install redis
+RUN pecl install -o -f redis \
+    &&  rm -rf /tmp/pear \
+    &&  docker-php-ext-enable redis
 
 # Copy source
 COPY src/index.php /var/www/html/index.php
-COPY --chown=www-data:www-data src/protected /var/www/html/protected
-
-RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer/ && \
-    chown -R www-data:www-data /var/www/html/protected/vendor/ /var/www/.composer/
-
-RUN ln -s /var/www/html/protected/application/lib/postgis-restful-web-service-framework /var/www/html/geojson
+COPY src/protected/composer.json /var/www/html/protected/composer.json
+COPY src/protected/composer.lock /var/www/html/protected/composer.lock
 
 WORKDIR /var/www/html/protected
 RUN composer.phar install
+
+RUN mkdir -p /var/www/html/protected/vendor /var/www/.composer && \
+    chown -R www-data:www-data /var/www/html/protected/vendor /var/www/.composer
+
+
+COPY src/protected/application/themes /var/www/html/protected/application/themes
 
 WORKDIR /var/www/html/protected/application/themes/
 
 RUN find . -maxdepth 1 -mindepth 1 -exec echo "compilando sass do tema " {} \; -exec sass {}/assets/css/sass/main.scss {}/assets/css/main.css -E "UTF-8" \;
 
-RUN mkdir /var/www/html/assets
-RUN mkdir /var/www/html/files
-RUN mkdir /var/www/private-files
-RUN mkdir /var/log/php-fpm
+COPY src/protected /var/www/html/protected
+
+RUN ln -s /var/www/html/protected/application/lib/postgis-restful-web-service-framework /var/www/html/geojson
 
 COPY scripts /var/www/scripts
 COPY compose/production/php.ini /usr/local/etc/php/php.ini
