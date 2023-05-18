@@ -828,6 +828,13 @@ class Opportunity extends EntityController {
             }
         }
 
+        $sql_filter = "";
+        if (isset($this->data['@keyword'])) {
+            $keyword = $this->data['@keyword'];
+            $sql_filter .= " AND (LOWER(registration_agent_name) LIKE LOWER('%{$keyword}%')";
+            $sql_filter .= " OR registration_number LIKE '%{$keyword}%')";
+        }
+
         $rdata = [
             '@select' => 'id',
             'opportunity' => "EQ({$opportunity->id})",
