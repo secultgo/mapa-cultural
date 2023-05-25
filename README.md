@@ -144,5 +144,6 @@ Vale lembrar que os requisitos de hardware podem variar de acordo com a latênci
 
 ### Licença de uso e desenvolvimento
 
-Mapas Culturais é um software livre licenciado com [GPLv3](http://gplv3.fsf.org). 
+Mapas Culturais é um software livre licenciado com [GPLv3](http://gplv3.fsf.org).  
+
 
