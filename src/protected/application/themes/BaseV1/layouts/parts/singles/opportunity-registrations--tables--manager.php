@@ -5,15 +5,11 @@ use MapasCulturais\i;
 <header id="header-inscritos" class="clearfix">
     <?php $this->applyTemplateHook('header-inscritos','begin'); ?>
     <h3><?php i::_e("Inscritos");?></h3>
-    <div class="alert info hide-tablet">
-        <?php i::_e("Não é possível alterar o status das inscrições através desse dispositivo. Tente a partir de um dispositivo com tela maior.");?>
-        <div class="close"></div>
+    <div class="header-inscritos">
+        <?php $this->applyTemplateHook('header-inscritos','actions'); ?>
+        <a class="btn btn-default download" href="<?php echo $this->controller->createUrl('report', [$entity->id]); ?>"><?php i::_e("Baixar inscritos");?></a>
+        <a class="btn btn-default download" href="<?php echo $this->controller->createUrl('reportDrafts', [$entity->id]); ?>"><?php i::_e("Baixar rascunhos");?></a>
     </div>
-    <?php $this->applyTemplateHook('header-inscritos','actions'); ?>
-    <a class="btn btn-default download hltip" title="Baixar todos inscritos" href="<?php echo $this->controller->createUrl('report', [$entity->id]); ?>"><?php i::_e("Todos");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições em rascunho" href="<?php echo $this->controller->createUrl('reportDrafts', [$entity->id]); ?>"><?php i::_e("Rascunhos");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições selecionadas" href="<?php echo $this->controller->createUrl('reportApproved', [$entity->id]); ?>"><?php i::_e("Selecionados");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições pendentes" href="<?php echo $this->controller->createUrl('reportPending', [$entity->id]); ?>"><?php i::_e("Pendentes");?></a>    
     <?php $this->applyTemplateHook('header-inscritos','end'); ?>
 </header>
 <p style="text-align:right">
