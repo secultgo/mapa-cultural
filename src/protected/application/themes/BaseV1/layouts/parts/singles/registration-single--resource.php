@@ -15,7 +15,7 @@
 
     <?php if($evaluationAgent): ?>
         <label class="textarea-label">
-            <?php i::_e('Justificativa de recurso') ?><br>
+            <?php \MapasCulturais\i::_e('Justificativa de recurso') ?><br>
             <textarea name="data[obs]">{{$entity->justificationResource}}</textarea>
         </label>
     <?php elseif(!$evaluationAgent): ?>
