@@ -39,8 +39,8 @@ touch ./nohup.out
 #sudo -E -u www-data nohup ./jobs-cron.sh >> /dev/stdout &
 #sudo -E -u www-data nohup ./recreate-pending-pcache-cron.sh >> /dev/stdout &
 
-./jobs-cron.sh >> /dev/stdout &
-nohup ./recreate-pending-pcache-cron.sh >> /dev/stdout &
+/jobs-cron.sh >> /dev/stdout &
+nohup /recreate-pending-pcache-cron.sh >> /dev/stdout &
 
 tail -f ./nohup.out > /dev/stdout &
 touch ./mapas-ready
