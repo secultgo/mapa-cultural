@@ -96,7 +96,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 WORKDIR /var/www/html/
 
-EXPOSE 8000
+EXPOSE 80 443
 
 RUN ln -s /var/www/html /var/www/src
 
