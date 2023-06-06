@@ -84,6 +84,14 @@ COPY compose/entrypoint.sh /entrypoint.sh
 
 RUN chmod -R 775 /var/www/
 
+ENV nginx_vhost /etc/nginx/sites-available/default
+ENV nginx_conf /etc/nginx/conf.d/default.conf
+
+# Enable PHP-fpm on nginx virtualhost configuration
+COPY compose/production/nginx.conf ${nginx_vhost}
+COPY compose/production/nginx.conf ${nginx_conf}
+
+
 RUN chmod -R 777 /var/log/nginx /var/lib/nginx
 
 RUN mkdir /var/log/php-fpm && chmod -R 777 /var/log/php-fpm
