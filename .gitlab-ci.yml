@@ -1,7 +1,6 @@
 variables:
   NAMESPACE: sistemas-cultura-mapagoiano
   APP_NAME: mapa-cultural
-  ENV: prod
   
 include:
   - project: 'openshift-namespaces/templates'
