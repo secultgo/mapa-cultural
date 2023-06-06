@@ -1,0 +1,8 @@
+variables:
+  NAMESPACE: sistemas-cultura-mapagoiano
+  APP_NAME: mapa-cultural
+  
+include:
+  - project: 'openshift-namespaces/templates'
+    ref: master
+    file: '/php/gitlab-ci-templates.yaml'
