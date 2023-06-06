@@ -78,14 +78,23 @@ COPY compose/config.php /var/www/html/protected/application/conf/config.php
 COPY compose/config.d /var/www/html/protected/application/conf/config.d
 
 COPY version.txt /var/www/version.txt
+COPY compose/jobs-cron.sh /jobs-cron.sh
 COPY compose/recreate-pending-pcache-cron.sh /recreate-pending-pcache-cron.sh
 COPY compose/entrypoint.sh /entrypoint.sh
 
 RUN chmod -R 775 /var/www/
 
+ENV nginx_vhost /etc/nginx/sites-available/default
+ENV nginx_conf /etc/nginx/conf.d/default.conf
+
+# Enable PHP-fpm on nginx virtualhost configuration
+COPY compose/production/nginx.conf ${nginx_vhost}
+COPY compose/production/nginx.conf ${nginx_conf}
+
+
 RUN chmod -R 777 /var/log/nginx /var/lib/nginx
 
-RUN chmod -R 777 /var/log/php-fpm
+RUN mkdir /var/log/php-fpm && chmod -R 777 /var/log/php-fpm
 
 RUN sed -i 's/\/run/\/var\/log\/nginx/g' /etc/nginx/nginx.conf
 
