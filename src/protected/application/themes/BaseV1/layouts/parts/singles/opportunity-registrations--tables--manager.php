@@ -75,7 +75,7 @@ use MapasCulturais\i;
         <tr>
             <?php $this->applyTemplateHook('registration-list-header','begin'); ?>
             <th ng-show="data.registrationTableColumns.number" class="registration-id-col">
-                <?php i::_e("Inscrição");?>
+                <?php i::_e("Inscrição"); 123?>
             </th>            
             <th ng-show="data.registrationTableColumns.category" ng-if="data.entity.registrationCategories" class="registration-option-col" title="{{data.registrationCategory}}">
                 <mc-select class="left transparent-placeholder" placeholder="status" model="registrationsFilters['category']" data="data.registrationCategoriesToFilter" title="{{data.registrationCategory}}"></mc-select>
@@ -92,6 +92,9 @@ use MapasCulturais\i;
             <th ng-show="data.registrationTableColumns.evaluation" class="registration-status-col">
                 <?php i::_e("Avaliação");?>
             </th>
+            <th ng-show="data.registrationTableColumns.date" class="registration-status-col">
+                <?php i::_e("Data Envio Inscrição"); ?>
+            </th>  
             <th ng-show="data.registrationTableColumns.status" class="registration-status-col">
                 <mc-select placeholder="Status" model="registrationsFilters['status']" data="data.registrationStatuses"></mc-select>
             </th>
@@ -154,6 +157,10 @@ use MapasCulturais\i;
                 {{reg.evaluationResultString}}
             </td>
 
+            <td ng-show="data.registrationTableColumns.date" class="registration-status-col">
+                {{ reg.sentTimestamp.date }}
+            </td>
+
             <td ng-show="data.registrationTableColumns.status" class="registration-status-col">
                 <?php if ($entity->publishedRegistrations): ?>
                     <span class="status status-{{getStatusSlug(reg.status)}}">{{getStatusNameById(reg.status)}}</span>
@@ -161,6 +168,7 @@ use MapasCulturais\i;
                     <mc-select model="reg" data="data.registrationStatusesNames" getter="getRegistrationStatus" setter="setRegistrationStatus"></mc-select>
                 <?php endif; ?>
             </td>
+
             <?php $this->applyTemplateHook('registration-list-item','end'); ?>
         </tr>
     </tbody>
