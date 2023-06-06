@@ -41,8 +41,10 @@ $_params = [
         
         <?php $this->part('singles/registration-single--fields', $_params) ?>
         
-        <?php $this->part('singles/registration-single--evaluations', $_params) ?>
-        
+        <?php if($entity->opportunity->canUser("@control") || $entity->canUser("viewUserEvaluation") || $entity->opportunity->publishedRegistrations): ?>
+            <?php $this->part('singles/registration-single--evaluations', $_params) ?>
+        <?php endif ?>
+
         <?php $this->part('singles/registration-single--resource', $_params) ?>
 
         <?php $this->applyTemplateHook('form','end'); ?>
