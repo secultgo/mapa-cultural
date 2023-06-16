@@ -15,6 +15,9 @@ use MapasCulturais\i;
 <p style="text-align:right">
     <small><span>*</span><em> <?php i::_e('Os arquivos aqui baixados são melhor visualizados usando o LibreOffice') ?></em></small>
 </p>
+
+<?php $this->applyTemplateHook('export-csv-with-fields-selecteds', 'filter'); ?>
+
 <div id='status-info' class="alert info">
     <p><?php i::_e("Altere os status das inscrições na última coluna da tabela de acordo com o seguinte critério:");?></p>
     <ul>
