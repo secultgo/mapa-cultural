@@ -403,9 +403,9 @@ class Opportunity extends EntityController {
                     $cdata['id'] = "IN(-1)";
                 }
             }
+            
             $_disable_access_control = $current->publishedRegistrations && !$current->canUser('viewEvaluations');
             $q = new ApiQuery('MapasCulturais\Entities\Registration', $cdata, false, false, $_disable_access_control);
-
             $regs = $q->find();
 
             foreach($regs as $reg){
@@ -445,9 +445,11 @@ class Opportunity extends EntityController {
                 $data['status'] = 'IN(10,8)';
             }
         }
-        $query = new ApiQuery('MapasCulturais\Entities\Registration', $data, false, false, $opportunity->publishedRegistrations);
 
+        $data['@select'] .= ',sentTimestamp';
+        $query = new ApiQuery('MapasCulturais\Entities\Registration', $data, false, false, $opportunity->publishedRegistrations);
         $registrations = $query->find();
+        // dd($registrations);
 
         $em = $opportunity->getEvaluationMethod();
         foreach($registrations as &$reg) {
