@@ -1934,6 +1934,7 @@ class Theme extends MapasCulturais\Theme {
             'Agentes' => i::__('Agentes'),
             'Anexos' => i::__('Anexos'),
             'Avaliação' => i::__('Avaliação'),
+            'DataEnvioInscricao' => i::__('Data Envio Inscrição'), // send_timestamp
             'Status' => i::__('Status'),
             'spaceRelationRequestSent' =>  i::__('Sua requisição para relacionar o espaço {{space}} foi enviada.')
         ]);

@@ -1969,6 +1969,11 @@ module.controller('RegistrationFieldsController', ['$scope', '$rootScope', '$int
 
                     for (var i in response){
                         response[i]['files'] = {};
+
+                        if (response[i] !== undefined && response[i] !== null && response[i]['sentTimestamp'] !== undefined && response[i]['sentTimestamp'] !== null) {
+                            response[i]['sentTimestamp'].date = response[i]['sentTimestamp'].date ? moment(response[i]['sentTimestamp'].date).format('DD/MM/YYYY HH:mm') : null;
+                        }
+                        
                         for(var prop in response[i]){
                             if(prop.indexOf('@files:') === 0){
                                 response[i].files[prop.substr(7)] = response[i][prop];
@@ -2228,6 +2233,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         {fieldName: "agents", title:labels['Agentes'] ,required:true},
         {fieldName: "attachments", title:labels['Anexos']  ,required:true},
         {fieldName: "evaluation", title: labels['Avaliação'] ,required:true},
+        {fieldName: "date", title:labels['DataEnvioInscricao'] ,required:true},
         {fieldName: "status", title:labels['Status'] ,required:true},
     ];
 
@@ -2339,6 +2345,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
             agents: true,
             attachments: true,
             evaluation: true,
+            date: true,
             status: true
         },
 
@@ -2420,6 +2427,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
     }
 
     $scope.getColumnByKey = function(key){
+        console.log($scope.data.defaultSelectFields);
         for(var index in $scope.data.defaultSelectFields){
             if($scope.data.defaultSelectFields[index].fieldName == key ){
                 return $scope.data.defaultSelectFields[index];
@@ -2741,7 +2749,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
 
         }]);
 
-    module.controller('RegistrationListController', ['$scope', '$interval', 'OpportunityApiService', function($scope, $timeout, OpportunityApiService){
+    module.controller('RegistrationListController', ['$scope', '$rootScope', '$interval', 'OpportunityApiService', function($scope, $rootScope, $timeout, OpportunityApiService){
         if (! (MapasCulturais.entity.canUserEvaluate || MapasCulturais.entity.canUserViewUserEvaluations) ) {
             return;
         }
@@ -2762,7 +2770,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
         var registrationsApi = new OpportunityApiService($scope, 'registrations', 'findRegistrations', {
             '@opportunity': getOpportunityId(),
             '@limit': 50,
-            '@select': 'id,singleUrl,owner.{id,name}'
+            '@select': 'id,singleUrl,owner.{id,name},sentTimestamp'
         });
 
         var evaluationsApi = new OpportunityApiService($scope, 'evaluations', 'findEvaluations', {
@@ -2961,6 +2969,7 @@ module.controller('OpportunityController', ['$scope', '$rootScope', '$location',
 
             return result;
         }
+
 
     }]);
 
