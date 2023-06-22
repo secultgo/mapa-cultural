@@ -11,6 +11,8 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
     public function POST_report($data = null) {
         $this->requireAuthentication();
         $app = App::i();
+        $conn = App::i()->em->getConnection();
+        $customFields = $this->postData['customFields'] ?? [];
 
         if (empty($this->postData['id'])) {
             $app->pass();
@@ -22,33 +24,45 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         // Carrega o HEADER.
         $headers = ['Número', 'Nome do projeto', 'Categoria', 'Avaliação', 'Status', 'Inscrição - Data/Hora de envio'];
         $idRegistrationMetaList = [];
-        foreach ($this->postData['customFields'] as $field) {
+        foreach ($customFields as $field) {
             if ($field['selected'] == "true") {
                 $headers[] = $field['title'];
-                $idRegistrationMetaList[] = 'field_' . $field['id'];
+                $idRegistrationMetaList[] = $field['id'];
+            }
+        }
+
+        $statusIds = [];
+        foreach ($this->postData['status'] as $stat) {
+            if ($stat['selected'] == "true") {
+                $statusIds[] = $stat['value'];
             }
         }
 
         // Carregas o BODY
         $body = [];
-        $registers = $app->repo('Registration')->findBy(array('opportunity' => $this->postData['id']));
+        $registers = $app->repo('Registration')->findBy(array('opportunity' => $this->postData['id'], 'status' => $statusIds));
         foreach ($registers as $key => $register) {
+            $evaluations = $app->repo('RegistrationEvaluation')->findBy(array('registration' => $register->id));
+
             $body[$key] = [
                 $register->number,
                 '',
-                '',
+                $register->category != null ? $register->category : '',
+                $this->getUserEvaluationString($register->getUserEvaluations()),
                 $this->getStatusName($register->status),
                 !empty($register->sentTimestamp) ? $register->sentTimestamp->format('d/m/y H:i') : ''
             ];
 
-            $resp = $app->repo('RegistrationMeta')->findBy(array('owner' => $register->id, 'key' => $idRegistrationMetaList));
-            
-            foreach ($resp as $registrationMeta) {
-                $body[$key][] = $registrationMeta->value ?? "";
+            if (empty($idRegistrationMetaList)) {
+                break;
+            }
+
+            foreach ($conn->fetchAll($this->getDynamicFieldsSql($register->id, $idRegistrationMetaList)) as $registrationMeta) {
+                $body[$key][] = $registrationMeta['value'] ?? '';
             }
         }
 
-        $this->reportOutput('report-csv', ['headers' => $headers, 'body' => $body], "nome");
+        $this->reportOutput('report-csv', ['headers' => $headers, 'body' => $body], 'opportunity-' . time() . '.csv');
     }
 
     protected function reportOutput($view, $data, $filename){
@@ -109,5 +123,38 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
             default:
                 return '';
         }
+    }
+
+    protected function getUserEvaluationString($evaluations) {
+        $str = '';
+        foreach ($evaluations as $eval) {
+            // dd($eval->evaluationData);
+            // $str .= 'Avaliação ' . $eval->id . ':' . $eval->evaluationData->status . ". Obs.:" . $eval->evaluationData->obs . '\n';
+        }
+        return $str;
+    }
+
+    protected function getDynamicFieldsSql($idOwner, $idLists) {
+        $totalCampos = count($idLists);
+        $orderBy = '';
+        $fieldList = '';
+
+        foreach ($idLists as $key => $id) {
+            $orderBy .= ' RM.key = \'field_' . $id . '\' DESC ';
+            $fieldList .= '\'field_' . $id . '\''; 
+
+            if ($key != $totalCampos - 1) {
+                $orderBy .= ',';
+                $fieldList .= ',';
+            }
+        }
+
+        $sql = 'SELECT RM.id, RM.key, RM.value ';
+        $sql .= 'FROM registration_meta RM ';
+        $sql .= 'INNER JOIN registration R ON R.id = RM.object_id ';
+        $sql .= 'WHERE R.id = ' . $idOwner . ' ';
+        $sql .= 'AND RM.key IN (' . $fieldList . ') ';
+        $sql .= 'ORDER BY ' . $orderBy;
+        return $sql;
     }
 }
