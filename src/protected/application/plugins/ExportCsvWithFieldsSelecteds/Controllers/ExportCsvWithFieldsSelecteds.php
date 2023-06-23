@@ -37,21 +37,21 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
                 $statusIds[] = $stat['value'];
             }
         }
-
-        // Carregas o BODY
+        
+        // Carrega o BODY
         $body = [];
-        $test = [];
         $registers = $app->repo('Registration')->findBy(array('opportunity' => $this->postData['id'], 'status' => $statusIds));
+
         foreach ($registers as $key => $register) {
-            $evaluations = $app->repo('RegistrationEvaluation')->findBy(array('registration' => $register->id));
+            $r = $register->jsonSerialize();
 
             $body[$key] = [
                 $register->number,
-                '',
-                $register->category != null ? $register->category : '',
-                $this->getUserEvaluationString($register->getUserEvaluations()),
+                $r['projectName'] ?? null,
+                $register->category != null ? $register->category : null,
+                $r['evaluationResultString'] ?? null,
                 $this->getStatusName($register->status),
-                !empty($register->sentTimestamp) ? $register->sentTimestamp->format('d/m/y H:i') : ''
+                $register->sentTimestamp != null ? $register->sentTimestamp->format('d/m/y H:i') : null
             ];
 
             if (empty($idRegistrationMetaList)) {
@@ -62,7 +62,14 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
                 $body[$key]['field_' . $id] = null;
             }
 
-            $registrationsMeta = $conn->fetchAll($this->getDynamicFieldsSql($register->id, $idRegistrationMetaList));
+            $registrationsMeta = $conn->fetchAll(
+                $this->getDynamicFieldsSql(
+                    $register->id,
+                    $this->postData['category'] != null ? $this->postData['category'] : null,
+                    $idRegistrationMetaList
+                )
+            );
+            
             foreach ($registrationsMeta as $registrationMeta) {
                 $body[$key][$registrationMeta['key']] = $registrationMeta['value'] ?? null;
             }
@@ -131,16 +138,7 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         }
     }
 
-    protected function getUserEvaluationString($evaluations) {
-        $str = '';
-        foreach ($evaluations as $eval) {
-            // dd($eval->evaluationData);
-            // $str .= 'Avaliação ' . $eval->id . ':' . $eval->evaluationData->status . ". Obs.:" . $eval->evaluationData->obs . '\n';
-        }
-        return $str;
-    }
-
-    protected function getDynamicFieldsSql($idOwner, $idLists) {
+    protected function getDynamicFieldsSql($idOwner, $category, $idLists) {
         $totalCampos = count($idLists);
         $orderBy = '';
         $fieldList = '';
@@ -159,6 +157,11 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         $sql .= 'FROM registration_meta RM ';
         $sql .= 'INNER JOIN registration R ON R.id = RM.object_id ';
         $sql .= 'WHERE R.id = ' . $idOwner . ' ';
+
+        if ($category != null) {
+            $sql .= 'AND R.category = \'' . $category . '\' ';
+        }
+
         $sql .= 'AND RM.key IN (' . $fieldList . ') ';
         $sql .= 'ORDER BY ' . $orderBy;
         return $sql;

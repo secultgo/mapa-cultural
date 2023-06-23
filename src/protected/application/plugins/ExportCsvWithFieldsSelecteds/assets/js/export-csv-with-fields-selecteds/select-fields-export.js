@@ -69,6 +69,7 @@ var exportCsvSelectFields = function (url, idOpportunity) {
         url: url,
         data: {
             'id': idOpportunity,
+            'category': $('#select-category-registration').find(':selected').val(),
             'status': statusRegistration,
             'customFields': customFields
         }

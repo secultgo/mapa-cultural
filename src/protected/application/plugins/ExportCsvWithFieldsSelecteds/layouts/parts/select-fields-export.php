@@ -28,16 +28,14 @@ $this->enqueueScript('app', 'select-fields-export', 'js/export-csv-with-fields-s
 
     <?php if ($entity->registrationCategories != null && count($entity->registrationCategories) > 0) { ?>
         <div class="form-group">
-            <label class="title-fields-export" >Categorias</label>
+            <label class="title-fields-export">Categorias</label>
 
-            <?php foreach ($entity->registrationCategories as $k => $category) { ?>
-                <div class="radio">
-                    <label class="radio-fields-export">
-                        <input type="radio" name="categoriesExport" <?php if ($k == 0) { echo "checked"; } ?>>
-                        <?= $category; ?>
-                    </label>
-                </div>
-            <?php } ?>
+            <select class="dropdown" style="width: 100%; margin: 10px 0px;" id="select-category-registration">
+                <option value="" selected>Todas</option>
+                <?php foreach ($entity->registrationCategories as $k => $category) { ?>
+                    <option value="<?= $category; ?>"><?= $category; ?></option>
+                <?php } ?>
+            </select>
         </div>
     <?php } ?>
 
