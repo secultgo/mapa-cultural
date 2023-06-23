@@ -40,6 +40,7 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
 
         // Carregas o BODY
         $body = [];
+        $test = [];
         $registers = $app->repo('Registration')->findBy(array('opportunity' => $this->postData['id'], 'status' => $statusIds));
         foreach ($registers as $key => $register) {
             $evaluations = $app->repo('RegistrationEvaluation')->findBy(array('registration' => $register->id));
@@ -57,11 +58,16 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
                 break;
             }
 
-            foreach ($conn->fetchAll($this->getDynamicFieldsSql($register->id, $idRegistrationMetaList)) as $registrationMeta) {
-                $body[$key][] = $registrationMeta['value'] ?? '';
+            foreach ($idRegistrationMetaList as $id) {
+                $body[$key]['field_' . $id] = null;
+            }
+
+            $registrationsMeta = $conn->fetchAll($this->getDynamicFieldsSql($register->id, $idRegistrationMetaList));
+            foreach ($registrationsMeta as $registrationMeta) {
+                $body[$key][$registrationMeta['key']] = $registrationMeta['value'] ?? null;
             }
         }
-
+        
         $this->reportOutput('report-csv', ['headers' => $headers, 'body' => $body], 'opportunity-' . time() . '.csv');
     }
 
