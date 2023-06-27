@@ -449,7 +449,6 @@ class Opportunity extends EntityController {
         $data['@select'] .= ',sentTimestamp';
         $query = new ApiQuery('MapasCulturais\Entities\Registration', $data, false, false, $opportunity->publishedRegistrations);
         $registrations = $query->find();
-        // dd($registrations);
 
         $em = $opportunity->getEvaluationMethod();
         foreach($registrations as &$reg) {

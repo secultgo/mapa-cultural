@@ -8,11 +8,16 @@ use MapasCulturais\Entities\Registration as R;
 
 class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
 
+    /**
+     * Método do tipo POST que gera o relatório.
+     */
     public function POST_report($data = null) {
         $this->requireAuthentication();
         $app = App::i();
         $conn = App::i()->em->getConnection();
+        // dd($conn);
         $customFields = $this->postData['customFields'] ?? [];
+        $category = $this->postData['category'] ?? null;
 
         if (empty($this->postData['id'])) {
             $app->pass();
@@ -40,8 +45,10 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         
         // Carrega o BODY
         $body = [];
-        $registers = $app->repo('Registration')->findBy(array('opportunity' => $this->postData['id'], 'status' => $statusIds));
+        $filter = array('opportunity' => $this->postData['id'], 'status' => $statusIds);
+        if ($category != null) { $filter['category'] = $category; }
 
+        $registers = $app->repo('Registration')->findBy($filter);
         foreach ($registers as $key => $register) {
             $r = $register->jsonSerialize();
 
@@ -62,14 +69,13 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
                 $body[$key]['field_' . $id] = null;
             }
 
-            $registrationsMeta = $conn->fetchAll(
+            $registrationsMeta = $conn->query(
                 $this->getDynamicFieldsSql(
                     $register->id,
-                    $this->postData['category'] != null ? $this->postData['category'] : null,
                     $idRegistrationMetaList
                 )
             );
-            
+
             foreach ($registrationsMeta as $registrationMeta) {
                 $body[$key][$registrationMeta['key']] = $registrationMeta['value'] ?? null;
             }
@@ -78,6 +84,9 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         $this->reportOutput('report-csv', ['headers' => $headers, 'body' => $body], 'opportunity-' . time() . '.csv');
     }
 
+    /**
+     * Realiza a exportação do documento.
+     */
     protected function reportOutput($view, $data, $filename){
         $app = App::i();
         ini_set('max_execution_time', 0);
@@ -138,7 +147,7 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         }
     }
 
-    protected function getDynamicFieldsSql($idOwner, $category, $idLists) {
+    protected function getDynamicFieldsSql($idOwner, $idLists) {
         $totalCampos = count($idLists);
         $orderBy = '';
         $fieldList = '';
@@ -153,15 +162,10 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
             }
         }
 
-        $sql = 'SELECT RM.id, RM.key, RM.value ';
+        $sql = 'SELECT RM.id, RM.key, RM.value, R.category ';
         $sql .= 'FROM registration_meta RM ';
         $sql .= 'INNER JOIN registration R ON R.id = RM.object_id ';
         $sql .= 'WHERE R.id = ' . $idOwner . ' ';
-
-        if ($category != null) {
-            $sql .= 'AND R.category = \'' . $category . '\' ';
-        }
-
         $sql .= 'AND RM.key IN (' . $fieldList . ') ';
         $sql .= 'ORDER BY ' . $orderBy;
         return $sql;
