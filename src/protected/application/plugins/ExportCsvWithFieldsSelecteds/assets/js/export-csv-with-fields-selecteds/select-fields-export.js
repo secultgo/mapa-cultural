@@ -5,8 +5,20 @@ $('#show-tags-custom-fields').on("load", function () {
     loadTagsCustomFields();
 });
 
+/******
+ * Operações para status.
+ *******/
+var toggleFieldStatus = function(id) {
+    statusRegistration.forEach(element => {
+        if (element.value == id) element.selected = !element.selected;
+    });
+    $('#status-registration-' + id).toggleClass('selected');
+};
+
+/******
+ * Operações para as colunas.
+ *******/
 var loadTagsCustomFields = function () {
-    console.log('teste');
     $('#show-tags-custom-fields').html('');
 
     customFields.forEach(element => {
@@ -14,7 +26,7 @@ var loadTagsCustomFields = function () {
             $('#show-tags-custom-fields').append('<a class="tag-selected btn-info" rel="noopener noreferrer" onclick="removeTagElementById(' + element.id + ')">' + element.title + '</a>');
         }
     });
-}
+};
 
 var addListSelectedFields = function (id) {
     customFields.forEach(element => {
@@ -27,8 +39,6 @@ var removeListSelectedFields = function (id) {
     customFields.forEach((element, i) => {
         if (element.id === id) element.selected = false;
     });
-
-    console.log(customFields);
     loadTagsCustomFields();
 };
 
@@ -47,6 +57,9 @@ var removeTagElementById = function (id) {
     this.removeListSelectedFields(id);
 }
 
+/******
+ * Operações de requsição.
+ *******/
 var exportCsvSelectFields = function (url, idOpportunity) {
     if (isRequestOpen) return;
     isRequestOpen = true;
@@ -56,6 +69,8 @@ var exportCsvSelectFields = function (url, idOpportunity) {
         url: url,
         data: {
             'id': idOpportunity,
+            'category': $('#select-category-registration').find(':selected').val(),
+            'status': statusRegistration,
             'customFields': customFields
         }
     }).success(function (data) {

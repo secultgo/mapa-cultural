@@ -44,6 +44,15 @@ class Plugin extends \MapasCulturais\Plugin {
             $app->view->enqueueScript('app', 'exportcsv', 'js/export-csv-with-fields-selecteds/ng.module.export.js');
             $this->part('select-fields-export', array(
                 'entity' => $this->data['entity'],
+                'status' => array(
+                    ['value' => 10,'label' => i::__('Selecionada'), 'selected' => true],
+                    ['value' => 3, 'label' => i::__('Não selecionada'), 'selected' => true],
+                    ['value' => 0, 'label' => i::__('Rascunho'), 'selected' => true],
+                    ['value' => 1, 'label' => i::__('Pendente'), 'selected' => true],
+                    ['value' => 2, 'label' => i::__('Inválida'), 'selected' => true],
+                    ['value' => 8, 'label' => i::__('Suplente'), 'selected' => true],
+                    ['value' => 11, 'label' => i::__('Cancelada'), 'selected' => true]
+                ),
                 'defaultFields' => $config['defaultFields'],
                 'customFields' => $customFields
             ));

@@ -8,9 +8,16 @@ use MapasCulturais\Entities\Registration as R;
 
 class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
 
+    /**
+     * Método do tipo POST que gera o relatório.
+     */
     public function POST_report($data = null) {
         $this->requireAuthentication();
         $app = App::i();
+        $conn = App::i()->em->getConnection();
+        // dd($conn);
+        $customFields = $this->postData['customFields'] ?? [];
+        $category = $this->postData['category'] ?? null;
 
         if (empty($this->postData['id'])) {
             $app->pass();
@@ -22,35 +29,64 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
         // Carrega o HEADER.
         $headers = ['Número', 'Nome do projeto', 'Categoria', 'Avaliação', 'Status', 'Inscrição - Data/Hora de envio'];
         $idRegistrationMetaList = [];
-        foreach ($this->postData['customFields'] as $field) {
+        foreach ($customFields as $field) {
             if ($field['selected'] == "true") {
                 $headers[] = $field['title'];
-                $idRegistrationMetaList[] = 'field_' . $field['id'];
+                $idRegistrationMetaList[] = $field['id'];
             }
         }
 
-        // Carregas o BODY
+        $statusIds = [];
+        foreach ($this->postData['status'] as $stat) {
+            if ($stat['selected'] == "true") {
+                $statusIds[] = $stat['value'];
+            }
+        }
+        
+        // Carrega o BODY
         $body = [];
-        $registers = $app->repo('Registration')->findBy(array('opportunity' => $this->postData['id']));
+        $filter = array('opportunity' => $this->postData['id'], 'status' => $statusIds);
+        if ($category != null) { $filter['category'] = $category; }
+
+        $registers = $app->repo('Registration')->findBy($filter);
         foreach ($registers as $key => $register) {
+            $r = $register->jsonSerialize();
+
             $body[$key] = [
                 $register->number,
-                '',
-                '',
+                $r['projectName'] ?? null,
+                $register->category != null ? $register->category : null,
+                $r['evaluationResultString'] ?? null,
                 $this->getStatusName($register->status),
-                !empty($register->sentTimestamp) ? $register->sentTimestamp->format('d/m/y H:i') : ''
+                $register->sentTimestamp != null ? $register->sentTimestamp->format('d/m/y H:i') : null
             ];
 
-            $resp = $app->repo('RegistrationMeta')->findBy(array('owner' => $register->id, 'key' => $idRegistrationMetaList));
-            
-            foreach ($resp as $registrationMeta) {
-                $body[$key][] = $registrationMeta->value ?? "";
+            if (empty($idRegistrationMetaList)) {
+                break;
+            }
+
+            foreach ($idRegistrationMetaList as $id) {
+                $body[$key]['field_' . $id] = null;
+            }
+
+            $registrationsMeta = $conn->query(
+                $this->getDynamicFieldsSql(
+                    $register->id,
+                    $idRegistrationMetaList
+                )
+            );
+
+            foreach ($registrationsMeta as $registrationMeta) {
+                $body[$key][$registrationMeta['key']] = $registrationMeta['value'] ?? null;
             }
         }
-
-        $this->reportOutput('report-csv', ['headers' => $headers, 'body' => $body], "nome");
+        
+        $this->reportOutput('report-csv', ['headers' => $headers, 'body' => $body], 'opportunity-' . time() . '.csv');
     }
 
+    /**
+     * Realiza a exportação do documento.
+     */
     protected function reportOutput($view, $data, $filename){
         $app = App::i();
         ini_set('max_execution_time', 0);
@@ -109,5 +145,29 @@ class ExportCsvWithFieldsSelecteds extends \MapasCulturais\Controller {
             default:
                 return '';
         }
+    }
+
+    protected function getDynamicFieldsSql($idOwner, $idLists) {
+        $totalCampos = count($idLists);
+        $orderBy = '';
+        $fieldList = '';
+
+        foreach ($idLists as $key => $id) {
+            $orderBy .= ' RM.key = \'field_' . $id . '\' DESC ';
+            $fieldList .= '\'field_' . $id . '\''; 
+
+            if ($key != $totalCampos - 1) {
+                $orderBy .= ',';
+                $fieldList .= ',';
+            }
+        }
+
+        $sql = 'SELECT RM.id, RM.key, RM.value, R.category ';
+        $sql .= 'FROM registration_meta RM ';
+        $sql .= 'INNER JOIN registration R ON R.id = RM.object_id ';
+        $sql .= 'WHERE R.id = ' . $idOwner . ' ';
+        $sql .= 'AND RM.key IN (' . $fieldList . ') ';
+        $sql .= 'ORDER BY ' . $orderBy;
+        return $sql;
     }
 }
