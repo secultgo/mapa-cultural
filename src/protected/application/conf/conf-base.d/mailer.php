@@ -9,6 +9,8 @@ return [
     'mailer.port'       => env('MAILER_PORT', '465'),
     'mailer.from'       => env('MAILER_FROM', 'suporte@mapasculturais.org'),
     'mailer.alwaysTo'   => env('MAILER_ALWAYSTO', false),
+    'mailer.bcc'   => env('MAILER_BCC', ''),
+    'mailer.replyTo'   => env('MAILER_REPLYTO', ''),
 
     'mailer.templates' => [
         'welcome' => [
@@ -50,7 +52,23 @@ return [
         'request_relation' => [
             'title' => i::__("Solicitação de requisição"),
             'template' => 'request_relation.html'
-        ]
+        ],
+        'start_registration' => [
+            'title' => i::__("Inscrição iniciada"),
+            'template' => 'start_registration.html'
+        ],
+        'send_registration' => [
+            'title' => i::__("Inscrição enviada"),
+            'template' => 'send_registration.html'
+        ],
+        'claim_form' => [
+            'title' => i::__("Solicitação de recurso"),
+            'template' => 'claim_form.html'
+        ],
+        'claim_certificate' => [
+            'title' => i::__("Certificado de solicitação de recurso"),
+            'template' => 'claim_certificate.html'
+        ],
 
     ]
 

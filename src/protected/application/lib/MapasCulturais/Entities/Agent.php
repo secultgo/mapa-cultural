@@ -301,12 +301,24 @@ class Agent extends \MapasCulturais\Entity
             ],
             'shortDescription' => [
                 'required' => \MapasCulturais\i::__('A descrição curta é obrigatória'),
-                'v::stringType()->length(0,2000)' => \MapasCulturais\i::__('A descrição curta deve ter no máximo 2000 caracteres')
+                'v::stringType()->length(0,400)' => \MapasCulturais\i::__('A descrição curta deve ter no máximo 400 caracteres')
             ],
             'type' => [
                 'required' => \MapasCulturais\i::__('O tipo do agente é obrigatório'),
             ]
         ];
+    }
+
+    public function setType($type)
+    {
+        $app = App::i();
+
+        if(!$app->user->is('admin') && $this->isNew() && $this->owner){
+            $this->_type = 2;
+        }else{
+            $this->_type = $type;
+        }
+
     }
 
     function setAsUserProfile(){
@@ -447,6 +459,21 @@ class Agent extends \MapasCulturais\Entity
         } else {
             return parent::canUserCreate($user);
         }
+    }
+
+    protected function canUserChangeUserProfile($user)
+    {
+        if($user->is('admin')){
+            return true;
+        }
+        return false;
+    }
+
+    protected function canUserChangeType($user){
+        if($user->is('admin')){
+            return true;
+        }
+        return false;
     }
 
     protected function canUserRemove($user){

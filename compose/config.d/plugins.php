@@ -117,5 +117,6 @@ return [
         ],
         'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
-    ]
+        'ExportCsvWithFieldsSelecteds' => ['namespace' => 'ExportCsvWithFieldsSelecteds']
+    ],
 ];

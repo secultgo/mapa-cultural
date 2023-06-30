@@ -8,6 +8,7 @@ Mapas Culturais é uma plataforma colaborativa que reúne informações sobre ag
 
 A plataforma já está em uso em diversos municipios, estados, no governo federal em diversos projetos do ministério da cultura e até mesmo fora do Brasil no Uruguai. Instalações recentes: 
 
+
 ### Instalações em nível federal ou internacional
 - IberculturaViva - https://mapa.iberculturaviva.org/
 - Mapa Uruguai - http://culturaenlinea.uy/
@@ -21,6 +22,7 @@ A plataforma já está em uso em diversos municipios, estados, no governo federa
 - Distrito Federal - http://mapa.cultura.df.gov.br/
 - Ceará - https://mapacultural.secult.ce.gov.br/
 - Espírito Santo - https://mapa.cultura.es.gov.br/
+- Goiás - https://mapagoiano.cultura.go.gov.br/
 - Maranhão - http://ma.mapas.cultura.gov.br/
 - Mato Grosso - https://mapas.mt.gov.br/
 - Mato Grosso do Sul - https://www.mapacultural.ms.gov.br/
@@ -31,7 +33,7 @@ A plataforma já está em uso em diversos municipios, estados, no governo federa
 - Tocantins - http://mapa.cultura.to.gov.br/
 ### Instalações municipais
 - Ilheus - http://ilheus.ba.mapas.cultura.gov.br/
-- Camaçari - http://camacari.ba.mapas.cultura.gov.br/
+- Camaçari - https://mapacultural.camacari.ba.gov.br/
 - Senhor do Bonfim - http://senhordobonfim.ba.mapas.cultura.gov.br/
 - Chorozinho - https://mapacultural.chorozinho.ce.gov.br/
 - Sobral - https://cultura.sobral.ce.gov.br/
@@ -63,26 +65,36 @@ A plataforma já está em uso em diversos municipios, estados, no governo federa
 Mapas Culturais é uma aplicação web server-side baseada em linguagem PHP e banco de dados Postgres, entre outras tecnologias e componentes, que propicia um ambiente virtual para mapeamento, divulgação e gestão de ativos culturais. 
 
 ## Projetos correlatos
-
+* [Mapas Cuturais Base Project](https://github.com/hacklabr/mapasculturais-app) - Repositório de projeto base para novas instalações.
+* [Multiple Local Auth](https://github.com/mapasculturais/mapasculturais-MultipleLocalAuth) - Plugin de autenticação local + oauth.
+* [Mapas SDK](https://github.com/centroculturalsp/MapasSDK)
 * [Mapas Culturais APP](https://github.com/hacklabr/mapasculturais-app)
 * [Cultural Magazine Theme](https://github.com/hacklabr/cultural)
-* [Mapas SDK](https://github.com/centroculturalsp/MapasSDK)
-* [Multiple Local Auth](https://github.com/LibreCoopUruguay/MultipleLocalAuth)
 
+## Instalação
+A maneira mais simples e segura para instalar o Mapas Culturais é utilizando o [Mapas Culturais Base Project](https://github.com/mapasculturais/mapasculturais-base-project) como base para a criação de um repositório próprio para o seu projeto, que reunirá o tema, os plugins e as configurações da aplicação. O Mapas Culturais Base Project utiliza o Docker e o Docker Composer para rodar a aplicação, facilitando os processos de deploy e de atualizaçao.
 
-### Documentação 
+- [Instalação utilizando o Base Project ](https://github.com/mapasculturais/mapasculturais-base-project#readme) - **RECOMENDADO**
+## Documentação
+
+Uma [nova documentação](https://mapasculturais.gitbook.io/bem-vindo-a-a-documentacao-do-mapas/) está sendo escrita no gitbook, organizada em três seções:
+- [Documentação para usuários](https://mapasculturais.gitbook.io/documentacao-para-usuarios/)
+- [Documentação para desenvolvedores](https://mapasculturais.gitbook.io/documentacao-para-desenvolvedores/formacao-para-desenvolvedores/)
+- [Documentação para devops](https://mapasculturais.gitbook.io/documentacao-para-devops/instalacao/)
+
+## Documentação Legada
 
 A documentação pode ser navegada no endereço (http://docs.mapasculturais.org)
 
 Toda documentação da aplicação está na pasta [documentation](documentation). Principais referências: 
-- [Deploy](documentation/docs/mc_deploy.md)
-- [Deploy Docker](documentation/docs/mc_developer_docker_enviroment.md)
-- [API](documentation/docs/mc_config_api.md)
+- [API](http://docs.mapasculturais.org/apidoc/index.html?doctype=api)
+- [API - exemplos](documentation/docs/mc_config_api.md)
 - [Guia do desenvolvedor](documentation/docs/mc_developer_guide.md)
 - [Como contribuir](documentation/docs/mc_developer_contribute.md)
-- [Habilitar um novo tema](documentation/docs/mc_deploy_theme.md)
 - [Desenvolver um novo tema](documentation/docs/mc_developer_theme.md)
 - [Importação de arquivos de dados geoespaciais (Shapefiles)](documentation/docs/mc_deploy_shapefiles.md)
+- [Deploy diretamente no sistema operacional](https://docs.mapasculturais.org/mc_deploy/) - **NÃO RECOMENDADO**
+- [Habilitar um novo tema](documentation/docs/mc_deploy_theme.md)
 
 ### [Software] Requisitos para Instalação
 Lista dos principais softwares que compõe e aplicação. Maiores detalhes, ver documentação de [instalação](documentation/docs/mc_deploy.md) ou [guia do desenvolvedor](documentation/docs/mc_developer_guide.md). 
@@ -90,7 +102,7 @@ Lista dos principais softwares que compõe e aplicação. Maiores detalhes, ver 
 - [Ubuntu Server >= 18.04](http://www.ubuntu.com) ou [Debian Server >= 10](https://www.debian.org.)
 - [PHP = 7.2](http://php.net)
   - [php-gd](http://php.net/manual/pt_BR/book.image.php)
-  - [php-cli] (https://packages.debian.org/pt-br/jessie/php5-cli)
+  - [php-cli](https://packages.debian.org/pt-br/jessie/php5-cli)
   - [php-json](http://php.net/manual/pt_BR/book.json.php)
   - [php-curl](http://php.net/manual/pt_BR/book.curl.php)
   - [php-pgsql](http://php.net/manual/pt_BR/book.pgsql.php)
@@ -102,8 +114,8 @@ Lista dos principais softwares que compõe e aplicação. Maiores detalhes, ver 
   - [NPM](https://www.npmjs.com/)
   - [Terser](https://terser.org/)
   - [UglifyCSS](https://www.npmjs.com/package/gulp-uglifycss)
-- [Ruby] (https://www.ruby-lang.org/pt)
-  - [Sass gem] (https://rubygems.org/gems/sass/versions/3.4.22)
+- [Ruby](https://www.ruby-lang.org/pt)
+  - [Sass gem](https://rubygems.org/gems/sass/versions/3.4.22)
 
 ### [Hardware] Requisitos para instalação
 
@@ -136,11 +148,6 @@ Vale lembrar que os requisitos de hardware podem variar de acordo com a latênci
 
 * [Lista de discussão](https://groups.google.com/forum/?hl=en#!forum/mapas-culturais)
 * Telegram: [![Join the chat at https://t.me/joinchat/WCYOkiRbAWmxQM2y](https://patrolavia.github.io/telegram-badge/chat.png)](https://t.me/joinchat/WCYOkiRbAWmxQM2y)
- 
-
-### Stories & Tests
-- Travis:
-[![Build Status](https://secure.travis-ci.org/mapasculturais/mapasculturais.png)](http://travis-ci.org/mapasculturais/mapasculturais)
 
 ### Licença de uso e desenvolvimento
 

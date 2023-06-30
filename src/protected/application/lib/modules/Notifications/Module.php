@@ -52,13 +52,13 @@ class Module extends \MapasCulturais\Module{
             // dump($origin->opportunity);
             // dump($destination);
             
-            $origin_type = strtolower($origin->entityTypeLabel());
+            $origin_type = strtolower($origin->entityTypeLabel);
             $origin_url = $origin->singleUrl;
             $origin_name = $origin->name;
 
             $destination_url = $destination->singleUrl;
             $destination_name = $destination->name;
-            $destination_type = strtolower($destination->entityTypeLabel());
+            $destination_type = strtolower($destination->entityTypeLabel);
             
             $profile_link = "<a rel='noopener noreferrer' href=\"{$profile->singleUrl}\">{$profile->name}</a>";
             $destination_link = "<a rel='noopener noreferrer' href=\"{$destination_url}\">{$destination_name}</a>";
@@ -92,7 +92,7 @@ class Module extends \MapasCulturais\Module{
                             $prev = $_prev;
                         }
                         
-                        if($prev->equal($opportunity)){
+                        if($prev->equals($opportunity)){
                             $opportunity_link = "<a href=\"{$opportunity->singleUrl}\">{$opportunity->name}</a>";
                         } else {
                             $opportunity_link = "<a href=\"{$opportunity->singleUrl}\">{$prev->name} &raquo; {$opportunity->name}</a>";
@@ -228,7 +228,7 @@ class Module extends \MapasCulturais\Module{
             $origin = $this->origin;
             $destination = $this->destination;
 
-            $origin_type = strtolower($origin->entityTypeLabel());
+            $origin_type = strtolower($origin->entityTypeLabel);
             $origin_url = $origin->singleUrl;
             $origin_name = $origin->name;
 
@@ -311,7 +311,7 @@ class Module extends \MapasCulturais\Module{
             $origin = $this->origin;
             $destination = $this->destination;
 
-            $origin_type = strtolower($origin->entityTypeLabel());
+            $origin_type = strtolower($origin->entityTypeLabel);
             $origin_url = $origin->singleUrl;
             $origin_name = $origin->name;
 

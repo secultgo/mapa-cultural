@@ -3,7 +3,7 @@ use MapasCulturais\i;
 
 $app = MapasCulturais\App::i();
 $definitions = MapasCulturais\Entities\Agent::getPropertiesMetadata();
-$agent_fields = $app->modules['RegistrationFieldTypes']->config['availableAgentFields'];
+$agent_fields = $app->modules['RegistrationFieldTypes']->getAgentFields();
 
 $fields_options = [];
 $fields_labels = [
@@ -38,6 +38,10 @@ foreach ($agent_fields as $field) {
     <div ng-if="field.config.entityField == '@terms:area'">
         <?php i::_e("Informe os termos que estarão disponíveis para seleção. <br>Para fazer um mapeamento de valores utilize <strong>valor salvo:valor exibido</strong>. Exemplo: <strong>Dança:Artes da Dança</strong>") ?>
         
+        <textarea ng-model="field.fieldOptions" placeholder="<?php \MapasCulturais\i::esc_attr_e("Opções de seleção");?>" style="min-height: 75px"/></textarea>
+    </div>
+    <div ng-if="field.config.entityField == 'genero' || field.config.entityField == 'raca' || field.config.entityField == 'orientacaoSexual'">
+        <?php i::_e("Informe os termos que estarão disponíveis para seleção.") ?>
         <textarea ng-model="field.fieldOptions" placeholder="<?php \MapasCulturais\i::esc_attr_e("Opções de seleção");?>" style="min-height: 75px"/></textarea>
     </div>
     <div ng-if="field.config.entityField == '@links'">

@@ -12,7 +12,17 @@
                 $evaluationAgent = true;
         }
     ?>
-    
+
+    <?php if($evaluationAgent): ?>
+        <label class="textarea-label">
+            <?php \MapasCulturais\i::_e('Justificativa de recurso') ?><br>
+            <textarea name="data[obs]">{{$entity->justificationResource}}</textarea>
+        </label>
+    <?php elseif(!$evaluationAgent): ?>
+        <span ng-if="<?php echo $entity->justificationResource !== null; ?>"><b>Justificativa de avaliação: </b><?php echo $entity->justificationResource; ?></span>
+        <span ng-if="<?php echo $entity->justificationResource === null; ?>"><i>* Aguardando avaliação de recurso</i></span>
+    <?php endif; ?>
+   
     <!-- Permite a edição da justificativa de recurso para avaliadores e administradores -->
     <?php if($evaluationAgent || $app->user->is('admin')): ?>
         <form name="resourceForm" ng-submit="saveJustification()" ng-controller="OpportunityController">   

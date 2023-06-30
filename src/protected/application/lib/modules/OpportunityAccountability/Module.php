@@ -353,9 +353,8 @@ class Module extends \MapasCulturais\Module
         //Cria painel de prestação de contas
         $app->hook('GET(panel.accountability)', function() use($app) {
             $this->requireAuthentication();
-            $user = $this->_getUser();
 
-            $this->render('accountabilitys', ['user' => $user]);
+            $this->render('accountabilitys', []);
         });
 
         //Filtra somente as prestações de contas para exibição no painel
@@ -801,7 +800,7 @@ class Module extends \MapasCulturais\Module
             'serialize' => function (Opportunity $opportunity) {
                 return $opportunity->id;
             },
-            'unserialize' => function ($opportunity_id, $opportunity) use($opportunity_repository, $app) {
+            'unserialize' => function ($opportunity_id) use($opportunity_repository, $app) {
 
                 if ($opportunity_id) {
                     return $opportunity_repository->find($opportunity_id);
@@ -871,7 +870,7 @@ class Module extends \MapasCulturais\Module
             'serialize' => function (Opportunity $opportunity) {
                 return $opportunity->id;
             },
-            'unserialize' => function ($opportunity_id, $opportunity) use($opportunity_repository) {
+            'unserialize' => function ($opportunity_id) use($opportunity_repository) {
                 if ($opportunity_id) {
                     return $opportunity_repository->find($opportunity_id);
                 } else {

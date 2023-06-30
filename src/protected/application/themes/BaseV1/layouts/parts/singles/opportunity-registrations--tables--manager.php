@@ -5,20 +5,19 @@ use MapasCulturais\i;
 <header id="header-inscritos" class="clearfix">
     <?php $this->applyTemplateHook('header-inscritos','begin'); ?>
     <h3><?php i::_e("Inscritos");?></h3>
-    <div class="alert info hide-tablet">
-        <?php i::_e("Não é possível alterar o status das inscrições através desse dispositivo. Tente a partir de um dispositivo com tela maior.");?>
-        <div class="close"></div>
+    <div class="header-inscritos">
+        <?php $this->applyTemplateHook('header-inscritos','actions'); ?>
+        <a class="btn btn-default download" href="<?php echo $this->controller->createUrl('report', [$entity->id]); ?>"><?php i::_e("Baixar inscritos");?></a>
+        <a class="btn btn-default download" href="<?php echo $this->controller->createUrl('reportDrafts', [$entity->id]); ?>"><?php i::_e("Baixar rascunhos");?></a>
     </div>
-    <?php $this->applyTemplateHook('header-inscritos','actions'); ?>
-    <a class="btn btn-default download hltip" title="Baixar todos inscritos" href="<?php echo $this->controller->createUrl('report', [$entity->id]); ?>"><?php i::_e("Todos");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições em rascunho" href="<?php echo $this->controller->createUrl('reportDrafts', [$entity->id]); ?>"><?php i::_e("Rascunhos");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições selecionadas" href="<?php echo $this->controller->createUrl('reportApproved', [$entity->id]); ?>"><?php i::_e("Selecionados");?></a>
-    <a class="btn btn-default download hltip" title="Baixar inscrições pendentes" href="<?php echo $this->controller->createUrl('reportPending', [$entity->id]); ?>"><?php i::_e("Pendentes");?></a>    
     <?php $this->applyTemplateHook('header-inscritos','end'); ?>
 </header>
 <p style="text-align:right">
     <small><span>*</span><em> <?php i::_e('Os arquivos aqui baixados são melhor visualizados usando o LibreOffice') ?></em></small>
 </p>
+
+<?php $this->applyTemplateHook('export-csv-with-fields-selecteds', 'filter'); ?>
+
 <div id='status-info' class="alert info">
     <p><?php i::_e("Altere os status das inscrições na última coluna da tabela de acordo com o seguinte critério:");?></p>
     <ul>
@@ -79,7 +78,7 @@ use MapasCulturais\i;
         <tr>
             <?php $this->applyTemplateHook('registration-list-header','begin'); ?>
             <th ng-show="data.registrationTableColumns.number" class="registration-id-col">
-                <?php i::_e("Inscrição");?>
+                <?php i::_e("Inscrição"); 123?>
             </th>            
             <th ng-show="data.registrationTableColumns.category" ng-if="data.entity.registrationCategories" class="registration-option-col" title="{{data.registrationCategory}}">
                 <mc-select class="left transparent-placeholder" placeholder="status" model="registrationsFilters['category']" data="data.registrationCategoriesToFilter" title="{{data.registrationCategory}}"></mc-select>
@@ -96,6 +95,9 @@ use MapasCulturais\i;
             <th ng-show="data.registrationTableColumns.evaluation" class="registration-status-col">
                 <?php i::_e("Avaliação");?>
             </th>
+            <th ng-show="data.registrationTableColumns.date" class="registration-status-col">
+                <?php i::_e("Data Envio Inscrição"); ?>
+            </th>  
             <th ng-show="data.registrationTableColumns.status" class="registration-status-col">
                 <mc-select placeholder="Status" model="registrationsFilters['status']" data="data.registrationStatuses"></mc-select>
             </th>
@@ -158,6 +160,10 @@ use MapasCulturais\i;
                 {{reg.evaluationResultString}}
             </td>
 
+            <td ng-show="data.registrationTableColumns.date" class="registration-status-col">
+                {{ reg.sentTimestamp.date }}
+            </td>
+
             <td ng-show="data.registrationTableColumns.status" class="registration-status-col">
                 <?php if ($entity->publishedRegistrations): ?>
                     <span class="status status-{{getStatusSlug(reg.status)}}">{{getStatusNameById(reg.status)}}</span>
@@ -165,6 +171,7 @@ use MapasCulturais\i;
                     <mc-select model="reg" data="data.registrationStatusesNames" getter="getRegistrationStatus" setter="setRegistrationStatus"></mc-select>
                 <?php endif; ?>
             </td>
+
             <?php $this->applyTemplateHook('registration-list-item','end'); ?>
         </tr>
     </tbody>
