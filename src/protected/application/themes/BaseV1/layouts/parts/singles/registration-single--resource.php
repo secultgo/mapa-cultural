@@ -36,11 +36,9 @@
             </p>
         </form>
     <?php elseif(!$evaluationAgent): ?>
-        <!--
         <span ng-if="<?php echo $entity->statusResource !== null; ?>"><b>Situação: </b>{{getResourceStatusLabel(<?php echo  $entity->statusResource ?>)}}<br></span>
         <span ng-if="<?php echo $entity->justificationResource !== null; ?>"><b>Justificativa de avaliação: </b><?php echo $entity->justificationResource; ?></span>
         <span ng-if="<?php echo $entity->justificationResource === null; ?>"><i>* Aguardando avaliação de recurso</i></span>
-        -->
     <?php endif; ?>
 
     <?php $this->applyTemplateHook('registration-resource-field-list', 'after') ?>
