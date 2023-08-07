@@ -81,5 +81,7 @@ $_params = [
     </article>
     <?php $this->part('singles/registration--valuers-list', $_params) ?>
 </article>
-<?php $this->part('singles/registration--sidebar--left', $_params) ?>
-<?php $this->part('singles/registration--sidebar--right', $_params) ?>
+<article id="sidebars">
+    <?php $this->part('singles/registration--sidebar--left', $_params) ?>
+    <?php $this->part('singles/registration--sidebar--right', $_params) ?>
+</article>
