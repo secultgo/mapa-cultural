@@ -1,4 +1,5 @@
 <?php
+use MapasCulturais\i;
 $action = preg_replace("#^(\w+/)#", "", $this->template);
 $this->bodyProperties['ng-app'] = "entity.app";
 $this->bodyProperties['ng-controller'] = "EntityController";
@@ -44,6 +45,8 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
 
             <?php $this->part('singles/name', ['entity' => $entity]) ?><!--.part/singles/name.php -->
 
+            <?php $this->part('widget-areas', array('entity'=>$entity)); ?>
+
             <?php $this->applyTemplateHook('header-content','end'); ?>
         </div>
         <!--.header-content-->
@@ -56,9 +59,9 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
     <?php $this->applyTemplateHook('tabs','before'); ?>
     <ul class="abas clearfix clear">
         <?php $this->applyTemplateHook('tabs','begin'); ?>
-        <li class="active"><a href="#sobre" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Sobre");?></a></li>
+        <?php $this->part('tab', ['id' => 'sobre', 'label' => i::__("Sobre"), 'active' => true]) ?>
         <?php if(!($this->controller->action === 'create')):?>
-        <li><a href="#permissao" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Responsáveis");?></a></li>
+            <?php $this->part('tab', ['id' => 'permissao', 'label' => i::__("Responsáveis")]) ?>
         <?php endif;?>
         <?php $this->applyTemplateHook('tabs','end'); ?>
     </ul>
@@ -96,43 +99,44 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
 
     <?php $this->applyTemplateHook('main-content','end'); ?>
 </article>
-<div class="sidebar-left sidebar agent">
-    <?php $this->applyTemplateHook('sidebar-left','begin'); ?>
-    
-    <?php $this->part('related-seals.php', array('entity'=>$entity)); ?>
-    
-    <?php $this->part('widget-areas', array('entity'=>$entity)); ?>
-    <?php $this->part('widget-tags', array('entity'=>$entity)); ?>
-    <?php $this->part('redes-sociais', array('entity'=>$entity)); ?>
+<article id="sidebars">
+    <div class="sidebar-left sidebar agent">
+        <?php $this->applyTemplateHook('sidebar-left','begin'); ?>
+        
+        <?php $this->part('related-seals.php', array('entity'=>$entity)); ?>
+        
+        <?php $this->part('widget-tags', array('entity'=>$entity)); ?>
+        <?php $this->part('redes-sociais', array('entity'=>$entity)); ?>
 
-    <?php $this->applyTemplateHook('sidebar-left','end'); ?>
-</div>
-<div class="sidebar agent sidebar-right">
-    <?php $this->applyTemplateHook('sidebar-right','begin'); ?>
+        <?php $this->applyTemplateHook('sidebar-left','end'); ?>
+    </div>
+    <div class="sidebar agent sidebar-right">
+        <?php $this->applyTemplateHook('sidebar-right','begin'); ?>
 
-    <?php if($this->controller->action == 'create'): ?>
-        <div class="widget">
-            <p class="alert info"><?php \MapasCulturais\i::_e("Para adicionar arquivos para download ou links, primeiro é preciso salvar o agente.");?><span class="close"></span></p>
-        </div>
-    <?php endif; ?>
+        <?php if($this->controller->action == 'create'): ?>
+            <div class="widget">
+                <p class="alert info"><?php \MapasCulturais\i::_e("Para adicionar arquivos para download ou links, primeiro é preciso salvar o agente.");?><span class="close"></span></p>
+            </div>
+        <?php endif; ?>
 
-        <?php $this->part('related-admin-agents.php', array('entity'=>$entity)); ?>
-    
-        <?php $this->part('related-agents.php', array('entity'=>$entity)); ?>
-    
-        <?php $this->part('singles/list-entities.php', array('entities'=>$entity->spaces, 'title' => 'entities: Spaces of the agent')); ?>
-    
-        <?php $this->part('singles/list-relations.php', array('entities'=>$entity)); ?>
-    
-        <?php $this->part('singles/list-entities.php', array('entities'=>$entity->projects, 'title' => 'entities: Projects of the agent')); ?>
-    
-        <?php $this->part('singles/list-entities.php', array('entities'=>$entity->children, 'title' => 'entities: Agent children')); ?>
-    
-        <?php $this->part('downloads.php', array('entity'=>$entity)); ?>
-    
-        <?php $this->part('link-list.php', array('entity'=>$entity)); ?>
-    
-        <?php $this->part('history.php', array('entity' => $entity)); ?>
+            <?php $this->part('related-admin-agents.php', array('entity'=>$entity)); ?>
+        
+            <?php $this->part('related-agents.php', array('entity'=>$entity)); ?>
+        
+            <?php $this->part('singles/list-entities.php', array('entities'=>$entity->spaces, 'title' => 'entities: Spaces of the agent')); ?>
+        
+            <?php $this->part('singles/list-relations.php', array('entities'=>$entity)); ?>
+        
+            <?php $this->part('singles/list-entities.php', array('entities'=>$entity->projects, 'title' => 'entities: Projects of the agent')); ?>
+        
+            <?php $this->part('singles/list-entities.php', array('entities'=>$entity->children, 'title' => 'entities: Agent children')); ?>
+        
+            <?php $this->part('downloads.php', array('entity'=>$entity)); ?>
+        
+            <?php $this->part('link-list.php', array('entity'=>$entity)); ?>
+        
+            <?php $this->part('history.php', array('entity' => $entity)); ?>
 
-        <?php $this->applyTemplateHook('sidebar-right','end'); ?>
-</div>
+            <?php $this->applyTemplateHook('sidebar-right','end'); ?>
+    </div>
+</article>

@@ -43,6 +43,8 @@ class Plugin extends \MapasCulturais\EvaluationMethod {
         $app->view->enqueueStyle('app', 'simple-evaluation-method', 'css/simple-evaluation-method.css');
 
         $app->view->jsObject['angularAppDependencies'][] = 'ng.evaluationMethod.simple';
+
+        $app->view->jsObject['evaluationStatus']['simple'] = $this->evaluationStatues;
     }
 
     public function _init()
@@ -122,8 +124,8 @@ class Plugin extends \MapasCulturais\EvaluationMethod {
                 die;
             }
 
-            if (!is_numeric($this->data['to']) || !in_array($this->data['to'], [0,2,3,8,10])) {
-                $this->errorJson(i::__('os status válidos são 0, 2, 3, 8 e 10'), 400);
+            if (!is_numeric($this->data['to']) || !in_array($this->data['to'], [0,1,2,3,8,10])) {
+                $this->errorJson(i::__('os status válidos são 0,1,2, 3, 8 e 10'), 400);
                 die;
             }
 
@@ -230,6 +232,16 @@ class Plugin extends \MapasCulturais\EvaluationMethod {
             
             $this->part('simple--apply-results', ['entity' => $opportunity, 'consolidated_results' => $consolidated_results]);
         });
+    }
+
+    public function getEvaluationStatues()
+    {
+        $status = [
+            'valid' => ['10'],
+            'invalid' => ['2','3', '8']
+        ];
+
+        return $status;
     }
 
     public function _getConsolidatedResult(Entities\Registration $registration) {

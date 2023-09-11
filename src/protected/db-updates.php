@@ -1343,7 +1343,7 @@ $$
         }
     },
 
-    'RECREATE VIEW evaluations AGAIN!' => function() use($conn) {
+    'RECREATE VIEW evaluations AGAIN!!!!!' => function() use($conn) {
         __try("DROP VIEW evaluations");
 
         $conn->executeQuery("
@@ -1396,27 +1396,15 @@ $$
                         NULL AS evaluation_status
                     FROM registration r2 
                         JOIN pcache p2 
-                            ON r2.id = p2.object_id
+                            ON  p2.object_id = r2.id AND
+                                p2.object_type = 'MapasCulturais\Entities\Registration' AND 
+                                p2.action = 'evaluateOnTime'  
                         JOIN usr u2 
                             ON u2.id = p2.user_id
                         JOIN evaluation_method_configuration emc
                             ON emc.opportunity_id = r2.opportunity_id
-
-                        WHERE 
-                            p2.object_type = 'MapasCulturais\Entities\Registration' AND 
-                            p2.action = 'evaluate' AND
-                            
-                            r2.status > 0 AND
-                            r2.status <> 11 AND
-                            p2.user_id IN (
-                                SELECT user_id FROM agent WHERE id in (
-                                    SELECT agent_id 
-                                    FROM agent_relation 
-                                    WHERE 
-                                        object_type = 'MapasCulturais\Entities\EvaluationMethodConfiguration' AND 
-                                        object_id = emc.id
-                                )
-                            ) 
+                        WHERE                          
+                            r2.status > 0
                 ) AS evaluations_view 
                 GROUP BY
                     registration_id,
@@ -1429,6 +1417,35 @@ $$
                     opportunity_id
             )
         ");
+    },
+
+    'adiciona oportunidades na fila de reprocessamento de cache' => function () use($conn) {
+        $sql = "SELECT id from opportunity where parent_id is null and status > 0";
+        foreach($conn->fetchAll($sql) as $em) {
+            __exec("
+                INSERT INTO permission_cache_pending (
+                    id,
+                    object_type,
+                    object_id,
+                    status
+                ) VALUES (
+                    nextval('permission_cache_pending_seq'::regclass), 
+                    'MapasCulturais\Entities\Opportunity',
+                    {$em['id']},
+                    0
+                )");
+        }
+    },
+
+    'adiciona novos indices a tabela agent_relation' => function ()  { 
+        __try("DROP INDEX agent_relation_all;");
+        __try("CREATE INDEX agent_relation_owner_type ON agent_relation (object_type);");
+        __try("CREATE INDEX agent_relation_owner_id ON agent_relation (object_id);");
+        __try("CREATE INDEX agent_relation_owner ON agent_relation (object_type, object_id);");
+        __try("CREATE INDEX agent_relation_owner_agent ON agent_relation (object_type, object_id, agent_id);");
+        __try("CREATE INDEX agent_relation_has_control ON agent_relation (has_control);");
+        __try("CREATE INDEX agent_relation_status ON agent_relation (status);");
+        __try("ALTER INDEX idx_54585edd3414710b RENAME TO agent_relation_agent;");
     },
 
     'valuer disabling refactor' => function() use($conn) {
@@ -1446,6 +1463,7 @@ $$
     'ALTER TABLE metalist ALTER value TYPE TEXT' => function () {
         __exec("ALTER TABLE metalist ALTER value TYPE TEXT;");
     },
+
     'Add metadata to Agent Relation' => function () use($conn) {
         if(__column_exists('agent_relation', 'metadata')){
             return true;
@@ -1728,5 +1746,177 @@ $$
                     AFTER DELETE ON subsite
                     FOR EACH ROW
                     EXECUTE PROCEDURE fn_clean_orphans('MapasCulturais\Entities\Subsite')");
+    },
+    "Remove lixo angular registration_meta" => function() use ($conn){
+
+        $clean_meta = function($meta, $clean_meta){
+            if(is_array($meta)){
+                foreach($meta as $key => $value){
+                    $meta[$key] = $clean_meta($value, $clean_meta);
+                }
+            }else if(is_object($meta)){
+                foreach($meta as $key => $value){
+                    if($key == '$$hashKey'){
+                        unset($meta->$key);
+                    }
+                }
+            }
+            return $meta;
+        };
+
+        $metas = $conn->fetchAll("SELECT * FROM registration_meta WHERE value LIKE '%\$\$hashKey%'");
+        foreach($metas as $i => $meta){
+            $raw_value = json_decode($meta['value']);            
+            $value = json_encode($clean_meta($raw_value, $clean_meta));
+
+            $meta['value'] = ($value == "[{}]") ? "[]" : $value;
+
+            $conn->update("registration_meta", $meta, ['id' => $meta['id']]);
+            
+            echo "\nRemovido hashKey registration_meta id {$meta['id']}";
+        }
+    },
+    "Adiciona coluna avaliableEvaluationFields na tabela opportunity" => function() use ($conn){
+        __exec("ALTER TABLE opportunity ADD avaliable_evaluation_fields JSON DEFAULT NULL;");
+    },
+    "Consede permissão em todos os campo para todos os avaliadores da oportunidade" => function() use ($conn, $app){
+        $opportunity_ids = $conn->fetchAll("SELECT id FROM opportunity WHERE status <> 0 AND status >= -1");
+
+        $fields = [];
+        foreach($opportunity_ids as $key => $id){
+            
+            $cont = $key+1;
+
+            $opp = $app->repo("Opportunity")->findOneBy(['id' => $id['id']]);
+
+            if($opp->avaliableEvaluationFields){
+                $app->log->debug("{$cont} - Oportunidade {$opp->id} já tem configuração definida para os avaliadores");
+                continue;
+            }
+
+            if($opp){
+                $prop = [
+                    'category' => "true",
+                    'projectName' => "true",
+                    'agentsSummary' => "true",
+                    'spaceSummary' => "true",
+                ];
+
+                $fields_conf = $opp->getRegistrationFieldConfigurations();
+                $files_conf = $opp->getRegistrationFileConfigurations();
+
+                foreach($fields_conf as $field){
+                    $fields["field_".$field->id] = "true";
+                }
+
+                foreach($files_conf as $field){
+                    $fields["rfc_".$field->id] = "true";
+                }
+
+                $fields+= $prop;
+
+                $opp->avaliableEvaluationFields = $fields;
+                $opp->save(true);
+                $app->em->clear();
+                $app->log->debug("{$cont} - Configuração de permissão dos avaliadores fetuada na oportunidade {$opp->id}");
+            }
+        
+        }
+
+    },
+    'corrige metadados criados por erro em inscricoes de fases' => function () use ($conn, $app) {
+        $opp_ids = $conn->fetchAll("SELECT id FROM opportunity WHERE parent_id IS NOT NULL");
+        foreach ($opp_ids as $opportunity) {
+            $opportunity_id = $opportunity['id'];
+            
+            $conn->exec("
+                UPDATE registration_meta 
+                SET key = CONCAT('__BKP__', key) 
+                WHERE 
+                    key LIKE 'field_%' AND 
+                    key NOT IN (
+                        SELECT concat('field_',id) 
+                        FROM registration_field_configuration 
+                        WHERE opportunity_id = {$opportunity_id}
+                    ) AND 
+                    object_id IN (
+                        SELECT id 
+                        FROM registration 
+                        WHERE opportunity_id = {$opportunity_id}
+                    );");
+        }
+
+        return false;
+    },
+
+    'alter seal add column locked_fields' => function () {
+        if(!__column_exists('seal', 'locked_fields')) {
+            __exec("ALTER TABLE seal ADD locked_fields JSON DEFAULT '[]'");
+        }
+    },
+    'Corrige config dos campos na entidade registration_fields_configurarion' => function() use ($conn, $app){
+
+        $registration_fields_Types = $app->getRegisteredRegistrationFieldTypes();
+
+        $field_types = [];
+        foreach($registration_fields_Types as $type => $values){
+            if(preg_match('/^@[a-zA-Z0-9\- ]{1,90}/', $values->name)){
+                $field_types[] = "'".trim($values->slug)."'";
+            }
+        }
+        $_field_types = implode(",", $field_types);
+    
+        $fields = $conn->fetchAll("SELECT * FROM registration_field_configuration WHERE field_type NOT IN ({$_field_types}) AND config LIKE '%entityField%'");
+        
+        $txt = "";
+        foreach($fields as $field){
+            $_field = $app->repo("RegistrationFieldConfiguration")->find($field['id']);
+            $config = $_field->config;
+            $txt.='['.$_field->id.' => '.serialize($_field->config).']\n';
+            unset($config['entityField']);
+            array_filter($config);
+            $_field->config = $config;
+            $_field->save(true);
+            $app->log->debug("db-update executado no campo field_{$_field->id}");
+            $app->em->clear();
+        }
+
+        $fileName = "dbupdate_RegistrationFieldConfiguration.txt";
+        $dir = PRIVATE_FILES_PATH . "dbupdate_documento";
+        if (!file_exists($dir)) {
+            mkdir($dir, 775);
+        }
+
+        $path = $dir . "/" . $fileName;
+        $fp = fopen($path, "wb");
+        fwrite($fp, $txt);
+        fclose($fp);
+    },
+    "seta como vazio campo escolaridade do agent caso esteja com valor não informado" => function() use ($conn, $app){
+        /** @var App $app */
+        $app= App::i();
+        $conn = $app->em->getConnection();
+        if($agent_ids = $conn->fetchAll("SELECT am.object_id as id  FROM agent_meta am WHERE am.key = 'escolaridade' AND am.value = 'Não Informar'")){
+            $app->disableAccessControl();
+            foreach($agent_ids as $value){
+                $agent = $app->repo("Agent")->find($value['id']);
+                $agent->escolaridade =  null;
+                $agent->save(true);
+            }
+            $app->enableAccessControl();
+        }
+    },
+    'altera tipo da coluna description na tabela file' => function() use ($conn, $app){
+        $conn->executeQuery("ALTER TABLE file ALTER COLUMN description TYPE text;");
+    },
+    "Adiciona novas coluna na tabela registration_field_configuration" => function() use ($conn){
+        __exec("ALTER TABLE registration_field_configuration ADD conditional  BOOLEAN;");
+        __exec("ALTER TABLE registration_field_configuration ADD conditional_field  VARCHAR(255);");
+        __exec("ALTER TABLE registration_field_configuration ADD conditional_value  VARCHAR(255);");
+    },
+    "Adiciona novas coluna na tabela registration_file_configuration" => function() use ($conn){
+        __exec("ALTER TABLE registration_file_configuration ADD conditional  BOOLEAN;");
+        __exec("ALTER TABLE registration_file_configuration ADD conditional_field  VARCHAR(255);");
+        __exec("ALTER TABLE registration_file_configuration ADD conditional_value  VARCHAR(255);");
     },
 ] + $updates ;

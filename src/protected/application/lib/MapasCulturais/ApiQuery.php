@@ -385,6 +385,7 @@ class ApiQuery {
         
         $this->em = $app->em;
         
+        krsort($api_params);
         $this->apiParams = $api_params;
         
         if(strpos($class, 'MapasCulturais\Entities\Opportunity') === 0 && $this->parentQuery){
@@ -1794,6 +1795,8 @@ class ApiQuery {
                 $this->_limit = $value;
             } elseif (strtolower($key) == '@keyword') {
                 $this->_keyword = $value;
+            } elseif (strtolower($key) == '@permissionsuser') {
+                $this->_permissionsUser = $value;
             } elseif (strtolower($key) == '@permissions') {
                 $this->_addFilterByPermissions($value);
             } elseif (strtolower($key) == '@seals') {
@@ -1829,6 +1832,9 @@ class ApiQuery {
     }
     
     protected function _addFilterBySeals($seals_ids){
+        if(is_string($seals_ids)) {
+            $seals_ids = explode(',', $seals_ids);
+        }
         foreach($seals_ids as $seal){
             $s = intval($seal);
             if($s && !in_array($s, $this->_seals)){
@@ -1839,12 +1845,19 @@ class ApiQuery {
     
     protected $_filteringByPermissions = false;
             
+    protected $_permissionsUser = null;
+
+    protected function _setPermissionsUser($value) {
+        $this->_permissionsUser = $value;
+    }
+
     protected function _addFilterByPermissions($value) {
         $app = App::i();
-        $user = $app->user;
+        $user = $this->_permissionsUser ?
+            $app->repo('User')->find($this->_permissionsUser) :
+            $app->user;
         $this->_permission = trim($value);
         $class = $this->entityClassName;
-        
         if($this->_accessControlEnabled && $this->_permission && !$user->is('saasAdmin')){
             $alias = $this->getAlias('pcache');
             
@@ -1944,9 +1957,9 @@ class ApiQuery {
         ];
         
         $properties = array_merge(
-                    ['terms'],
                     $this->entityProperties,
                     $this->registeredMetadata,
+                    ['terms'],
                     array_keys($this->entityRelations)
                 );
         
@@ -1970,7 +1983,6 @@ class ApiQuery {
         if($select === '*'){
             $select = implode(',', $this->_getAllPropertiesNames());
         }
-        
         $replacer = function ($select, $prop, $_subquery_select, $_subquery_match){
             $replacement = $this->_preCreateSelectSubquery($prop, $_subquery_select, $_subquery_match);
             if(is_null($replacement)){
@@ -2000,8 +2012,23 @@ class ApiQuery {
             $select = $replacer($select, $prop, $_subquery_select, $_subquery_match);
         }
 
-        $this->_selecting = array_unique(explode(',', $select));
+        
+        $this->_selecting = [];
+        $selecting = array_unique(explode(',', $select));
+        
+        sort($selecting);
 
+        foreach($this->_getAllPropertiesNames() as $prop) {
+            if(in_array($prop, $selecting)) {
+                $this->_selecting[] = $prop;
+            }
+        }
+
+        foreach($selecting as $prop) {
+            if(!in_array($prop, $this->_selecting)) {
+                $this->_selecting[] = $prop;
+            }
+        }
 
         if($this->_selectAll){
             foreach($this->_getAllPropertiesNames() as $k){

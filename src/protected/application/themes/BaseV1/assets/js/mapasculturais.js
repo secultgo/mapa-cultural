@@ -8,10 +8,24 @@ function charCounter(obj) {
     $('#charCounter').text(($(obj).val().length + '/' + max[1]));
 }
 
-function toggleAttachedModal(el, modal_id) {
-    $("div#" + modal_id).toggle();
+function toggleEventModal(){
+    var modal = $("#evt-date-local").siblings().find('div').attr('id');
+    $("div#" + modal).toggle();
     $("#evt-date-local").toggle();
 }
+
+$(document).
+    on('click', '.btn-toggle-attached-modal', function () {
+        var modal = $("#evt-date-local").siblings().find('div').attr('id');
+        if (modal) {
+            toggleEventModal();
+        }
+    }).
+    on('click', '.close-attached-modal', function() {
+        var modal = $(this).data('form-id');
+        toggleEventModal();
+});
+
 
 function copyToClipboard(element) {
     if (document.selection) {
@@ -272,14 +286,14 @@ $(function () {
         });
     }
 
-    function setEvaluationFormHeight() {
+    /* function setEvaluationFormHeight() {
         var h = $(window).height() - $('#main-header').height();
         $('#registration-evaluation-form').height(h - 50);
     }
 
     setEvaluationFormHeight();
 
-    $(window).resize(setEvaluationFormHeight);
+    $(window).resize(setEvaluationFormHeight); */
 });
 
 //Restart entity form
@@ -936,16 +950,21 @@ MapasCulturais.AjaxUploader = {
                                 break;
 
                             case 'append':
-                                for (var i in response[group]) {
-
-                                    if (!response[group][i].description)
-                                        response[group][i].description = response[group][i].name;
-
-                                    var html = Mustache.render(template, response[group][i]);
+                                if(response[group].length > 0){
+                                    for (var i in response[group]) {
+                                        if (!response[group][i].description)
+                                            response[group][i].description = response[group][i].name;
+    
+                                        var html = Mustache.render(template, response[group][i]);
+                                        $target.append(html);
+                                    }
+                                }else{
+                                    var html = Mustache.render(template, response[group]);
                                     $target.append(html);
                                 }
                                 break;
-
+                            default:
+                                break;
                         }
                     }
                     $form.trigger('ajaxForm.success', [response]);

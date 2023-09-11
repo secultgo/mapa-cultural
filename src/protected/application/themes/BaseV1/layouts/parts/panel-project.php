@@ -31,11 +31,14 @@
         <?php endif; ?>
 	</div>
     <div class="entity-actions">
+        <?php $this->applyTemplateHook('entity-actions','begin', [ $entity ]); ?>
         <a class="btn btn-small btn-primary" href="<?php echo $entity->editUrl; ?>"><?php \MapasCulturais\i::_e("editar");?></a>
 
         <?php if(!isset($only_edit_button)): ?>
             <?php if($entity->status === \MapasCulturais\Entities\Project::STATUS_ENABLED): ?>
-                <a class="btn btn-small btn-danger" href="<?php echo $entity->deleteUrl; ?>"><?php \MapasCulturais\i::_e("excluir");?></a>
+                <?php if($entity->canUser('remove')): ?>
+                    <a class="btn btn-small btn-danger" href="<?php echo $entity->deleteUrl; ?>"><?php \MapasCulturais\i::_e("excluir");?></a>
+                <?php endif; ?>
                 <a class="btn btn-small btn-success" href="<?php echo $entity->archiveUrl; ?>"><?php \MapasCulturais\i::_e("arquivar");?></a>
 
             <?php elseif ($entity->status === \MapasCulturais\Entities\Project::STATUS_DRAFT): ?>
@@ -55,5 +58,6 @@
                     <?php endif; ?>
             <?php endif; ?>
         <?php endif; ?>
+        <?php $this->applyTemplateHook('entity-actions','end', [ $entity ]); ?>
     </div>
 </article>

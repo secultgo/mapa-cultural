@@ -667,7 +667,7 @@ class Controller extends \MapasCulturais\Controller
         } else {
             foreach ($result as $item) {
                 
-                $color = $this->getChartColors();
+                $color = $module->getChartColors();
 
                 $color[] = $color[0];
                 $labels[] = $this->generateLabel($item["value0"], $typeA, $em);
@@ -689,10 +689,22 @@ class Controller extends \MapasCulturais\Controller
 
         switch ($statusValue) {
             case 'all':
-                $status = '> 0';
+                $status = '>= 0';
                 break;
             case 'draft':
                 $status = '= 0';
+                break;
+            case 'send':
+                $status = ' >= 1';
+                break;
+            case 'invalid':
+                $status = '= 2';
+                break;
+            case 'notapproved':
+                $status = '= 3';
+                break;
+            case 'waitlist':
+                $status = '= 8';
                 break;
             case 'approved':
                 $status = '= 10';
@@ -789,7 +801,7 @@ class Controller extends \MapasCulturais\Controller
         if (empty($ctes)) {
             return "";
         }
-        $joins = "LEFT OUTER JOIN table0 ON r.id = table0.object_id ";
+        $joins = "LEFT OUTER JOIN table0 ON r.number = table0.number ";
         $i = ($tables[0] == "registration") ? 1 : 0;
         if ($this->queryMatchAgent($tables[$i], $types[$i])) {
             $joins = ($tables[$i] == "agent") ? "" : "LEFT OUTER ";
@@ -801,8 +813,8 @@ class Controller extends \MapasCulturais\Controller
                             "" : "LEFT OUTER ");
                 $joins .= "JOIN table1 ON r.agent_id = table1.object_id ";
             } else {
-                $joins .= ("LEFT OUTER JOIN table1 ON r.id = " .
-                            "table1.object_id ");
+                $joins .= ("LEFT OUTER JOIN table1 ON r.number = " .
+                            "table1.number ");
             }
         }
         return $joins;
@@ -886,7 +898,7 @@ class Controller extends \MapasCulturais\Controller
         $spaceType = "object_type = 'MapasCulturais\\Entities\\Space'";
         // CTEs by source table (considering owner agent)
         $ctes = [
-            "registration_meta" => "(SELECT $tbCode.object_id, $tbCode.value FROM $table $tbCode WHERE $tbCode.key = '$field')",
+            "registration_meta" => "(SELECT rg.number, $tbCode.value FROM $table $tbCode JOIN registration rg ON rg.id = $tbCode.object_id WHERE $tbCode.key = '$field')",
             "agent" => "(SELECT $tbCode.id AS object_id, $tbCode.$field%s FROM $table $tbCode)",
             "agent_meta" => "(SELECT $tbCode.object_id, $tbCode.value FROM $table $tbCode WHERE $tbCode.key = '$field')",
             "space" => "(SELECT sr.object_id, $tbCode.$field%s FROM space_relation sr JOIN $table $tbCode ON sr.space_id = $tbCode.id WHERE sr.$regType)",
@@ -1024,11 +1036,21 @@ class Controller extends \MapasCulturais\Controller
         }
         $fields[] = $this->fieldDefinition(i::__("Status"), "status", "r", 'status');
         $fields[] = $this->fieldDefinition(i::__("Avaliação"), "consolidated_result", "r", "valueToString");
-        foreach ($opportunity->registrationFieldConfigurations as $value) {
-            if ($value->fieldType == "select") {
-                $fields[] = $this->fieldDefinition($value->title, $value->fieldName, "rm");
+        
+        $opportunities[] = $opportunity;
+        $previous = $opportunity->previousPhases;
+        foreach($previous as $phase){
+            $opportunities[] = $phase;
+        }
+
+        foreach($opportunities as $_opportunity){
+            foreach ($_opportunity->registrationFieldConfigurations as $value) {
+                if ($value->fieldType == "select") {
+                    $fields[] = $this->fieldDefinition($value->title, $value->fieldName, "rm");
+                }
             }
         }
+        
         $agentClass = Agent::getClassName();
         $fields[] = $this->fieldDefinition(i::__("Faixa etária"), "dataDeNascimento", "am", "dateToAge");
         $this->getEntitySelectFields($fields, "owner", $agentClass, "a", $fieldsUse["agent"]); 
@@ -1185,7 +1207,7 @@ class Controller extends \MapasCulturais\Controller
         $generate_colors = [];
         foreach (array_keys($series) as $label) {
 
-            $color = $this->getChartColors();
+            $color = $module->getChartColors();
 
             $current = [
                 "label" => $label,

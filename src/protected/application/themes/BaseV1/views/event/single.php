@@ -1,4 +1,6 @@
 <?php
+use MapasCulturais\i;
+
 $action = preg_replace("#^(\w+/)#", "", $this->template);
 $this->bodyProperties['ng-app'] = "entity.app";
 $this->bodyProperties['ng-controller'] = "EntityController";
@@ -112,31 +114,72 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
 
         <!--.header-image-->
         <?php $this->applyTemplateHook('header-content','before'); ?>
-        <div class="header-content">
-            <?php $this->applyTemplateHook('header-content','begin'); ?>
+        <div class="container-card">
+            <div class="header-content">
+                <?php $this->applyTemplateHook('header-content','begin'); ?>
 
-            <?php $this->part('singles/avatar', ['entity' => $entity, 'default_image' => 'img/avatar--event.png']); ?>
-            <!--.avatar-->
-            <div class="entity-type event-type">
-                <div class="icon icon-event"></div>
-                <a href="#" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Evento");?></a>
+                <?php $this->part('singles/avatar', ['entity' => $entity, 'default_image' => 'img/avatar--event.png']); ?>
+                <!--.avatar-->
+                <div class="entity-type event-type">
+                    <div class="icon icon-event"></div>
+                    <a href="#" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Evento");?></a>
+                </div>
+                <!--.entity-type-->
+
+                <?php $this->part('singles/name', ['entity' => $entity]) ?>           
+
+                <?php if ($this->isEditable() || $entity->subTitle): ?>
+                    <?php $this->applyTemplateHook('subtitle','before'); ?>
+                    <h4 class="event-subtitle">
+                        <span class="js-editable <?php echo ($entity->isPropertyRequired($entity,"subTitle") && $editEntity? 'required': '');?>" data-edit="subTitle" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Subtítulo");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Insira um subtítulo para o evento");?>" data-tpl='<input tyle="text" maxlength="140"></textarea>'><?php echo $entity->subTitle; ?></span>
+                    </h4>
+                    <?php $this->applyTemplateHook('subtitle','after'); ?>
+                <?php endif; ?>
+                <hr style="margin: 0; margin-top: 5px; margin-bottom: 5px;">
+                <div class="widget areas">
+                    <div class="widget card-event"> 
+                            <h3><?php \MapasCulturais\i::_e("Linguagens");?></h3>
+                            <?php if ($this->isEditable()): ?>
+                                <span id="term-linguagem" class="js-editable-taxonomy" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Linguagens");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Selecione pelo menos uma linguagem");?>" data-restrict="true" data-taxonomy="linguagem"><?php echo implode('; ', $entity->terms['linguagem']) ?></span>
+                            <?php else: ?>
+                                <?php $linguagens = array_values($app->getRegisteredTaxonomy($entity->getClassName(), 'linguagem')->restrictedTerms); sort($linguagens); ?>
+                                <?php foreach ($linguagens as $i => $t): if(in_array($t, $entity->terms['linguagem'])): ?>
+                                    <a class="tag tag-event" href="<?php echo $app->createUrl('site', 'search') ?>##(event:(linguagens:!(<?php echo $i ?>)),global:(enabled:(event:!t),filterEntity:event))"><?php echo $t ?></a>
+                                <?php endif; endforeach; ?>
+                            <?php endif; ?>
+                    </div>
+                    
+                </div>
+
+                <?php $this->applyTemplateHook('header-content','end'); ?>
             </div>
-            <!--.entity-type-->
+            <!--.header-content-->
 
-            <?php $this->part('singles/name', ['entity' => $entity]) ?>
-
-            <?php if ($this->isEditable() || $entity->subTitle): ?>
-                <?php $this->applyTemplateHook('subtitle','before'); ?>
-                <h4 class="event-subtitle">
-                    <span class="js-editable <?php echo ($entity->isPropertyRequired($entity,"subTitle") && $editEntity? 'required': '');?>" data-edit="subTitle" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Subtítulo");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Insira um subtítulo para o evento");?>" data-tpl='<input tyle="text" maxlength="140"></textarea>'><?php echo $entity->subTitle; ?></span>
-                </h4>
-                <?php $this->applyTemplateHook('subtitle','after'); ?>
-            <?php endif; ?>
-
-            <?php $this->applyTemplateHook('header-content','end'); ?>
+            <?php $this->applyTemplateHook('header-content','after'); ?>
+            <div class="tags">
+                        <?php $this->part('widget-tags', array('entity'=>$entity)); ?>
+            </div>
+            <?php if($this->isEditable() && $entity->shortDescription && mb_strlen($entity->shortDescription) > 400): ?>
+                    <div class="alert warning"><?php \MapasCulturais\i::_e("O limite de caracteres da descrição curta foi diminuido para 400, mas seu texto atual possui");?> <?php echo mb_strlen($entity->shortDescription) ?> <?php \MapasCulturais\i::_e("caracteres. Você deve alterar seu texto ou este será cortado ao salvar.");?></div>
+                <?php endif; ?>
+                <div class="widget">
+                    <?php if ($this->isEditable() || $entity->shortDescription): ?>
+                        <h3 class=" <?php echo ($entity->isPropertyRequired($entity,"shortDescription") && $editEntity? 'required': '');?>"> <?php \MapasCulturais\i::_e("Descrição curta");?> <?php if($this->isEditable()){ ?>(<span data-element='countLength'><?=mb_strlen($entity->shortDescription)?></span><?php \MapasCulturais\i::_e("/400 Caracteres)");?></span><?php } ?></h3>
+                        <span class="js-editable" data-edit="shortDescription" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Descrição Curta");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Insira uma descrição curta para o evento");?>" data-tpl='<textarea data-element="shortDescription" maxlength="400"></textarea>'><?php echo $this->isEditable() ? $entity->shortDescription : nl2br($entity->shortDescription); ?></span>
+                    <?php endif; ?>
+                    </div>
+                <?php if ($this->isEditable() || $entity->site): ?>
+                        <div class="widget"><h3 <?php echo ($entity->isPropertyRequired($entity,"site") && $editEntity? 'required': '');?>"><?php \MapasCulturais\i::_e("Site");?></h3>
+                            <?php if ($this->isEditable()): ?>
+                                <span class="js-editable" data-edit="site" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Site");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Informe o endereço do site do evento");?>"><?php echo $entity->site; ?></span>
+                        <?php else: ?>
+                            <a class="url" href="<?php echo $entity->site; ?>"><?php echo $entity->site; ?></a>
+                        <?php endif; ?>
+                        </div>
+                <?php endif; ?>
+                
+            <?php $this->part('redes-sociais', array('entity'=>$entity)); ?>
         </div>
-        <!--.header-content-->
-        <?php $this->applyTemplateHook('header-content','after'); ?>
     </header>
     <!--.main-content-header-->
     <?php $this->applyTemplateHook('header','after'); ?>
@@ -144,9 +187,9 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
     <?php $this->applyTemplateHook('tabs','before'); ?>
     <ul class="abas clearfix clear">
         <?php $this->applyTemplateHook('tabs','begin'); ?>
-        <li class="active"><a href="#sobre" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Sobre");?></a></li>
+        <?php $this->part('tab', ['id' => 'sobre', 'label' => i::__("Sobre"), 'active' => true]) ?>
         <?php if(!($this->controller->action === 'create')):?>
-        <li><a href="#permissao" rel='noopener noreferrer'><?php \MapasCulturais\i::_e("Responsáveis");?></a></li>
+            <?php $this->part('tab', ['id' => 'permissao', 'label' => i::__("Responsáveis")]) ?>
         <?php endif;?>
         <?php $this->applyTemplateHook('tabs','end'); ?>
     </ul>
@@ -158,15 +201,7 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
         <div id="sobre" class="aba-content">
             <?php $this->applyTemplateHook('tab-about','begin'); ?>
             <div class="ficha-spcultura">
-                <?php if($this->isEditable() && $entity->shortDescription && strlen($entity->shortDescription) > 2000): ?>
-                    <div class="alert warning"><?php \MapasCulturais\i::_e("O limite de caracteres da descrição curta foi diminuido para 400, mas seu texto atual possui");?> <?php echo strlen($entity->shortDescription) ?> <?php \MapasCulturais\i::_e("caracteres. Você deve alterar seu texto ou este será cortado ao salvar.");?></div>
-                <?php endif; ?>
-                <p>
-                    <?php if ($this->isEditable() || $entity->shortDescription): ?>
-                        <span class="label <?php echo ($entity->isPropertyRequired($entity,"shortDescription") && $editEntity? 'required': '');?>"><?php \MapasCulturais\i::_e("Descrição Curta");?>:</span><br>
-                        <span class="js-editable" data-edit="shortDescription" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Descrição Curta");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Insira uma descrição curta para o evento");?>" data-tpl='<textarea maxlength="400"></textarea>'><?php echo $this->isEditable() ? $entity->shortDescription : nl2br($entity->shortDescription); ?></span>
-                    <?php endif; ?>
-                </p>
+                
                 <?php $this->applyTemplateHook('tab-about-service','before'); ?>
                 <div class="servico">
                     <?php $this->applyTemplateHook('tab-about-service','begin'); ?>
@@ -178,14 +213,7 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
                         <p><span class="label <?php echo ($entity->isPropertyRequired($entity,"classificacaoEtaria") && $editEntity? 'required': '');?>"><?php \MapasCulturais\i::_e("Classificação Etária");?>: </span><span class="js-editable" data-edit="classificacaoEtaria" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Classificação Etária");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Informe a classificação etária do evento");?>"><?php echo $entity->classificacaoEtaria; ?></span></p>
                     <?php endif; ?>
 
-                    <?php if ($this->isEditable() || $entity->site): ?>
-                        <p><span class="label <?php echo ($entity->isPropertyRequired($entity,"site") && $editEntity? 'required': '');?>"><?php \MapasCulturais\i::_e("Site");?>:</span>
-                            <?php if ($this->isEditable()): ?>
-                                <span class="js-editable" data-edit="site" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Site");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Informe o endereço do site do evento");?>"><?php echo $entity->site; ?></span></p>
-                        <?php else: ?>
-                            <a class="url" href="<?php echo $entity->site; ?>"><?php echo $entity->site; ?></a>
-                        <?php endif; ?>
-                    <?php endif; ?>
+                    
 
                     <?php if($this->isEditable() || $entity->telefonePublico): ?>
                         <p><span class="label <?php echo ($entity->isPropertyRequired($entity,"telefonePublico") && $editEntity? 'required': '');?>"><?php \MapasCulturais\i::_e("Mais Informações");?>:</span> <span class="js-editable js-mask-phone" data-edit="telefonePublico" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Mais Informações");?>" data-emptytext="(000) 0000-0000"><?php echo $entity->telefonePublico; ?></span></p>
@@ -369,81 +397,73 @@ $editEntity = $this->controller->action === 'create' || $this->controller->actio
     <?php $this->applyTemplateHook('main-content','end'); ?>
 </article>
 <!--.main-content-->
-<div class="sidebar-left sidebar event">
-    <?php $this->applyTemplateHook('sidebar-left','begin'); ?>
-    
-    <?php $this->part('related-seals.php', array('entity'=>$entity)); ?>
+<article id="sidebars">
+    <div class="sidebar-left sidebar event">
+        <?php $this->applyTemplateHook('sidebar-left','begin'); ?>
+        
+        <?php $this->part('related-seals.php', array('entity'=>$entity)); ?>
 
-    <?php if($this->isEditable()): ?>
-        <div class="widget">
-            <h3><?php \MapasCulturais\i::_e("Projeto");?></h3>
-            <?php if($request_project): $proj = $request_project->destination; ?>
-                <a href="<?php echo $proj->singleUrl ?>"><?php echo $proj->name ?></a>
-            <?php else: ?>
-                <a class="js-search js-include-editable"
-                    data-field-name='projectId'
-                    data-emptytext="<?php \MapasCulturais\i::esc_attr_e('Selecione um projeto'); ?>"
-                    data-search-box-width="400px"
-                    data-search-box-placeholder="<?php \MapasCulturais\i::esc_attr_e('Selecione um projeto'); ?>"
-                    data-entity-controller="project"
-                    data-search-result-template="#agent-search-result-template"
-                    data-selection-template="#agent-response-template"
-                    data-no-result-template="#agent-response-no-results-template"
-                    data-selection-format="chooseProject"
-                    data-multiple="true"
-                    data-allow-clear="1"
-                    data-auto-open="true"
-                    data-value="<?php echo $entity->project ? $entity->project->id : ''; ?>"
-                    data-value-name="<?php echo $entity->project ? $entity->project->name : ''; ?>"
-                    title="<?php \MapasCulturais\i::esc_attr_e('Selecionar um Projeto'); ?>">
-                    <?php echo $entity->project ? $entity->project->name : ''; ?>
-                </a>
-            <?php endif; ?>
-            <span class="warning pending js-pending-project hltip" data-hltip-classes="hltip-warning" hltitle="<?php \MapasCulturais\i::esc_attr_e("Aguardando confirmação");?>" <?php if(!$request_project) echo 'style="display:none"'; ?>></span>
-        </div>
-    <?php elseif($entity->project): ?>
-        <div class="widget">
-            <h3><?php \MapasCulturais\i::_e("Projeto");?></h3>
-            <a class="event-project-link" href="<?php echo $entity->project->singleUrl; ?>"><?php echo $entity->project->name; ?></a>
-        </div>
-    <?php endif; ?>
-    <div class="widget">
-        <h3><?php \MapasCulturais\i::_e("Linguagens");?></h3>
-        <?php if ($this->isEditable()): ?>
-            <span id="term-linguagem" class="js-editable-taxonomy" data-original-title="<?php \MapasCulturais\i::esc_attr_e("Linguagens");?>" data-emptytext="<?php \MapasCulturais\i::esc_attr_e("Selecione pelo menos uma linguagem");?>" data-restrict="true" data-taxonomy="linguagem"><?php echo implode('; ', $entity->terms['linguagem']) ?></span>
-        <?php else: ?>
-            <?php $linguagens = array_values($app->getRegisteredTaxonomy($entity->getClassName(), 'linguagem')->restrictedTerms); sort($linguagens); ?>
-            <?php foreach ($linguagens as $i => $t): if(in_array($t, $entity->terms['linguagem'])): ?>
-                <a class="tag tag-event" href="<?php echo $app->createUrl('site', 'search') ?>##(event:(linguagens:!(<?php echo $i ?>)),global:(enabled:(event:!t),filterEntity:event))"><?php echo $t ?></a>
-            <?php endif; endforeach; ?>
+        <?php if($this->isEditable()): ?>
+            <div class="widget">
+                <h3><?php \MapasCulturais\i::_e("Projeto");?></h3>
+                <?php if($request_project): $proj = $request_project->destination; ?>
+                    <a href="<?php echo $proj->singleUrl ?>"><?php echo $proj->name ?></a>
+                <?php else: ?>
+                    <a class="js-search js-include-editable"
+                        data-field-name='projectId'
+                        data-emptytext="<?php \MapasCulturais\i::esc_attr_e('Selecione um projeto'); ?>"
+                        data-search-box-width="400px"
+                        data-search-box-placeholder="<?php \MapasCulturais\i::esc_attr_e('Selecione um projeto'); ?>"
+                        data-entity-controller="project"
+                        data-search-result-template="#agent-search-result-template"
+                        data-selection-template="#agent-response-template"
+                        data-no-result-template="#agent-response-no-results-template"
+                        data-selection-format="chooseProject"
+                        data-multiple="true"
+                        data-allow-clear="1"
+                        data-auto-open="true"
+                        data-value="<?php echo $entity->project ? $entity->project->id : ''; ?>"
+                        data-value-name="<?php echo $entity->project ? $entity->project->name : ''; ?>"
+                        title="<?php \MapasCulturais\i::esc_attr_e('Selecionar um Projeto'); ?>">
+                        <?php echo $entity->project ? $entity->project->name : ''; ?>
+                    </a>
+                <?php endif; ?>
+                <span class="warning pending js-pending-project hltip" data-hltip-classes="hltip-warning" hltitle="<?php \MapasCulturais\i::esc_attr_e("Aguardando confirmação");?>" <?php if(!$request_project) echo 'style="display:none"'; ?>></span>
+            </div>
+        <?php elseif($entity->project): ?>
+            <div class="widget">
+                <h3><?php \MapasCulturais\i::_e("Projeto");?></h3>
+                <a class="event-project-link" href="<?php echo $entity->project->singleUrl; ?>"><?php echo $entity->project->name; ?></a>
+            </div>
         <?php endif; ?>
+    
+        
+        
+
+        <?php $this->applyTemplateHook('sidebar-left','end'); ?>
     </div>
-    <?php $this->part('widget-tags', array('entity'=>$entity)); ?>
-    <?php $this->part('redes-sociais', array('entity'=>$entity)); ?>
+    <div class="sidebar event sidebar-right">
+        <?php $this->applyTemplateHook('sidebar-right','begin'); ?>
 
-    <?php $this->applyTemplateHook('sidebar-left','end'); ?>
-</div>
-<div class="sidebar event sidebar-right">
-    <?php $this->applyTemplateHook('sidebar-right','begin'); ?>
+        <?php if($this->controller->action == 'create'): ?>
+            <div class="widget">
+                <p class="alert info"><?php \MapasCulturais\i::_e("Para adicionar arquivos para download ou links, primeiro é preciso salvar o evento");?>.<span class="close"></span></p>
+            </div>
+        <?php endif; ?>
 
-    <?php if($this->controller->action == 'create'): ?>
-        <div class="widget">
-            <p class="alert info"><?php \MapasCulturais\i::_e("Para adicionar arquivos para download ou links, primeiro é preciso salvar o evento");?>.<span class="close"></span></p>
-        </div>
-    <?php endif; ?>
+        <?php $this->part('related-admin-agents.php', array('entity'=>$entity)); ?>
+        
+        <?php $this->part('related-agents.php', array('entity' => $entity)); ?>
+        
+        <?php $this->part('downloads.php', array('entity' => $entity)); ?>
+        
+        <?php $this->part('link-list.php', array('entity' => $entity)); ?>
+        
+        <?php $this->part('history.php', array('entity' => $entity)); ?>
 
-    <?php $this->part('related-admin-agents.php', array('entity'=>$entity)); ?>
-    
-    <?php $this->part('related-agents.php', array('entity' => $entity)); ?>
-    
-    <?php $this->part('downloads.php', array('entity' => $entity)); ?>
-    
-    <?php $this->part('link-list.php', array('entity' => $entity)); ?>
-    
-    <?php $this->part('history.php', array('entity' => $entity)); ?>
-
-    <?php $this->applyTemplateHook('sidebar-right','end'); ?>
-</div>
+        <?php $this->applyTemplateHook('sidebar-right','end'); ?>
+    </div>
+</article>
 <?php if ($this->isEditable()): ?>
 
     <?php $this->part('modal/event-occurrence-form', array('entity' => $entity)); ?>
