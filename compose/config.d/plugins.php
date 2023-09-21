@@ -6,6 +6,7 @@ return [
         'EvaluationMethodSimple' => ['namespace' => 'EvaluationMethodSimple'],
         'EvaluationMethodDocumentary' => ['namespace' => 'EvaluationMethodDocumentary'],
         'MultipleLocalAuth' => [ 'namespace' => 'MultipleLocalAuth' ],
+        /**
         'AldirBlanc' => [
             'namespace' => 'AldirBlanc',
             'config' => [
@@ -117,6 +118,7 @@ return [
         ],
         //'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
+        */
         'ExportCsvWithFieldsSelecteds' => ['namespace' => 'ExportCsvWithFieldsSelecteds']
     ],
 ];
