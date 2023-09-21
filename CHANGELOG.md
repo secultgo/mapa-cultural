@@ -4,18 +4,36 @@ Todas as mudanças notáveis no projeto serão documentadas neste arquivo.
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/)
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.6] - 2023-09-12
+### Melhorias
+-  Permite que a busca de agentes no gerenciador de usuários faça busca pelo nomeCompleto, nomeSocial, CPF e agentes ainda em rascunho
+
+## [5.7.5] - 2023-08-28
+### Correções
+- Cria mc-update para atualizar dados legados para a nova estrutura de condicionalidade de campos
+- Corrige importação de formularios para interpretar a nova estrutura de condicionalidade de campos
+
+## [5.7.4] - 2023-08-24
+### Melhorias
+- atualização das bibliotecas PHP para as últimas versões compatíveis com o PHP 7.2
+
+## [5.7.3] - 2023-08-23
+### Correções
+- Corrige a altura dos gráficos de linha do módulo de relatorios das oportunidades
+
 ## [5.7.1] - 2023-07-21
-## Correções
+### Correções
 - Ajusta CSS do sidebar direito para evitar que o header sobrescreva os conteúdos dos editbox
 
 ## [5.7.0] - 2023-07-13
-## Novas Funcionalidades
+### Novas Funcionalidades
 - Implementa novo método de avaliação EvaluationMethodQualification
 - Implementa opção para condicionar campos do tipo a nexos
-## Melhorias
+### Melhorias
 - Ajusta definição de cores na listagem de avaliações na tela do avaliador nos métodos simples e documental
 - Ajusta estrutura de condicionalidade de campo criando colunas específicas na tabela registration_field_configuration
 - Não obriga mais um campos ser obrigatorio para ser condicionado a outro campo
+
 ## [5.6.21] - 2023-07-13
 ### Melhorias
 - Faz refatorações para que o módulo de relatório busque campo da fase em questão e tambem fases anteriores

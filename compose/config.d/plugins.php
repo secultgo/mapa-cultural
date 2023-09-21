@@ -115,7 +115,7 @@ return [
                 'exportador_requer_homologacao' => true,
             ],
         ],
-        'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
+        //'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
         'ExportCsvWithFieldsSelecteds' => ['namespace' => 'ExportCsvWithFieldsSelecteds']
     ],
