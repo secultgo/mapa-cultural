@@ -6,6 +6,7 @@ return [
         'EvaluationMethodSimple' => ['namespace' => 'EvaluationMethodSimple'],
         'EvaluationMethodDocumentary' => ['namespace' => 'EvaluationMethodDocumentary'],
         'MultipleLocalAuth' => [ 'namespace' => 'MultipleLocalAuth' ],
+        /**
         'AldirBlanc' => [
             'namespace' => 'AldirBlanc',
             'config' => [
@@ -115,8 +116,9 @@ return [
                 'exportador_requer_homologacao' => true,
             ],
         ],
-        'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
+        //'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
+        */
         'ExportCsvWithFieldsSelecteds' => ['namespace' => 'ExportCsvWithFieldsSelecteds']
     ],
 ];
