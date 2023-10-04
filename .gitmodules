@@ -24,3 +24,6 @@
 [submodule "src/protected/application/plugins/MapasBlame"]
 	path = src/protected/application/plugins/MapasBlame
 	url = https://github.com/mapasculturais/plugin-MapasBlame
+[submodule "src/protected/application/plugins/ClaimForm"]
+	path = src/protected/application/plugins/ClaimForm
+	url = https://github.com/mapasculturais/plugin-ClaimForm
