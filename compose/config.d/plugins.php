@@ -120,7 +120,7 @@ return [
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
         */
         'MapasBlame' => ['namespace' => 'MapasBlame'],
-        'ClaimForm' => ['ClaimForm' => 'ClaimForm'],
+        'ClaimForm' => ['namespace' => 'ClaimForm'],
         'ExportCsvWithFieldsSelecteds' => ['namespace' => 'ExportCsvWithFieldsSelecteds']
     ],
 ];
