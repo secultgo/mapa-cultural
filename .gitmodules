@@ -21,3 +21,9 @@
 [submodule "src/protected/application/plugins/AldirBlancValidadorRecurso"]
 	path = src/protected/application/plugins/AldirBlancValidadorRecurso
 	url = https://codigo.dev.tools.go.gov.br/mapa-cultural/plugin-validador-recurso-go
+[submodule "src/protected/application/plugins/MapasBlame"]
+	path = src/protected/application/plugins/MapasBlame
+	url = https://github.com/mapasculturais/plugin-MapasBlame
+[submodule "src/protected/application/plugins/ClaimForm"]
+	path = src/protected/application/plugins/ClaimForm
+	url = https://github.com/mapasculturais/plugin-ClaimForm
