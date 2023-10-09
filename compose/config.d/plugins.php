@@ -119,6 +119,8 @@ return [
         //'RegistrationPayments' => [ 'namespace' => 'RegistrationPayments' ],
         'AldirBlancValidadorRecurso' => [ 'namespace' => 'AldirBlancValidadorRecurso' ],
         */
+        'MapasBlame' => ['namespace' => 'MapasBlame'],
+        //'ClaimForm' => ['namespace' => 'ClaimForm'],
         'ExportCsvWithFieldsSelecteds' => ['namespace' => 'ExportCsvWithFieldsSelecteds']
     ],
 ];
